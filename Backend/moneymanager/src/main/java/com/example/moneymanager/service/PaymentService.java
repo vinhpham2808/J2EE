@@ -34,6 +34,8 @@ public class PaymentService {
     private final ProfileService profileService;
     private final SubscriptionService subscriptionService;
     private final NotificationService notificationService;
+    private final EmailService emailService;
+    private final PdfReceiptService pdfReceiptService;
 
     @Value("${payos.return-url}")
     private String returnUrl;
@@ -211,6 +213,19 @@ public class PaymentService {
             subscriptionService.activatePaidSubscription(paymentEntity.getProfile(), paymentEntity.getPlanId());
             if (!wasPaidBefore) {
                 notificationService.notifyPaymentSuccess(paymentEntity.getProfile(), paymentEntity.getPlanName());
+                try {
+                    byte[] pdfBytes = pdfReceiptService.generatePaymentReceipt(paymentEntity);
+                    String fullName = paymentEntity.getProfile().getFullName() != null ? paymentEntity.getProfile().getFullName() : "Quý khách";
+                    String subject = "Biên lai thanh toán dịch vụ - MoneyManager";
+                    String body = "Kính gửi " + fullName + ",\n\n"
+                            + "Cảm ơn bạn đã sử dụng dịch vụ của MoneyManager.\n"
+                            + "Giao dịch thanh toán gói " + paymentEntity.getPlanName() + " (Mã ĐH: " + paymentEntity.getOrderCode() + ") của bạn đã hoàn tất thành công.\n"
+                            + "Vui lòng kiểm tra file biên lai định dạng PDF được đính kèm trong email này.\n\n"
+                            + "Trân trọng,\nMoneyManager Team";
+                    emailService.sendEmailWithAttachment(paymentEntity.getProfile().getEmail(), subject, body, pdfBytes, "Bien_lai_" + paymentEntity.getOrderCode() + ".pdf");
+                } catch (Exception e) {
+                    System.err.println("Lỗi khi tạo và gửi PDF biên lai cho giao dịch " + paymentEntity.getOrderCode() + ": " + e.getMessage());
+                }
             }
         }
     }

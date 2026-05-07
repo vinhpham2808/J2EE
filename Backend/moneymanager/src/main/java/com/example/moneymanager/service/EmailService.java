@@ -8,6 +8,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,6 +20,7 @@ public class EmailService {
     @Value("${spring.mail.properties.mail.smtp.from}")
     private String fromEmail;
 
+    @Async
     public void sendEmail(String to, String subject, String body) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
@@ -32,6 +34,7 @@ public class EmailService {
         }
     }
 
+    @Async
     public void sendHtmlEmail(String to, String subject, String htmlBody) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -47,6 +50,7 @@ public class EmailService {
         }
     }
 
+    @Async
     public void sendEmailWithAttachment(String to, String subject, String body, byte[] attachment, String filename) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);

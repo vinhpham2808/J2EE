@@ -1,9 +1,6 @@
 import { ArrowLeft, CircleAlert, RefreshCcw } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useMemo, useState } from "react";
-import toast from "react-hot-toast";
-import axiosConfig from "../util/axiosConfig.jsx";
-import { API_ENDPOINTS } from "../util/apiEndpoints.js";
 import { usePageTitle } from "../hooks/usePageTitle.js";
 import Footer from "../components/Footer.jsx";
 
@@ -32,20 +29,6 @@ const PaymentCancel = () => {
     );
   }, [searchParams]);
 
-  const handleSyncStatus = async () => {
-    if (!orderCode) { toast.error("Không tìm thấy mã đơn hàng."); return; }
-    setIsSyncing(true);
-    try {
-      const response = await axiosConfig.get(API_ENDPOINTS.SYNC_PAYMENT_STATUS(orderCode));
-      localStorage.setItem(PAYMENT_STORAGE_KEY, JSON.stringify(response.data));
-      toast.success(`Trạng thái thanh toán mới nhất: ${PAYMENT_STATUS_LABELS[response.data.status] || response.data.status}`);
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Không thể đồng bộ trạng thái thanh toán.");
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0A0E1A] px-6 py-12 flex flex-col">
       <div className="mx-auto max-w-2xl rounded-2xl border border-red-200 dark:border-red-500/20
@@ -67,15 +50,6 @@ const PaymentCancel = () => {
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row">
-          <button
-            className="flex items-center justify-center gap-2 rounded-xl bg-violet-600 hover:bg-violet-500 px-5 py-3 text-sm font-semibold text-white transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
-            disabled={!orderCode || isSyncing}
-            onClick={handleSyncStatus}
-            type="button"
-          >
-            <RefreshCcw size={15} className={isSyncing ? "animate-spin" : ""} />
-            {isSyncing ? "Đang kiểm tra..." : "Kiểm tra trạng thái thanh toán"}
-          </button>
           <Link
             className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-5 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/10 transition-all"
             to="/payment"
