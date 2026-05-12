@@ -88,11 +88,10 @@
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
-        <!-- AWS SES for email sending -->
+        <!-- Spring Mail (Brevo SMTP) -->
         <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>sesv2</artifactId>
-            <version>2.31.17</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
         <dependency>
             <groupId>com.google.api-client</groupId>
