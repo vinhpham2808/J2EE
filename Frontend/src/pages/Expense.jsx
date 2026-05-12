@@ -123,14 +123,14 @@ const Expense = () => {
 
   const handleEmailExpenseDetails = async () => {
     if (exportLocked) { toast.error(exportUpgradeMessage); return; }
-    const loadingToast = toast.loading("Đang tạo và lưu báo cáo lên S3 qua AWS Lambda để gửi Email...");
+    const loadingToast = toast.loading("Đang gửi Email...");
     try {
       const response = await axiosConfig.get(API_ENDPOINTS.EMAIL_EXPENSE);
       toast.dismiss(loadingToast);
-      if (response.status === 200) toast.success("Đã lưu trên S3 và gửi Email thành công!");
+      if (response.status === 200) toast.success("Đã gửi báo cáo chi tiêu qua Email thành công!");
     } catch (e) {
       toast.dismiss(loadingToast);
-      toast.error(e.response?.data?.message || "Lỗi khi gửi email báo cáo.");
+      toast.error(e.response?.data?.message || "Lỗi khi gửi báo cáo chi tiêu qua Email.");
     }
   };
 

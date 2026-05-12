@@ -150,12 +150,12 @@ public class MailTemplateService {
             "<h2 style=\"margin:0 0 6px;font-size:22px;font-weight:700;color:#1a1a2e;\">&#128202; B&#225;o c&#225;o " + reportLabel + "</h2>"
             + "<p style=\"margin:0 0 20px;font-size:15px;color:#6b7280;\">Xin ch&#224;o <strong style=\"color:#374151;\">" + name + "</strong>,</p>"
             + "<p style=\"margin:0 0 24px;font-size:15px;color:#6b7280;line-height:1.7;\">"
-            + "B&#225;o c&#225;o <strong>" + reportLabel + "</strong> th&#225;ng <strong>" + month + "/" + year + "</strong> c&#7911;a b&#7841;n &#273;&#227; &#273;&#432;&#7907;c t&#7841;o th&#224;nh c&#244;ng v&#224; l&#432;u tr&#7919; an to&#224;n tr&#234;n h&#7879; th&#7889;ng &#273;&#225;m m&#226;y AWS S3."
+            + "B&#225;o c&#225;o <strong>" + reportLabel + "</strong> th&#225;ng <strong>" + month + "/" + year + "</strong> c&#7911;a b&#7841;n &#273;&#227; &#273;&#432;&#7907;c t&#7841;o th&#224;nh c&#244;ng."
             + "</p>"
 
             + "<div style=\"background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:18px 20px;margin-bottom:28px;\">"
             + "<div style=\"font-size:14px;color:#15803d;\">&#9989; <strong>B&#225;o c&#225;o &#273;&#227; s&#7861;n s&#224;ng &#273;&#7875; t&#7843;i v&#7873;</strong></div>"
-            + "<div style=\"font-size:13px;color:#16a34a;margin-top:5px;\">K&#7923; b&#225;o c&#225;o: Th&#225;ng " + month + "/" + year + " &#8226; L&#432;u tr&#7919; AWS S3</div>"
+            + "<div style=\"font-size:13px;color:#16a34a;margin-top:5px;\">K&#7923; b&#225;o c&#225;o: Th&#225;ng " + month + "/" + year + "</div>"
             + "</div>"
 
             + "<table role=\"presentation\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"margin:0 auto 28px;\">"
