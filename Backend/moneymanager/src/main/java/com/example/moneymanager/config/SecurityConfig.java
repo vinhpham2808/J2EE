@@ -83,7 +83,7 @@ public class SecurityConfig {
                 && !frontendUrl.startsWith("http://localhost")) {
             allowedOrigins.add(frontendUrl);
         }
-        configuration.setAllowedOriginPatterns(allowedOrigins);
+        configuration.setAllowedOriginPatterns(List.of("*"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
         configuration.setAllowCredentials(true);

@@ -60,7 +60,7 @@ public class EmailController {
 
         return ResponseEntity.ok(null);
     }
-    }
+
 
     @GetMapping("/expense-excel")
     public ResponseEntity<Void> emailExpenseExcel() throws IOException, MessagingException {

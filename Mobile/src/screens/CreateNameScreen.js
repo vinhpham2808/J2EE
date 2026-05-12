@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { COLORS } from "../constants/colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -22,57 +22,60 @@ export default function SetupProfileScreen() {
   const onClear = () => setFullName("");
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <View style={styles.bgGlowTop} />
-      <View style={styles.bgGlowBottom} />
+    <KeyboardAvoidingView
+      style={styles.screen}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <View style={{ flex: 1, paddingTop: insets.top }}>
+        <View style={styles.bgGlowTop} />
+        <View style={styles.bgGlowBottom} />
 
-      {/* Top bar with back + menu */}
-      <View style={styles.topBar}>
-        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backArrow}>←</Text>
-        </Pressable>
-        <Pressable style={styles.menuButton}>
-          <Text style={styles.menuDots}>⋯</Text>
-        </Pressable>
-      </View>
-
-      {/* Content */}
-      <View style={styles.body}>
-        <Text style={styles.title}>Enter your name</Text>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Full name (required)</Text>
-          <View style={[styles.inputWrap, isFocused && styles.inputWrapFocused]}>
-            <TextInput
-              style={styles.input}
-              value={fullName}
-              onChangeText={setFullName}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
-              placeholder="Enter your full name"
-              placeholderTextColor={COLORS.DARK_TEXT_SECONDARY}
-              autoCapitalize="words"
-              autoCorrect={false}
-            />
-            {fullName.length > 0 && (
-              <Pressable onPress={onClear} style={styles.clearButton}>
-                <Text style={styles.clearIcon}>✕</Text>
-              </Pressable>
-            )}
-          </View>
+        <View style={styles.topBar}>
+          <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Text style={styles.backArrow}>←</Text>
+          </Pressable>
+          <Pressable style={styles.menuButton}>
+            <Text style={styles.menuDots}>⋯</Text>
+          </Pressable>
         </View>
 
-        <Pressable
-          style={[styles.nextButton, !canProceed && styles.nextButtonDisabled]}
-          onPress={onNext}
-          disabled={!canProceed}
-        >
-          <Text style={[styles.nextButtonText, !canProceed && styles.nextButtonTextDisabled]}>
-            Next
-          </Text>
-        </Pressable>
+        <View style={styles.body}>
+          <Text style={styles.title}>Nhập tên của bạn</Text>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Họ và tên (bắt buộc)</Text>
+            <View style={[styles.inputWrap, isFocused && styles.inputWrapFocused]}>
+              <TextInput
+                style={styles.input}
+                value={fullName}
+                onChangeText={setFullName}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
+                placeholder="Ví dụ: Nguyễn Văn A"
+                placeholderTextColor={COLORS.DARK_TEXT_SECONDARY}
+                autoCapitalize="words"
+                autoCorrect={false}
+              />
+              {fullName.length > 0 && (
+                <Pressable onPress={onClear} style={styles.clearButton}>
+                  <Text style={styles.clearIcon}>✕</Text>
+                </Pressable>
+              )}
+            </View>
+          </View>
+
+          <Pressable
+            style={[styles.nextButton, !canProceed && styles.nextButtonDisabled]}
+            onPress={onNext}
+            disabled={!canProceed}
+          >
+            <Text style={[styles.nextButtonText, !canProceed && styles.nextButtonTextDisabled]}>
+              Tiếp theo
+            </Text>
+          </Pressable>
+        </View>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -203,15 +206,5 @@ const styles = StyleSheet.create({
   },
   nextButtonTextDisabled: {
     color: COLORS.DARK_TEXT_SECONDARY
-  },
-  footer: {
-    alignItems: "center",
-    paddingBottom: 30
-  },
-  footerText: {
-    color: COLORS.DARK_TEXT_SECONDARY,
-    fontSize: 12,
-    fontWeight: "500",
-    letterSpacing: 0.5
   }
 });

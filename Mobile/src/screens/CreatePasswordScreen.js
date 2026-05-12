@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import http from "../services/http";
 import { API_ENDPOINTS } from "../constants/api";
@@ -89,9 +89,13 @@ export default function CreatePasswordScreen() {
   const onClearPassword = () => setPassword("");
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <View style={styles.bgGlowTop} />
-      <View style={styles.bgGlowBottom} />
+    <KeyboardAvoidingView
+      style={styles.screen}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <View style={[styles.screen, { paddingTop: insets.top }]}>
+        <View style={styles.bgGlowTop} />
+        <View style={styles.bgGlowBottom} />
 
       {/* Top bar with back + menu */}
       <View style={styles.topBar}>
@@ -168,6 +172,7 @@ export default function CreatePasswordScreen() {
         </View>
       </ScrollView>
     </View>
+    </KeyboardAvoidingView>
   );
 }
 

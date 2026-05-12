@@ -8,7 +8,9 @@ import {
   Switch,
   Text,
   TextInput,
-  View
+  View,
+  KeyboardAvoidingView,
+  Platform
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { AuthContext } from "../components/AuthContext";
@@ -117,7 +119,10 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={styles.screen}>
+    <KeyboardAvoidingView
+      style={styles.screen}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
       {loading ? <Loader text="Devbot đang xác thực" overlay /> : null}
 
       <View style={styles.bgGlowTop} />
@@ -200,7 +205,7 @@ export default function LoginScreen() {
           </View>
         </View>
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

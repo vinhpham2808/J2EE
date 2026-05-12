@@ -78,7 +78,7 @@ export default function VerifyOtpScreen() {
     try {
       await http.post(API_ENDPOINTS.VERIFY_OTP, {
         email,
-        otpCode,
+        otp: otpCode,
       });
       setLoading(false);
       setSuccessMsg("Xác thực thành công! Hãy thiết lập thông tin cá nhân.");
@@ -114,7 +114,7 @@ export default function VerifyOtpScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.screen}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <View style={styles.bgGlowTop} />
       <View style={styles.bgGlowBottom} />
