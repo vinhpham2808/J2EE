@@ -42,4 +42,9 @@ public interface ExpenseRepository extends JpaRepository<ExpenseEntity, Long> {
     List<ExpenseEntity> findByProfileIdAndDate(Long profileId, LocalDate date);
 
     long countByProfileIdAndDateBetween(Long profileId, LocalDate startDate, LocalDate endDate);
+
+    // Xoá toàn bộ expense thuộc một danh mục (dùng khi xoá danh mục)
+    void deleteByCategoryId(Long categoryId);
+
+    void deleteByProfileId(Long profileId);
 }

@@ -5,6 +5,8 @@ import axiosConfig from "../util/axiosConfig.jsx";
 import { API_ENDPOINTS } from "../util/apiEndpoints.js";
 import { AppContext } from "../context/AppContext.jsx";
 
+const SPENDING_TIPS_LABEL = "💡 Gợi ý tiết kiệm cho tôi";
+
 const QUICK_PROMPTS = [
   "Hãy giới thiệu ngắn gọn về chức năng của bạn",
   "Gợi ý cách quản lý chi tiêu hiệu quả",
@@ -95,6 +97,42 @@ const ChatWidget = () => {
     }
   };
 
+  const sendSpendingTips = async () => {
+    if (isSending) return;
+
+    const userMessage = { id: `user-${Date.now()}`, role: "user", content: SPENDING_TIPS_LABEL };
+    setMessages((prev) => [...prev, userMessage]);
+    setIsSending(true);
+
+    try {
+      const response = await axiosConfig.post(API_ENDPOINTS.GEMINI_SPENDING_TIPS);
+      const data = response.data;
+      const tips = data?.tips || [];
+      const disclaimer = data?.disclaimer || "";
+
+      const content = tips.length > 0
+        ? tips.map((tip) => `💰 ${tip}`).join("\n") + (disclaimer ? "\n\n" + disclaimer : "")
+        : "Tôi chưa có đủ dữ liệu chi tiêu để đưa ra gợi ý. Hãy thêm transaction trước nhé!";
+
+      setMessages((prev) => [
+        ...prev,
+        { id: `assistant-${Date.now()}`, role: "assistant", content }
+      ]);
+    } catch (error) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `assistant-error-${Date.now()}`,
+          role: "assistant",
+          content: error.response?.data?.message || "Hiện tại tôi chưa phản hồi được. Bạn thử lại sau giúp mình nhé.",
+          isError: true
+        }
+      ]);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     await sendMessage(message);
@@ -103,7 +141,7 @@ const ChatWidget = () => {
   return (
     <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3">
       {isOpen && (
-        <div className="flex h-128 w-88 max-w-[calc(100vw-1.5rem)] flex-col overflow-hidden rounded-3xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0F172A] shadow-2xl shadow-slate-900/20">
+        <div className="flex h-[min(32rem,80dvh)] w-88 max-w-[calc(100vw-1.5rem)] flex-col overflow-hidden rounded-3xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0F172A] shadow-2xl shadow-slate-900/20">
           {/* Header */}
           <div className="flex items-start justify-between gap-3 bg-linear-to-br from-amber-500 via-amber-400 to-yellow-500 px-5 py-4 text-white">
             <div>
@@ -135,6 +173,14 @@ const ChatWidget = () => {
             </div>
 
             <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={sendSpendingTips}
+                disabled={isSending}
+                className="rounded-full border border-amber-300 dark:border-amber-500/50 bg-amber-50 dark:bg-amber-500/10 px-3 py-2 text-left text-xs font-semibold text-amber-700 dark:text-amber-400 transition hover:bg-amber-100 dark:hover:bg-amber-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {SPENDING_TIPS_LABEL}
+              </button>
               {QUICK_PROMPTS.map((prompt) => (
                 <button
                   key={prompt}

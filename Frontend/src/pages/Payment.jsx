@@ -8,12 +8,14 @@ import { useUser } from "../hooks/useUser.jsx";
 import axiosConfig from "../util/axiosConfig.jsx";
 import { API_ENDPOINTS } from "../util/apiEndpoints.js";
 import { getPaymentPlans } from "../util/paymentPlans.js";
+import { usePageTitle } from "../hooks/usePageTitle.js";
 
 const PAYMENT_STORAGE_KEY = "latestPayment";
 const ICON_MAP = { ShieldCheck, Sparkles, Star, Zap };
 
 const Payment = () => {
   useUser();
+  usePageTitle("Thanh toán nâng cấp");
   const { user, setUser } = useContext(AppContext);
   const PAYMENT_PLANS = useMemo(() => {
     return getPaymentPlans().map((plan) => ({ ...plan, icon: ICON_MAP[plan.icon] || ShieldCheck }));

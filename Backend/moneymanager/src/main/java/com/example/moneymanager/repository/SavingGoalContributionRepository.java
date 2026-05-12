@@ -11,4 +11,6 @@ public interface SavingGoalContributionRepository extends JpaRepository<SavingGo
     List<SavingGoalContributionEntity> findByGoalIdOrderByContributionDateDesc(Long goalId);
 
     List<SavingGoalContributionEntity> findByGoalIdAndContributionDateBetween(Long goalId, LocalDate start, LocalDate end);
+
+    void deleteByGoalIdIn(List<Long> goalIds);
 }

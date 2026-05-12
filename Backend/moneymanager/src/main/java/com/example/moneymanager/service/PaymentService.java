@@ -34,6 +34,7 @@ public class PaymentService {
     private final ProfileService profileService;
     private final SubscriptionService subscriptionService;
     private final NotificationService notificationService;
+    private final DocumentService documentService;
 
     @Value("${payos.return-url}")
     private String returnUrl;
@@ -163,11 +164,10 @@ public class PaymentService {
     }
 
     private long generateOrderCode() {
-        long orderCode = System.currentTimeMillis();
-        while (paymentRepository.findByOrderCode(orderCode).isPresent()) {
-            orderCode++;
-        }
-        return orderCode;
+        // Use current second * 1000 + random(0-999) — unique within JVM per second slot
+        long base = (System.currentTimeMillis() / 1000L) * 1000L;
+        long suffix = java.util.concurrent.ThreadLocalRandom.current().nextLong(1000L);
+        return base + suffix;
     }
 
     private PaymentEntity findOwnedPayment(Long orderCode) {
@@ -207,10 +207,25 @@ public class PaymentService {
         if (STATUS_PAID.equalsIgnoreCase(paymentEntity.getStatus())
                 && paymentEntity.getProfile() != null
                 && paymentEntity.getPlanId() != null
-                && !paymentEntity.getPlanId().isBlank()) {
+                && !paymentEntity.getPlanId().isBlank()
+                && !wasPaidBefore                          // Guard: must be a fresh PAID transition
+                && !paymentEntity.isSubscriptionActivated()) {  // Guard: defense-in-depth
             subscriptionService.activatePaidSubscription(paymentEntity.getProfile(), paymentEntity.getPlanId());
+            paymentEntity.setSubscriptionActivated(true);
             if (!wasPaidBefore) {
                 notificationService.notifyPaymentSuccess(paymentEntity.getProfile(), paymentEntity.getPlanName());
+                // Sinh hóa đơn PDF qua AWS Lambda (không block flow chính)
+                try {
+                    documentService.generateInvoice(
+                            paymentEntity.getOrderCode(),
+                            paymentEntity.getAmount(),
+                            paymentEntity.getPlanName(),
+                            paymentEntity.getProfile().getEmail(),
+                            java.time.LocalDate.now()
+                    );
+                } catch (Exception e) {
+                    System.err.println("Không thể sinh hóa đơn cho order " + paymentEntity.getOrderCode() + ": " + e.getMessage());
+                }
             }
         }
     }

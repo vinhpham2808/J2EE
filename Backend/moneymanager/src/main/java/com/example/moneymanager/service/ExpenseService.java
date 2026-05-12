@@ -3,19 +3,24 @@ package com.example.moneymanager.service;
 import com.example.moneymanager.dto.BudgetStatusDTO;
 import com.example.moneymanager.dto.ExpenseDTO;
 import com.example.moneymanager.dto.ExpenseResponseDTO;
+import com.example.moneymanager.entity.BudgetEntity;
 import com.example.moneymanager.entity.CategoryEntity;
 import com.example.moneymanager.entity.ExpenseEntity;
 import com.example.moneymanager.entity.ProfileEntity;
+import com.example.moneymanager.repository.BudgetRepository;
 import com.example.moneymanager.repository.CategoryRepository;
 import com.example.moneymanager.repository.ExpenseRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -27,12 +32,18 @@ public class ExpenseService {
     private final SubscriptionService subscriptionService;
     private final BudgetService budgetService;
     private final NotificationService notificationService;
+    private final BudgetRepository budgetRepository;
 
     // Adds a new expense and checks budget status
     public ExpenseResponseDTO addExpense(ExpenseDTO dto) {
         ProfileEntity profile = profileService.getCurrentProfile();
         subscriptionService.ensureCanCreateTransaction(profile, dto.getDate());
+        return addExpenseInternal(dto, profile);
+    }
 
+    // Internal method bypassing plan limits (used by cron)
+    @Transactional
+    public ExpenseResponseDTO addExpenseInternal(ExpenseDTO dto, ProfileEntity profile) {
         CategoryEntity category = categoryRepository.findById(dto.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("Category not found"));
 
@@ -59,6 +70,12 @@ public class ExpenseService {
             budgetService.sendBudgetAlertEmailAsync(profile, budgetStatus);
         }
 
+        // ─── Smart Notification: Budget Threshold (70/80/90%) ─────
+        checkBudgetThresholds(profile, category.getId(), month, year);
+
+        // ─── Smart Notification: Abnormal Spending Check ──────────
+        notificationService.checkAbnormalSpendingAsync(profile, expenseDate);
+
         return toResponseDTO(newExpense, budgetStatus);
     }
 
@@ -80,6 +97,7 @@ public class ExpenseService {
     }
 
     // Delete expense by id for current user
+    @Transactional
     public void deleteExpense(Long expenseId) {
         ProfileEntity profile = profileService.getCurrentProfile();
         ExpenseEntity entity = expenseRepository.findById(expenseId)
@@ -116,6 +134,43 @@ public class ExpenseService {
     public List<ExpenseDTO> getExpensesForUserOnDate(Long profileId, LocalDate date) {
         List<ExpenseEntity> list = expenseRepository.findByProfileIdAndDate(profileId, date);
         return list.stream().map(this::toDTO).toList();
+    }
+
+    // ─── Smart Notification: Budget Threshold (70/80/90%) ─────────
+
+    private void checkBudgetThresholds(ProfileEntity profile, Long categoryId, int month, int year) {
+        Optional<BudgetEntity> budgetOpt = budgetRepository
+                .findByProfileIdAndCategoryIdAndMonthAndYear(profile.getId(), categoryId, month, year);
+
+        if (budgetOpt.isEmpty()) return;
+
+        BudgetEntity budget = budgetOpt.get();
+        BigDecimal limit = budget.getAmountLimit();
+        BigDecimal spent = budgetRepository.getTotalSpentByProfileAndCategoryAndMonthAndYear(
+                profile.getId(), categoryId, month, year);
+
+        if (limit.compareTo(BigDecimal.ZERO) <= 0) return;
+
+        double ratio = spent.divide(limit, 4, RoundingMode.HALF_UP).doubleValue();
+
+        // Check 70% threshold
+        if (ratio >= 0.7 && !budget.isNotified70()) {
+            notificationService.notifyBudgetThreshold(profile, budget.getCategory().getName(), 70, spent, limit);
+            budget.setNotified70(true);
+            budgetRepository.save(budget);
+        }
+        // Check 80% threshold
+        if (ratio >= 0.8 && !budget.isNotified80()) {
+            notificationService.notifyBudgetThreshold(profile, budget.getCategory().getName(), 80, spent, limit);
+            budget.setNotified80(true);
+            budgetRepository.save(budget);
+        }
+        // Check 90% threshold
+        if (ratio >= 0.9 && !budget.isNotified90()) {
+            notificationService.notifyBudgetThreshold(profile, budget.getCategory().getName(), 90, spent, limit);
+            budget.setNotified90(true);
+            budgetRepository.save(budget);
+        }
     }
 
     // Helper methods

@@ -20,7 +20,7 @@ public interface IncomeRepository extends JpaRepository<IncomeEntity, Long> {
     List<IncomeEntity> findTop5ByProfileIdOrderByDateDesc(Long profileId);
 
     @Query("SELECT SUM(i.amount) FROM IncomeEntity i WHERE i.profile.id = :profileId")
-    BigDecimal findTotalExpenseByProfileId(@Param("profileId") Long profileId);
+    BigDecimal findTotalIncomeByProfileId(@Param("profileId") Long profileId);
 
     @EntityGraph(attributePaths = {"category"})
     List<IncomeEntity> findByProfileIdAndDateBetweenAndNameContainingIgnoreCase(
@@ -35,4 +35,11 @@ public interface IncomeRepository extends JpaRepository<IncomeEntity, Long> {
     List<IncomeEntity> findByProfileIdAndDateBetween(Long profileId, LocalDate startDate, LocalDate endDate);
 
     long countByProfileIdAndDateBetween(Long profileId, LocalDate startDate, LocalDate endDate);
+
+    List<IncomeEntity> findByProfileIdAndDate(Long profileId, LocalDate date);
+
+    // Xoá toàn bộ income thuộc một danh mục (dùng khi xoá danh mục)
+    void deleteByCategoryId(Long categoryId);
+
+    void deleteByProfileId(Long profileId);
 }

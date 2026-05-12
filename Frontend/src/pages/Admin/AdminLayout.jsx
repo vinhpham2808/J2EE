@@ -1,8 +1,9 @@
 import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
-import { LayoutDashboard, Wallet, Settings, LogOut, Package, Menu, X, ArrowLeft, Sun, Moon, Bell } from "lucide-react";
+import { LayoutDashboard, Wallet, Settings, LogOut, Package, Menu, X, ArrowLeft, Sun, Moon, Bell, Users } from "lucide-react";
 import { useContext, useState } from "react";
 import { AppContext } from "../../context/AppContext";
 import { useTheme } from "../../context/ThemeContext";
+import Footer from "../../components/Footer.jsx";
 
 const AdminLayout = () => {
   const { clearUser } = useContext(AppContext);
@@ -54,6 +55,7 @@ const AdminLayout = () => {
 
       <nav className="flex-1 p-4 space-y-2">
         <NavItem to="/admin" icon={LayoutDashboard} label="Dashboard" exact onClick={closeSidebar} />
+        <NavItem to="/admin/users" icon={Users} label="Users" onClick={closeSidebar} />
         <NavItem to="/admin/payments" icon={Wallet} label="Payments" onClick={closeSidebar} />
         <NavItem to="/admin/subscriptions" icon={Package} label="Subscriptions" onClick={closeSidebar} />
         <NavItem to="/admin/notifications" icon={Bell} label="Notifications" onClick={closeSidebar} />
@@ -112,6 +114,7 @@ const AdminLayout = () => {
             </button>
             <h1 className="text-lg font-semibold text-slate-800 dark:text-white">
               {location.pathname === "/admin" && "Dashboard"}
+              {location.pathname.startsWith("/admin/users") && "Users"}
               {location.pathname.startsWith("/admin/payments") && "Payments"}
               {location.pathname.startsWith("/admin/subscriptions") && "Subscriptions"}
               {location.pathname.startsWith("/admin/notifications") && "Notifications"}
@@ -138,10 +141,11 @@ const AdminLayout = () => {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto">
-          <div className="p-4 lg:p-8 max-w-7xl mx-auto">
+        <main className="flex-1 overflow-y-auto flex flex-col">
+          <div className="p-4 lg:p-8 max-w-7xl mx-auto flex-1">
             <Outlet />
           </div>
+          <Footer />
         </main>
       </div>
     </div>

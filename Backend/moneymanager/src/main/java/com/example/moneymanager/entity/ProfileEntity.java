@@ -25,6 +25,7 @@ public class ProfileEntity {
     private String fullName;
     @Column(unique = true)
     private String email;
+    @Column(nullable = true)
     private String password;
     private String profileImageUrl;
     @Column(updatable = false)
@@ -47,6 +48,15 @@ public class ProfileEntity {
     private LocalDate subscriptionActivatedAt;
     private LocalDate subscriptionExpiresAt;
     private Boolean autoRenew;
+    private String googleId;
+
+    // OTP fields (shared for both ACCOUNT_ACTIVATION and PASSWORD_RESET flows)
+    private String otpCode;                   // BCrypt-hashed OTP
+    private LocalDateTime otpExpiry;          // 200s from generation
+    private LocalDateTime otpResendAllowedAt; // 180s cooldown gate
+    @Enumerated(EnumType.STRING)
+    private OtpPurpose otpPurpose;
+    private Integer otpAttempts;              // failed attempt counter (max 5)
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id")

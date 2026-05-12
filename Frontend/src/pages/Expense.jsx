@@ -11,9 +11,12 @@ import ExpenseList from "../components/ExpenseList.jsx";
 import Modal from "../components/Modal.jsx";
 import AddExpenseForm from "../components/AddExpenseForm.jsx";
 import DeleteAlert from "../components/DeleteAlert.jsx";
+import QuickExpenseTemplates from "../components/QuickExpenseTemplates.jsx";
+import { usePageTitle } from "../hooks/usePageTitle.js";
 
 const Expense = () => {
   useUser();
+  usePageTitle("Chi tiêu");
   const { user } = useContext(AppContext);
   const [expenseData, setExpenseData] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -112,19 +115,22 @@ const Expense = () => {
       link.click();
       link.parentNode.removeChild(link);
       window.URL.revokeObjectURL(url);
-      toast.success("Expense details downloaded successfully!");
+      toast.success("Đã tải báo cáo Excel về máy!");
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to download expense details.");
+      toast.error(error.response?.data?.message || "Lỗi khi tải báo cáo Excel.");
     }
   };
 
   const handleEmailExpenseDetails = async () => {
     if (exportLocked) { toast.error(exportUpgradeMessage); return; }
+    const loadingToast = toast.loading("Đang tạo và gửi báo cáo qua Email...");
     try {
       const response = await axiosConfig.get(API_ENDPOINTS.EMAIL_EXPENSE);
-      if (response.status === 200) toast.success("Email sent");
+      toast.dismiss(loadingToast);
+      if (response.status === 200) toast.success("Đã gửi Email thành công!");
     } catch (e) {
-      toast.error(e.response?.data?.message || "Failed to email expense details.");
+      toast.dismiss(loadingToast);
+      toast.error(e.response?.data?.message || "Lỗi khi gửi email báo cáo.");
     }
   };
 
@@ -212,6 +218,12 @@ const Expense = () => {
           isImportingReceipt={isImportingReceipt}
         />
         <input ref={receiptFileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImportReceipt} disabled={isImportingReceipt} />
+
+        {/* Quick Expense Templates */}
+        <QuickExpenseTemplates
+          categories={categories}
+          onAddExpense={handleAddExpense}
+        />
 
         <ExpenseList
           transactions={expenseData}

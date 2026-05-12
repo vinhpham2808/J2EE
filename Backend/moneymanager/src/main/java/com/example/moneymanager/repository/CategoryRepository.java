@@ -22,4 +22,6 @@ public interface CategoryRepository extends JpaRepository<CategoryEntity, Long> 
     Boolean existsByNameAndProfileId(String name, Long profileId);
 
     long countByProfileId(Long profileId);
+
+    void deleteByProfileId(Long profileId);
 }

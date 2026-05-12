@@ -11,9 +11,11 @@ import AddIncomeForm from "../components/AddIncomeForm.jsx";
 import DeleteAlert from "../components/DeleteAlert.jsx";
 import IncomeOverview from "../components/IncomeOverview.jsx";
 import { AppContext } from "../context/AppContext.jsx";
+import { usePageTitle } from "../hooks/usePageTitle.js";
 
 const Income = () => {
   useUser();
+  usePageTitle("Thu nhập");
   const { user } = useContext(AppContext);
   const [incomeData, setIncomeData] = useState([]);
   const [categories, setCategories] = useState([]);

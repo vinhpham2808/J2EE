@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { Plus, Trash2, Save, X, Edit2, ChevronDown } from "lucide-react";
 import { getPaymentPlans, savePaymentPlans, DEFAULT_PAYMENT_PLANS } from "../../util/paymentPlans.js";
 import toast from "react-hot-toast";
+import { usePageTitle } from "../../hooks/usePageTitle.js";
 
 const AdminSubscription = () => {
+  usePageTitle("Quản lý gói thanh toán");
   const [plans, setPlans] = useState([]);
   const [editingPlanIndex, setEditingPlanIndex] = useState(null);
   const [formData, setFormData] = useState(null);

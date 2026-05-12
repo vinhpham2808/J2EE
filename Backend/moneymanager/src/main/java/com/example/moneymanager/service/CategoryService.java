@@ -3,9 +3,13 @@ package com.example.moneymanager.service;
 import com.example.moneymanager.dto.CategoryDTO;
 import com.example.moneymanager.entity.CategoryEntity;
 import com.example.moneymanager.entity.ProfileEntity;
+import com.example.moneymanager.repository.BudgetRepository;
 import com.example.moneymanager.repository.CategoryRepository;
+import com.example.moneymanager.repository.ExpenseRepository;
+import com.example.moneymanager.repository.IncomeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -16,6 +20,9 @@ public class CategoryService {
     private final ProfileService profileService;
     private final CategoryRepository categoryRepository;
     private final SubscriptionService subscriptionService;
+    private final ExpenseRepository expenseRepository;
+    private final IncomeRepository incomeRepository;
+    private final BudgetRepository budgetRepository;
 
     //save category
     public CategoryDTO saveCategory(CategoryDTO categoryDTO) {
@@ -53,6 +60,20 @@ public class CategoryService {
         existingCategory.setType(dto.getType());
         existingCategory = categoryRepository.save(existingCategory);
         return toDTO(existingCategory);
+    }
+
+    // Xoá danh mục kèm toàn bộ giao dịch (expense/income/budget) thuộc danh mục đó
+    @Transactional
+    public void deleteCategory(Long categoryId) {
+        ProfileEntity profile = profileService.getCurrentProfile();
+        CategoryEntity category = categoryRepository.findByIdAndProfileId(categoryId, profile.getId())
+                .orElseThrow(() -> new RuntimeException("Category not found or not accessible"));
+        // Xoá tất cả expense, income và budget thuộc danh mục này trước
+        expenseRepository.deleteByCategoryId(categoryId);
+        incomeRepository.deleteByCategoryId(categoryId);
+        budgetRepository.deleteByCategoryId(categoryId);
+        // Sau đó xoá danh mục
+        categoryRepository.delete(category);
     }
 
     //helper methods

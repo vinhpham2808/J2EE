@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Users, CreditCard, Activity, Wallet } from "lucide-react";
 import axiosConfig from "../../util/axiosConfig.jsx";
 import { API_ENDPOINTS } from "../../util/apiEndpoints.js";
+import { usePageTitle } from "../../hooks/usePageTitle.js";
 
 const formatMoney = (amount) => new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount || 0);
 
@@ -35,6 +36,7 @@ const StatCard = ({ title, value, change, isPositive, icon: Icon, colorClass }) 
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  usePageTitle("Bảng điều khiển quản trị");
   const [overview, setOverview] = useState({
     totalUsers: 0,
     activeSubscriptions: 0,

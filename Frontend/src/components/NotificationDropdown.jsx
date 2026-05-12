@@ -117,8 +117,13 @@ const NotificationDropdown = () => {
     switch (type) {
       case "EXPENSE": return <div className="w-2 h-2 rounded-full bg-red-500"></div>;
       case "INCOME": return <div className="w-2 h-2 rounded-full bg-emerald-500"></div>;
+      case "BUDGET_ALERT": return <div className="w-2 h-2 rounded-full bg-amber-600"></div>;
       case "BUDGET_WARNING": return <div className="w-2 h-2 rounded-full bg-amber-500"></div>;
       case "BUDGET_EXCEEDED": return <div className="w-2 h-2 rounded-full bg-red-600"></div>;
+      case "SPENDING_ALERT": return <div className="w-2 h-2 rounded-full bg-red-500"></div>;
+      case "GOAL_PROGRESS": return <div className="w-2 h-2 rounded-full bg-emerald-500"></div>;
+      case "SAVING_STREAK": return <div className="w-2 h-2 rounded-full bg-violet-500"></div>;
+      case "MONTHLY_REPORT": return <div className="w-2 h-2 rounded-full bg-blue-500"></div>;
       case "PAYMENT": return <div className="w-2 h-2 rounded-full bg-violet-500"></div>;
       case "ADMIN": return <div className="w-2 h-2 rounded-full bg-blue-500"></div>;
       default: return <div className="w-2 h-2 rounded-full bg-slate-400"></div>;

@@ -1,16 +1,16 @@
 import { useContext } from "react";
 import { AppContext } from "../context/AppContext.jsx";
-import { User, Zap } from "lucide-react";
+import { ShieldCheck, User, Zap } from "lucide-react";
 import { SIDE_BAR_DATA } from "../assets/assets.js";
 import { useNavigate } from "react-router-dom";
 
-const Sidebar = ({ activeMenu }) => {
+const Sidebar = ({ activeMenu, mobileOverlay = false }) => {
   const { user } = useContext(AppContext);
   const navigate = useNavigate();
 
   return (
-    <aside className="h-screen w-64 fixed left-0 top-0 flex flex-col p-5 gap-2 z-50
-      bg-white dark:bg-[#0F172A] border-r border-slate-200 dark:border-white/10">
+    <aside className={`h-screen w-64 fixed left-0 top-0 flex-col p-5 gap-2 z-50
+      bg-white dark:bg-[#0F172A] border-r border-slate-200 dark:border-white/10 ${mobileOverlay ? "flex" : "hidden lg:flex"}`}>
 
       {/* Logo */}
       <div
@@ -47,9 +47,17 @@ const Sidebar = ({ activeMenu }) => {
           )}
         </div>
         <div className="flex-1 overflow-hidden">
-          <p className="font-semibold text-slate-900 dark:text-white text-sm truncate">
-            {user?.fullName || "Người dùng"}
-          </p>
+          <div className="flex items-center gap-1.5">
+            <p className="font-semibold text-slate-900 dark:text-white text-sm truncate">
+              {user?.fullName || "Người dùng"}
+            </p>
+            {user?.role === "admin" && (
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[9px] font-bold uppercase tracking-wide border border-amber-500/20 shrink-0">
+                <ShieldCheck size={10} />
+                Admin
+              </span>
+            )}
+          </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
             {user?.subscriptionPlan === "PREMIUM" ? "Premium" : user?.subscriptionPlan === "BASIC" ? "Basic" : "Free"}
           </p>
@@ -79,6 +87,22 @@ const Sidebar = ({ activeMenu }) => {
           );
         })}
       </nav>
+
+      {/* Admin dashboard link */}
+      {user?.role === "admin" && (
+        <>
+          <div className="my-2 border-t border-slate-200 dark:border-white/10" />
+          <button
+            onClick={() => navigate("/admin")}
+            className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
+              text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-500/10
+              border border-transparent hover:border-violet-500/20"
+          >
+            <ShieldCheck size={18} className="text-violet-500" />
+            Trang quản trị
+          </button>
+        </>
+      )}
 
       {/* Upgrade hint for free users */}
       {user?.subscriptionPlan === "FREE" && (

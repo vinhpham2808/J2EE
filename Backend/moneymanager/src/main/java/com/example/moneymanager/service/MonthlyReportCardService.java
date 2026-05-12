@@ -1,0 +1,286 @@
+package com.example.moneymanager.service;
+
+import com.example.moneymanager.dto.MonthlyReportCardDTO;
+import com.example.moneymanager.dto.MonthlyReportCardDTO.CategoryBreakdownItem;
+import com.example.moneymanager.entity.*;
+import com.example.moneymanager.repository.*;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class MonthlyReportCardService {
+
+    private final ProfileService profileService;
+    private final ExpenseRepository expenseRepository;
+    private final IncomeRepository incomeRepository;
+    private final BudgetRepository budgetRepository;
+    private final SavingGoalRepository savingGoalRepository;
+    private final SavingGoalContributionRepository savingGoalContributionRepository;
+
+    /**
+     * Get report card for the current month.
+     */
+    @Transactional(readOnly = true)
+    public MonthlyReportCardDTO getReportCard() {
+        LocalDate now = LocalDate.now();
+        return getReportCard(now.getYear(), now.getMonthValue());
+    }
+
+    /**
+     * Get report card for a specific month/year.
+     */
+    @Transactional(readOnly = true)
+    public MonthlyReportCardDTO getReportCard(int year, int month) {
+        ProfileEntity profile = profileService.getCurrentProfile();
+
+        YearMonth yearMonth = YearMonth.of(year, month);
+        LocalDate startOfMonth = yearMonth.atDay(1);
+        LocalDate endOfMonth = yearMonth.atEndOfMonth();
+
+        // --- Current month data ---
+        BigDecimal totalIncome = getTotalIncome(profile.getId(), startOfMonth, endOfMonth);
+        BigDecimal totalExpense = getTotalExpense(profile.getId(), startOfMonth, endOfMonth);
+        BigDecimal savings = totalIncome.subtract(totalExpense);
+        double savingsRate = calculateSavingsRate(savings, totalIncome);
+
+        // --- Previous month data ---
+        YearMonth prevYearMonth = yearMonth.minusMonths(1);
+        LocalDate prevStart = prevYearMonth.atDay(1);
+        LocalDate prevEnd = prevYearMonth.atEndOfMonth();
+
+        BigDecimal prevIncome = getTotalIncome(profile.getId(), prevStart, prevEnd);
+        BigDecimal prevExpense = getTotalExpense(profile.getId(), prevStart, prevEnd);
+        BigDecimal prevSavings = prevIncome.subtract(prevExpense);
+
+        // Spending change vs previous month
+        double spendingChangePercent = 0.0;
+        if (prevExpense.compareTo(BigDecimal.ZERO) > 0) {
+            spendingChangePercent = totalExpense.subtract(prevExpense)
+                    .divide(prevExpense, 4, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100))
+                    .doubleValue();
+        }
+
+        // --- Category breakdown ---
+        List<CategoryBreakdownItem> categoryBreakdown = getCategoryBreakdown(profile.getId(), startOfMonth, endOfMonth, totalExpense);
+
+        // --- Budget tracking ---
+        List<BudgetEntity> budgets = budgetRepository.findByProfileIdAndMonthAndYear(profile.getId(), month, year);
+        int totalBudgets = budgets.size();
+        int budgetsOnTrack = 0;
+        for (BudgetEntity budget : budgets) {
+            BigDecimal spent = budgetRepository.getTotalSpentByProfileAndCategoryAndMonthAndYear(
+                    profile.getId(), budget.getCategory().getId(), month, year);
+            if (spent != null) {
+                double ratio = 0;
+                if (budget.getAmountLimit().compareTo(BigDecimal.ZERO) > 0) {
+                    ratio = spent.divide(budget.getAmountLimit(), 4, RoundingMode.HALF_UP).doubleValue();
+                }
+                if (ratio < 1.0) {
+                    budgetsOnTrack++;
+                }
+            }
+        }
+
+        // --- Saving goals ---
+        List<SavingGoalEntity> activeGoals = savingGoalRepository.findByProfileIdAndStatus(profile.getId(), GoalStatus.ACTIVE);
+        int totalActiveGoals = activeGoals.size();
+        int completedGoalsThisMonth = countCompletedGoalsThisMonth(profile.getId(), startOfMonth, endOfMonth);
+
+        // --- Grade & Labels ---
+        String grade = calculateGrade(savingsRate);
+        String gradeLabel = getGradeLabel(grade);
+
+        // --- Badges, Strengths, Improvements ---
+        List<String> badges = generateBadges(savingsRate, budgetsOnTrack, totalBudgets, completedGoalsThisMonth, spendingChangePercent, totalIncome, savings);
+        List<String> strengths = generateStrengths(savingsRate, budgetsOnTrack, totalBudgets, completedGoalsThisMonth, spendingChangePercent);
+        List<String> improvements = generateImprovements(savingsRate, budgetsOnTrack, totalBudgets, completedGoalsThisMonth);
+
+        // --- Build DTO ---
+        String monthName = yearMonth.format(DateTimeFormatter.ofPattern("MMMM", new Locale("vi", "VN")));
+
+        return MonthlyReportCardDTO.builder()
+                .month(month)
+                .year(year)
+                .monthName(monthName + " " + year)
+                .totalIncome(totalIncome)
+                .totalExpense(totalExpense)
+                .savings(savings)
+                .savingsRate(savingsRate)
+                .grade(grade)
+                .gradeLabel(gradeLabel)
+                .prevMonthIncome(prevIncome)
+                .prevMonthExpense(prevExpense)
+                .prevMonthSavings(prevSavings)
+                .spendingChangePercent(spendingChangePercent)
+                .categoryBreakdown(categoryBreakdown)
+                .completedGoalsThisMonth(completedGoalsThisMonth)
+                .totalActiveGoals(totalActiveGoals)
+                .budgetsOnTrack(budgetsOnTrack)
+                .totalBudgets(totalBudgets)
+                .badges(badges)
+                .strengths(strengths)
+                .improvements(improvements)
+                .build();
+    }
+
+    // ─── Private helpers ────────────────────────────────────────
+
+    private BigDecimal getTotalIncome(Long profileId, LocalDate start, LocalDate end) {
+        return incomeRepository.findByProfileIdAndDateBetween(profileId, start, end)
+                .stream()
+                .map(IncomeEntity::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private BigDecimal getTotalExpense(Long profileId, LocalDate start, LocalDate end) {
+        return expenseRepository.findByProfileIdAndDateBetween(profileId, start, end)
+                .stream()
+                .map(ExpenseEntity::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private double calculateSavingsRate(BigDecimal savings, BigDecimal totalIncome) {
+        if (totalIncome.compareTo(BigDecimal.ZERO) <= 0) {
+            return savings.compareTo(BigDecimal.ZERO) < 0 ? -100.0 : 0.0;
+        }
+        return savings.multiply(BigDecimal.valueOf(100))
+                .divide(totalIncome, 2, RoundingMode.HALF_UP)
+                .doubleValue();
+    }
+
+    private String calculateGrade(double savingsRate) {
+        if (savingsRate > 30) return MonthlyReportCardDTO.GRADE_A;
+        if (savingsRate > 20) return MonthlyReportCardDTO.GRADE_B;
+        if (savingsRate > 10) return MonthlyReportCardDTO.GRADE_C;
+        if (savingsRate >= 0) return MonthlyReportCardDTO.GRADE_D;
+        return MonthlyReportCardDTO.GRADE_F;
+    }
+
+    private String getGradeLabel(String grade) {
+        return switch (grade) {
+            case "A" -> "Xuất sắc";
+            case "B" -> "Tốt";
+            case "C" -> "Khá";
+            case "D" -> "Trung bình";
+            case "F" -> "Cần cải thiện";
+            default -> "Không xác định";
+        };
+    }
+
+    private List<CategoryBreakdownItem> getCategoryBreakdown(Long profileId, LocalDate start, LocalDate end, BigDecimal totalExpense) {
+        List<ExpenseEntity> expenses = expenseRepository.findByProfileIdAndDateBetween(profileId, start, end);
+
+        // Group by category
+        Map<String, List<ExpenseEntity>> grouped = expenses.stream()
+                .filter(e -> e.getCategory() != null)
+                .collect(Collectors.groupingBy(e -> e.getCategory().getName()));
+
+        List<CategoryBreakdownItem> items = new ArrayList<>();
+        for (Map.Entry<String, List<ExpenseEntity>> entry : grouped.entrySet()) {
+            BigDecimal amount = entry.getValue().stream()
+                    .map(ExpenseEntity::getAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            double percent = 0.0;
+            if (totalExpense.compareTo(BigDecimal.ZERO) > 0) {
+                percent = amount.multiply(BigDecimal.valueOf(100))
+                        .divide(totalExpense, 2, RoundingMode.HALF_UP)
+                        .doubleValue();
+            }
+            ExpenseEntity sample = entry.getValue().get(0);
+            items.add(CategoryBreakdownItem.builder()
+                    .name(entry.getKey())
+                    .amount(amount)
+                    .percent(percent)
+                    .icon(sample.getCategory().getIcon())
+                    .color("#94A3B8") // default color
+                    .build());
+        }
+
+        // Sort by amount descending
+        items.sort((a, b) -> b.getAmount().compareTo(a.getAmount()));
+        return items;
+    }
+
+    private int countCompletedGoalsThisMonth(Long profileId, LocalDate start, LocalDate end) {
+        List<SavingGoalEntity> allGoals = savingGoalRepository.findByProfileIdOrderByCreatedAtDesc(profileId);
+        int count = 0;
+        for (SavingGoalEntity goal : allGoals) {
+            if (goal.getStatus() == GoalStatus.COMPLETED) {
+                List<SavingGoalContributionEntity> contributions = savingGoalContributionRepository
+                        .findByGoalIdAndContributionDateBetween(goal.getId(), start, end);
+                if (!contributions.isEmpty()) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    private List<String> generateBadges(double savingsRate, int budgetsOnTrack, int totalBudgets,
+                                         int completedGoals, double spendingChangePercent,
+                                         BigDecimal totalIncome, BigDecimal savings) {
+        List<String> badges = new ArrayList<>();
+        if (savingsRate > 30) badges.add("🏆 Tiết kiệm xuất sắc");
+        if (totalBudgets > 0 && budgetsOnTrack == totalBudgets) badges.add("📊 Ngân sách chặt chẽ");
+        if (completedGoals > 0) badges.add("🎯 Mục tiêu hoàn thành");
+        if (spendingChangePercent < -10) badges.add("📉 Chi tiêu giảm");
+        if (totalIncome.compareTo(BigDecimal.ZERO) > 0 && savings.compareTo(BigDecimal.ZERO) > 0)
+            badges.add("⚖️ Cân bằng tài chính");
+        return badges;
+    }
+
+    private List<String> generateStrengths(double savingsRate, int budgetsOnTrack, int totalBudgets,
+                                            int completedGoals, double spendingChangePercent) {
+        List<String> strengths = new ArrayList<>();
+        if (savingsRate > 20) {
+            strengths.add("Bạn đang tiết kiệm rất tốt với tỷ lệ " + String.format("%.1f", savingsRate) + "% thu nhập");
+        }
+        if (totalBudgets > 0 && budgetsOnTrack == totalBudgets) {
+            strengths.add("Tất cả ngân sách đều được kiểm soát trong hạn mức");
+        }
+        if (spendingChangePercent < 0) {
+            strengths.add("Chi tiêu giảm " + String.format("%.1f", Math.abs(spendingChangePercent)) + "% so với tháng trước");
+        }
+        if (completedGoals > 0) {
+            strengths.add("Đã hoàn thành " + completedGoals + " mục tiêu tiết kiệm trong tháng");
+        }
+        if (strengths.isEmpty()) {
+            strengths.add("Đã theo dõi tài chính đều đặn trong tháng");
+        }
+        return strengths;
+    }
+
+    private List<String> generateImprovements(double savingsRate, int budgetsOnTrack, int totalBudgets,
+                                               int completedGoals) {
+        List<String> improvements = new ArrayList<>();
+        if (savingsRate < 10) {
+            improvements.add("Tỷ lệ tiết kiệm còn thấp (" + String.format("%.1f", savingsRate) + "%), hãy cố gắng cắt giảm chi tiêu không cần thiết");
+        }
+        if (savingsRate < 0) {
+            improvements.add("Bạn đang chi tiêu nhiều hơn thu nhập, cần xem xét lại kế hoạch tài chính");
+        }
+        if (totalBudgets > 0 && budgetsOnTrack < totalBudgets) {
+            improvements.add((totalBudgets - budgetsOnTrack) + " ngân sách đã vượt hạn mức, hãy điều chỉnh chi tiêu");
+        }
+        if (completedGoals == 0) {
+            improvements.add("Chưa có đóng góp nào cho mục tiêu tiết kiệm trong tháng này");
+        }
+        if (improvements.isEmpty()) {
+            improvements.add("Duy trì thói quen quản lý tài chính tốt như hiện tại!");
+        }
+        return improvements;
+    }
+}

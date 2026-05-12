@@ -1,9 +1,7 @@
-import {Download, LoaderCircle, Mail} from "lucide-react";
+import { Download, LoaderCircle, Mail, FileSpreadsheet, Lock } from "lucide-react";
 import TransactionInfoCard from "./TransactionInfoCard.jsx";
 import moment from "moment";
-import {useState} from "react";
-
-const cardBtnBase = "inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/10 transition-colors";
+import { useState } from "react";
 
 const IncomeList = ({
     transactions,
@@ -16,21 +14,11 @@ const IncomeList = ({
     const [loadingAction, setLoadingAction] = useState(null);
     const isBusy = loadingAction !== null;
 
-    const handleEmail = async () => {
-        if (disableExportActions) return;
-        setLoadingAction("email");
+    const handleAction = async (action, callback) => {
+        if (disableExportActions || !callback) return;
+        setLoadingAction(action);
         try {
-            await onEmail();
-        } finally {
-            setLoadingAction(null);
-        }
-    };
-
-    const handleDownload = async () => {
-        if (disableExportActions) return;
-        setLoadingAction("download");
-        try {
-            await onDownload();
+            await callback();
         } finally {
             setLoadingAction(null);
         }
@@ -38,50 +26,80 @@ const IncomeList = ({
 
     return (
         <div className="card">
-            <div className="flex items-center justify-between">
-                <h5 className="text-lg font-semibold text-slate-900 dark:text-white">Nguồn thu nhập</h5>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-1">
+                <div>
+                    <h5 className="text-lg font-semibold text-slate-900 dark:text-white">Nguồn thu nhập</h5>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                        {transactions?.length ?? 0} giao dịch
+                    </p>
+                </div>
+
                 <div className="flex flex-col items-end gap-2">
-                    <div className="flex items-center justify-end gap-2">
+                    <div className="flex items-center gap-2">
+                        {/* Email button */}
                         <button
                             disabled={isBusy || disableExportActions}
-                            className={`${cardBtnBase} ${isBusy || disableExportActions ? "cursor-not-allowed opacity-60" : ""}`}
-                            onClick={handleEmail}
-                            title={disableExportActions ? disabledMessage : ""}
+                            onClick={() => handleAction("email", onEmail)}
+                            title={disableExportActions ? disabledMessage : "Gửi báo cáo qua email"}
                             type="button"
+                            className={[
+                                "inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all",
+                                "border border-slate-200 dark:border-white/10",
+                                "bg-white dark:bg-white/5 text-slate-600 dark:text-slate-300",
+                                "hover:bg-slate-50 dark:hover:bg-white/10 hover:border-slate-300 dark:hover:border-white/20",
+                                "active:scale-95 shadow-sm",
+                                (isBusy || disableExportActions) ? "opacity-50 cursor-not-allowed" : "",
+                            ].join(" ")}
                         >
                             {loadingAction === "email" ? (
-                                <><LoaderCircle className="w-4 h-4 animate-spin"/>Đang gửi...</>
+                                <><LoaderCircle size={14} className="animate-spin" />Đang gửi...</>
+                            ) : disableExportActions ? (
+                                <><Lock size={14} />Gửi Email</>
                             ) : (
-                                <><Mail size={15} />Gửi Email</>
+                                <><Mail size={14} />Gửi Email</>
                             )}
                         </button>
+
+                        {/* Download button */}
                         <button
                             disabled={isBusy || disableExportActions}
-                            className={`${cardBtnBase} ${isBusy || disableExportActions ? "cursor-not-allowed opacity-60" : ""}`}
-                            onClick={handleDownload}
-                            title={disableExportActions ? disabledMessage : ""}
+                            onClick={() => handleAction("download", onDownload)}
+                            title={disableExportActions ? disabledMessage : "Tải file Excel về máy"}
                             type="button"
+                            className={[
+                                "inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all",
+                                "shadow-sm active:scale-95",
+                                disableExportActions
+                                    ? "border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-400 dark:text-slate-500 opacity-50 cursor-not-allowed"
+                                    : "border border-emerald-500/30 bg-emerald-500 hover:bg-emerald-400 text-white",
+                            ].join(" ")}
                         >
                             {loadingAction === "download" ? (
-                                <><LoaderCircle className="w-4 h-4 animate-spin"/>Đang tải...</>
+                                <><LoaderCircle size={14} className="animate-spin" />Đang tải...</>
+                            ) : disableExportActions ? (
+                                <><Lock size={14} />Xuất Excel</>
                             ) : (
-                                <><Download size={15} />Tải xuống</>
+                                <><FileSpreadsheet size={14} />Xuất Excel</>
                             )}
                         </button>
                     </div>
-                    {disableExportActions && disabledMessage ? (
-                        <p className="max-w-xs text-right text-xs text-amber-600 dark:text-amber-400">{disabledMessage}</p>
-                    ) : null}
+
+                    {disableExportActions && disabledMessage && (
+                        <p className="max-w-xs text-right text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                            <Lock size={11} />
+                            {disabledMessage}
+                        </p>
+                    )}
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 mt-4">
                 {transactions?.map((income) => (
                     <TransactionInfoCard
                         key={income.id}
                         title={income.name}
                         icon={income.icon}
-                        date={moment(income.date).format('DD/MM/YYYY')}
+                        date={moment(income.date).format("DD/MM/YYYY")}
                         amount={income.amount}
                         type="income"
                         onDelete={() => onDelete(income.id)}

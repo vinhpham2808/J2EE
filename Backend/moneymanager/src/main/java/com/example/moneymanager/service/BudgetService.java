@@ -4,6 +4,7 @@ import com.example.moneymanager.dto.BudgetDTO;
 import com.example.moneymanager.dto.BudgetStatusDTO;
 import com.example.moneymanager.entity.BudgetEntity;
 import com.example.moneymanager.entity.CategoryEntity;
+import com.example.moneymanager.entity.EmailNotificationType;
 import com.example.moneymanager.entity.ProfileEntity;
 import com.example.moneymanager.repository.BudgetRepository;
 import com.example.moneymanager.repository.CategoryRepository;
@@ -11,12 +12,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,7 +30,9 @@ public class BudgetService {
     private final BudgetRepository budgetRepository;
     private final CategoryRepository categoryRepository;
     private final ProfileService profileService;
-    private final AwsSesEmailService awsSesEmailService;
+    private final EmailService emailService;
+    private final EmailNotificationPreferenceService emailNotificationPreferenceService;
+    private final MailTemplateService mailTemplateService;
 
     // ─────────────────────────────────────────────────────────────
     // LUỒNG 1: THIẾT LẬP HẠN MỨC
@@ -36,6 +42,7 @@ public class BudgetService {
      * Tạo mới hoặc cập nhật hạn mức ngân sách.
      * Chỉ chấp nhận danh mục loại "expense".
      */
+    @Transactional
     public BudgetDTO setBudget(BudgetDTO dto) {
         ProfileEntity profile = profileService.getCurrentProfile();
 
@@ -88,8 +95,18 @@ public class BudgetService {
         int year  = LocalDate.now().getYear();
 
         List<BudgetEntity> budgets = budgetRepository.findByProfileIdAndMonthAndYear(profile.getId(), month, year);
+
+        // Batch load all spent amounts in a single query (avoid N+1)
+        Map<Long, BigDecimal> spentByCategoryId = budgetRepository
+                .getTotalSpentByCategoryForProfileAndMonth(profile.getId(), month, year)
+                .stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> (BigDecimal) row[1]
+                ));
+
         return budgets.stream().map(b -> {
-            BigDecimal spent = getTotalSpent(profile.getId(), b.getCategory().getId(), month, year);
+            BigDecimal spent = spentByCategoryId.getOrDefault(b.getCategory().getId(), BigDecimal.ZERO);
             return toDTO(b, spent);
         }).toList();
     }
@@ -97,6 +114,7 @@ public class BudgetService {
     /**
      * Xóa một hạn mức.
      */
+    @Transactional
     public void deleteBudget(Long budgetId) {
         ProfileEntity profile = profileService.getCurrentProfile();
         BudgetEntity entity = budgetRepository.findById(budgetId)
@@ -163,31 +181,27 @@ public class BudgetService {
     public void sendBudgetAlertEmailAsync(ProfileEntity profile, BudgetStatusDTO status) {
         if (!status.isHasBudget()) return;
         if (!status.isExceeded() && !status.isWarning()) return;
+        if (!emailNotificationPreferenceService.isNotificationEnabled(profile.getId(), EmailNotificationType.BUDGET_ALERTS)) {
+            log.info("Budget alert email skipped for profile {} (disabled by preference)", profile.getId());
+            return;
+        }
 
         try {
-            String alertType  = status.isExceeded() ? "🚨 VƯỢT NGƯỠNG" : "⚠️ SẮP HẾT HẠN MỨC";
-            String colorHex   = status.isExceeded() ? "#e74c3c" : "#f39c12";
+            String alertType  = status.isExceeded() ? "VƯỢT NGƯỠNG" : "SẮP HẾT HẠN MỨC";
+            String colorHex   = status.isExceeded() ? "#dc2626" : "#d97706";
             String percentage = String.format("%.1f%%", status.getUsageRatio() * 100);
 
             java.text.NumberFormat nf = java.text.NumberFormat.getInstance(new java.util.Locale("vi", "VN"));
             String limitStr = nf.format(status.getAmountLimit());
             String spentStr = nf.format(status.getTotalSpent());
 
-            String body = "Xin chào " + profile.getFullName() + ",<br><br>"
-                    + "<div style='background:" + colorHex + ";color:#fff;padding:12px 20px;border-radius:8px;font-size:16px;font-weight:bold;'>"
-                    + alertType + " – Danh mục: " + status.getCategoryName() + "</div><br>"
-                    + "<table style='border-collapse:collapse;width:100%;'>"
-                    + "<tr><td style='padding:8px;border:1px solid #ddd;'><b>Danh mục</b></td><td style='padding:8px;border:1px solid #ddd;'>" + status.getCategoryName() + "</td></tr>"
-                    + "<tr><td style='padding:8px;border:1px solid #ddd;'><b>Hạn mức</b></td><td style='padding:8px;border:1px solid #ddd;'>" + limitStr + " VNĐ</td></tr>"
-                    + "<tr><td style='padding:8px;border:1px solid #ddd;'><b>Đã chi</b></td><td style='padding:8px;border:1px solid #ddd;'>" + spentStr + " VNĐ</td></tr>"
-                    + "<tr><td style='padding:8px;border:1px solid #ddd;'><b>Tỷ lệ sử dụng</b></td><td style='padding:8px;border:1px solid #ddd;'><b style='color:" + colorHex + ";'>" + percentage + "</b></td></tr>"
-                    + "</table><br>"
-                    + "Hãy kiểm tra lại chi tiêu của bạn trên <b>devbot</b>.<br><br>"
-                    + "Trân trọng,<br>Đội ngũ devbot";
+            String htmlBody = mailTemplateService.buildBudgetAlertEmail(
+                    profile.getFullName(), alertType, colorHex,
+                    status.getCategoryName(), limitStr, spentStr, percentage);
 
-            String subject = "[devbot] " + alertType + " – Ngân sách danh mục " + status.getCategoryName();
-            awsSesEmailService.sendHtmlEmail(profile.getEmail(), subject, body);
-            log.info("Budget alert HTML email sent to {} for category {}", profile.getEmail(), status.getCategoryName());
+            String subject = "[Money Manager] " + alertType + " – Ngân sách: " + status.getCategoryName();
+            emailService.sendHtmlEmail(profile.getEmail(), subject, htmlBody);
+            log.info("Budget alert email sent to {} for category {}", profile.getEmail(), status.getCategoryName());
         } catch (Exception e) {
             log.error("Failed to send budget alert email: {}", e.getMessage());
         }

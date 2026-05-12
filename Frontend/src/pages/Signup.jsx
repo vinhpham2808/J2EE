@@ -9,8 +9,11 @@ import { LoaderCircle, Zap } from "lucide-react";
 import ProfilePhotoSelector from "../components/ProfilePhotoSelector.jsx";
 import uploadProfileImage from "../util/uploadProfileImage.js";
 import Header from "../components/Header.jsx";
+import { usePageTitle } from "../hooks/usePageTitle.js";
+import Footer from "../components/Footer.jsx";
 
 const Signup = () => {
+  usePageTitle("Đăng ký tài khoản");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -53,8 +56,8 @@ const Signup = () => {
         profileImageUrl,
       });
       if (response.status === 201) {
-        toast.success("Tạo tài khoản thành công. Vui lòng kiểm tra email để xác thực.");
-        navigate("/verify-otp", { state: { email } });
+        toast.success("Đăng ký thành công! Vui lòng kiểm tra email để lấy mã OTP.");
+        navigate("/activate", { state: { email } });
       }
     } catch (err) {
       console.error("Something went wrong", err);
@@ -65,9 +68,9 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0A0E1A]">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0A0E1A] flex flex-col">
       <Header />
-      <main className="mx-auto flex max-w-lg items-start justify-center px-6 py-10">
+      <main className="mx-auto flex max-w-lg items-start justify-center px-6 py-10 flex-1">
         <div className="w-full rounded-2xl border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden
           bg-white dark:bg-[#0F172A]">
 
@@ -150,6 +153,7 @@ const Signup = () => {
           </div>
         </div>
       </main>
+      <Footer />
     </div>
   );
 };

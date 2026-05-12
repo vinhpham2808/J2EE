@@ -30,6 +30,7 @@ public class NotificationEntity {
     private String message;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "type", length = 50)
     private NotificationType type;
 
     private Boolean isRead;

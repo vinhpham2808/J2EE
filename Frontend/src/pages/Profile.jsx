@@ -1,18 +1,21 @@
 import {useContext, useEffect, useState} from "react";
-import {BadgeCheck, LoaderCircle, Mail, Sparkles, User} from "lucide-react";
+import {BadgeCheck, LoaderCircle, Mail, ShieldCheck, Sparkles, User} from "lucide-react";
 import toast from "react-hot-toast";
 import Dashboard from "../components/Dashboard.jsx";
 import Input from "../components/Input.jsx";
 import ProfilePhotoSelector from "../components/ProfilePhotoSelector.jsx";
+import EmailNotificationSettings from "../components/EmailNotificationSettings.jsx";
 import {useUser} from "../hooks/useUser.jsx";
 import {AppContext} from "../context/AppContext.jsx";
 import axiosConfig from "../util/axiosConfig.jsx";
 import {API_ENDPOINTS} from "../util/apiEndpoints.js";
 import {validateEmail} from "../util/validation.js";
 import uploadProfileImage from "../util/uploadProfileImage.js";
+import { usePageTitle } from "../hooks/usePageTitle.js";
 
 const Profile = () => {
     useUser();
+    usePageTitle("Hồ sơ người dùng");
 
     const {user, setUser} = useContext(AppContext);
     const [fullName, setFullName] = useState("");
@@ -25,6 +28,7 @@ const Profile = () => {
     const [showPasswordFields, setShowPasswordFields] = useState(false);
     const [error, setError] = useState("");
     const [isSaving, setIsSaving] = useState(false);
+    const [activeTab, setActiveTab] = useState("info");
 
     useEffect(() => {
         if (!user) return;
@@ -121,7 +125,15 @@ const Profile = () => {
                                 )}
                                 <div className="min-w-0">
                                     <p className="text-xs uppercase tracking-[0.24em] text-white/50">Tài khoản</p>
-                                    <h1 className="truncate text-2xl font-semibold">{fullName || "Người dùng"}</h1>
+                                    <div className="flex items-center gap-2">
+                                        <h1 className="truncate text-2xl font-semibold">{fullName || "Người dùng"}</h1>
+                                        {user?.role === "admin" && (
+                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold uppercase tracking-wide border border-amber-500/30 shrink-0">
+                                                <ShieldCheck size={11} />
+                                                Admin
+                                            </span>
+                                        )}
+                                    </div>
                                     <p className="truncate text-sm text-white/70">{email || "Chưa có email"}</p>
                                 </div>
                             </div>
@@ -140,7 +152,47 @@ const Profile = () => {
                         </div>
                     </section>
 
-                    {/* Edit form */}
+                    {/* Tab navigation */}
+                    <div className="flex gap-1 border-b border-slate-200 dark:border-white/10">
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab("info")}
+                            className={`px-5 py-2.5 text-sm font-semibold border-b-2 transition-colors ${
+                                activeTab === "info"
+                                    ? "border-violet-600 text-violet-600 dark:text-violet-400"
+                                    : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
+                            }`}
+                        >
+                            Thông Tin Cá Nhân
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab("email")}
+                            className={`px-5 py-2.5 text-sm font-semibold border-b-2 transition-colors ${
+                                activeTab === "email"
+                                    ? "border-violet-600 text-violet-600 dark:text-violet-400"
+                                    : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
+                            }`}
+                        >
+                            Cài Đặt Email
+                        </button>
+                    </div>
+
+                    {/* Email settings tab */}
+                    {activeTab === "email" && (
+                        <section className="rounded-[28px] border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 p-6 shadow-sm sm:p-8">
+                            <div className="flex flex-col gap-2 border-b border-slate-100 dark:border-white/10 pb-5 mb-6">
+                                <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">Cài Đặt Email</h2>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                    Quản lý các loại email bạn muốn nhận từ Money Manager.
+                                </p>
+                            </div>
+                            <EmailNotificationSettings />
+                        </section>
+                    )}
+
+                    {/* Profile info tab */}
+                    {activeTab === "info" && (
                     <section className="rounded-[28px] border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 p-6 shadow-sm sm:p-8">
                         <div className="flex flex-col gap-2 border-b border-slate-100 dark:border-white/10 pb-5">
                             <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">Chỉnh sửa hồ sơ</h2>
@@ -237,6 +289,7 @@ const Profile = () => {
                             </div>
                         </form>
                     </section>
+                    )}
                 </div>
             </div>
         </Dashboard>

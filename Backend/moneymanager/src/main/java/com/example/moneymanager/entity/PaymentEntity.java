@@ -56,6 +56,9 @@ public class PaymentEntity {
 
     private Integer cycleMonths;
 
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private boolean subscriptionActivated = false;
+
     @Column(updatable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;

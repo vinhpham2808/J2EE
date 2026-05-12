@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import Dashboard from "../components/Dashboard";
-import { Bell, CheckCircle2, Filter, AlertCircle, TrendingUp, TrendingDown, Clock, ShieldCheck, Mail } from "lucide-react";
+import { Bell, CheckCircle2, Filter, AlertCircle, TrendingUp, TrendingDown, Clock, ShieldCheck, Mail, FileBarChart, Target, Flame, ShieldAlert } from "lucide-react";
 import axiosConfig from "../util/axiosConfig";
 import { API_ENDPOINTS } from "../util/apiEndpoints";
 import toast from "react-hot-toast";
+import { usePageTitle } from "../hooks/usePageTitle.js";
 
 const Notifications = () => {
+  usePageTitle("Thông báo");
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState("ALL"); // ALL, UNREAD
@@ -76,6 +78,16 @@ const Notifications = () => {
         return <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-500/10 flex items-center justify-center text-amber-500"><AlertCircle size={20} /></div>;
       case "BUDGET_EXCEEDED": 
         return <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-500/20 flex items-center justify-center text-red-600"><AlertCircle size={20} /></div>;
+      case "BUDGET_ALERT": 
+        return <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-500/10 flex items-center justify-center text-amber-600"><ShieldAlert size={20} /></div>;
+      case "SPENDING_ALERT": 
+        return <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-500/10 flex items-center justify-center text-red-500"><TrendingUp size={20} /></div>;
+      case "GOAL_PROGRESS": 
+        return <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-500/10 flex items-center justify-center text-emerald-500"><Target size={20} /></div>;
+      case "SAVING_STREAK": 
+        return <div className="w-10 h-10 rounded-full bg-violet-100 dark:bg-violet-500/10 flex items-center justify-center text-violet-500"><Flame size={20} /></div>;
+      case "MONTHLY_REPORT": 
+        return <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-500/10 flex items-center justify-center text-blue-500"><FileBarChart size={20} /></div>;
       case "PAYMENT": 
         return <div className="w-10 h-10 rounded-full bg-violet-100 dark:bg-violet-500/10 flex items-center justify-center text-violet-500"><ShieldCheck size={20} /></div>;
       case "ADMIN": 

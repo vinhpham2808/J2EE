@@ -42,7 +42,15 @@ export const getPaymentPlans = () => {
   const saved = localStorage.getItem("payment_plans");
   if (saved) {
     try {
-      return JSON.parse(saved);
+      const parsed = JSON.parse(saved);
+      const isStale = parsed.some(p => !p.features || p.features.length === 0);
+      if (isStale) {
+        return parsed.map(p => {
+          const def = DEFAULT_PAYMENT_PLANS.find(d => d.id === p.id);
+          return { ...def, ...p, features: p.features?.length ? p.features : (def?.features ?? []) };
+        });
+      }
+      return parsed;
     } catch (e) {
       console.error("Không thể tải danh sách gói dịch vụ", e);
     }

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useContext } from "react";
-import { User, LogOut, X, Menu, Bell, Plus } from "lucide-react";
+import { ShieldCheck, User, LogOut, X, Menu, Bell, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContext.jsx";
 import Sidebar from "./Sidebar.jsx";
@@ -109,15 +109,34 @@ const Menubar = ({ activeMenu }) => {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">
-                      {user?.fullName || "Người dùng"}
-                    </p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">
+                        {user?.fullName || "Người dùng"}
+                      </p>
+                      {user?.role === "admin" && (
+                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[9px] font-bold uppercase tracking-wide border border-amber-500/20 shrink-0">
+                          <ShieldCheck size={9} />
+                          Admin
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user?.email || ""}</p>
                   </div>
                 </div>
               </div>
 
               <div className="p-2">
+                {user?.role === "admin" && (
+                  <button
+                    onClick={() => { setShowDropdown(false); navigate("/admin"); }}
+                    className="flex items-center gap-3 w-full px-3 py-2.5 text-sm rounded-xl
+                      text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-500/10
+                      transition-colors"
+                  >
+                    <ShieldCheck size={15} />
+                    Trang quản trị
+                  </button>
+                )}
                 <button
                   onClick={handleOpenProfile}
                   className="flex items-center gap-3 w-full px-3 py-2.5 text-sm rounded-xl
@@ -143,17 +162,30 @@ const Menubar = ({ activeMenu }) => {
       </div>
 
       {/* Mobile sidebar overlay */}
-      {openSideMenu && (
-        <div className="fixed inset-0 top-16 z-30 lg:hidden">
-          <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-            onClick={() => setOpenSideMenu(false)}
-          />
-          <div className="relative w-64 h-full">
-            <Sidebar activeMenu={activeMenu} />
+      <div
+        className={`fixed inset-0 top-16 z-30 lg:hidden transition-all duration-300 ease-in-out ${
+          openSideMenu ? 'visible' : 'invisible'
+        }`}
+      >
+        {/* Backdrop — click outside to close */}
+        <div
+          className={`absolute inset-0 transition-opacity duration-300 ease-in-out ${
+            openSideMenu ? 'opacity-100' : 'opacity-0'
+          } bg-black/40 backdrop-blur-sm`}
+          onClick={() => setOpenSideMenu(false)}
+        />
+
+        {/* Sidebar panel */}
+        <div
+          className={`relative transition-transform duration-300 ease-in-out ${
+            openSideMenu ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
+          <div className="w-64 h-full">
+            <Sidebar activeMenu={activeMenu} mobileOverlay={true} />
           </div>
         </div>
-      )}
+      </div>
     </header>
   );
 };

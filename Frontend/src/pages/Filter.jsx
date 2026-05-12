@@ -7,9 +7,11 @@ import {API_ENDPOINTS} from "../util/apiEndpoints.js";
 import toast from "react-hot-toast";
 import TransactionInfoCard from "../components/TransactionInfoCard.jsx";
 import moment from "moment";
+import { usePageTitle } from "../hooks/usePageTitle.js";
 
 const Filter = () => {
     useUser();
+    usePageTitle("Lọc giao dịch");
     const [type, setType] = useState("income");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");

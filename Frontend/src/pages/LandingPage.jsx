@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { Sun, Moon, TrendingUp, Shield, BarChart3, Wallet, Target, Sparkles, Star, ArrowRight, Check, ChevronRight, Menu, X } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
+import { usePageTitle } from '../hooks/usePageTitle.js';
 
 const LandingPage = () => {
     const navigate = useNavigate();
+    usePageTitle("Trang chủ");
     const { theme } = useTheme();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -672,7 +674,7 @@ const LandingPage = () => {
                     </div>
                     <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-slate-200 dark:border-white/5 gap-4">
                         <p className="text-xs text-slate-400 dark:text-slate-500">
-                            &copy; 2024 MoneyManager. All rights reserved.
+                            &copy; {new Date().getFullYear()} MoneyManager - Được phát triển bởi <span className="text-amber-600 dark:text-amber-400">BotDev</span>. All rights reserved.
                         </p>
                         <div className="flex gap-4">
                             {[TrendingUp, Shield, BarChart3].map((Icon, i) => (

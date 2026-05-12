@@ -37,4 +37,24 @@ public interface BudgetRepository extends JpaRepository<BudgetEntity, Long> {
             @Param("month") Integer month,
             @Param("year") Integer year
     );
+
+    // Batch: lấy tổng chi tiêu cho tất cả danh mục của profile trong tháng/năm (tránh N+1)
+    @Query("""
+            SELECT e.category.id, COALESCE(SUM(e.amount), 0)
+            FROM ExpenseEntity e
+            WHERE e.profile.id = :profileId
+              AND MONTH(e.date) = :month
+              AND YEAR(e.date) = :year
+            GROUP BY e.category.id
+            """)
+    List<Object[]> getTotalSpentByCategoryForProfileAndMonth(
+            @Param("profileId") Long profileId,
+            @Param("month") Integer month,
+            @Param("year") Integer year
+    );
+
+    // Xoá toàn bộ budget thuộc một danh mục (dùng khi xoá danh mục)
+    void deleteByCategoryId(Long categoryId);
+
+    void deleteByProfileId(Long profileId);
 }

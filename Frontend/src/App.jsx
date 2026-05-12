@@ -10,6 +10,7 @@ const AdminPayments = lazy(() => import("./pages/Admin/AdminPayments.jsx"));
 const AdminSettings = lazy(() => import("./pages/Admin/AdminSettings.jsx"));
 const AdminSubscription = lazy(() => import("./pages/Admin/AdminSubscription.jsx"));
 const AdminNotifications = lazy(() => import("./pages/Admin/AdminNotifications.jsx"));
+const AdminUsers = lazy(() => import("./pages/Admin/AdminUsers.jsx"));
 const Home = lazy(() => import("./pages/Home.jsx"));
 const Notifications = lazy(() => import("./pages/Notifications.jsx"));
 const Income = lazy(() => import("./pages/Income.jsx"));
@@ -29,6 +30,8 @@ const AccountActivation = lazy(() => import("./pages/AccountActivation.jsx"));
 const VerifyOtp = lazy(() => import("./pages/VerifyOtp.jsx"));
 const Profile = lazy(() => import("./pages/Profile.jsx"));
 const SavingGoals = lazy(() => import("./pages/SavingGoals.jsx"));
+const Reports = lazy(() => import("./pages/Reports.jsx"));
+const Forecast = lazy(() => import("./pages/Forecast.jsx"));
 
 const LoadingFallback = () => (
     <div className="flex justify-center items-center h-screen w-full">
@@ -48,11 +51,13 @@ const App = () => {
                     <Route path="/expense" element={<Expense />} />
                     <Route path="/budget" element={<Budget />} />
                     <Route path="/saving-goals" element={<SavingGoals />} />
+                    <Route path="/reports" element={<Reports />} />
                     <Route path="/category" element={<Category />} />
                     <Route path="/filter" element={<Filter />} />
                     <Route path="/payment" element={<Payment />} />
                     <Route path="/payment/success" element={<PaymentSuccess />} />
                     <Route path="/payment/cancel" element={<PaymentCancel />} />
+                    <Route path="/forecast" element={<Forecast />} />
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/notifications" element={<Notifications />} />
                     <Route path="/login" element={<Login />} />
@@ -64,6 +69,7 @@ const App = () => {
                     <Route path="/admin" element={<AdminRoute />}>
                         <Route element={<AdminLayout />}>
                             <Route index element={<AdminDashboard />} />
+                            <Route path="users" element={<AdminUsers />} />
                             <Route path="payments" element={<AdminPayments />} />
                             <Route path="subscriptions" element={<AdminSubscription />} />
                             <Route path="notifications" element={<AdminNotifications />} />

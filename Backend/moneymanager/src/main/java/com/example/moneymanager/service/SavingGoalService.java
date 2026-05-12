@@ -24,6 +24,7 @@ public class SavingGoalService {
     private final SavingGoalRepository goalRepository;
     private final SavingGoalContributionRepository contributionRepository;
     private final ProfileService profileService;
+    private final NotificationService notificationService;
 
     // ─── CREATE ──────────────────────────────────────────────────
     @Transactional
@@ -132,6 +133,11 @@ public class SavingGoalService {
             goal.setStatus(GoalStatus.COMPLETED);
         }
         goalRepository.save(goal);
+
+        // ─── Smart Notification: Goal Progress ──────────────────
+        ProfileEntity profile = profileService.getCurrentProfile();
+        notificationService.notifyGoalProgress(profile, goal.getName(),
+                dto.getAmount(), goal.getCurrentAmount(), goal.getTargetAmount());
 
         return toContributionDTO(contribution);
     }

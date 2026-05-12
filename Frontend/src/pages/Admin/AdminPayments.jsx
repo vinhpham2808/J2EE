@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { RefreshCcw, Search, Wallet, ChevronDown } from "lucide-react";
 import axiosConfig from "../../util/axiosConfig.jsx";
 import { API_ENDPOINTS } from "../../util/apiEndpoints.js";
+import { usePageTitle } from "../../hooks/usePageTitle.js";
 
 const ADMIN_SETTINGS_KEY = "admin_settings";
 
@@ -47,6 +48,7 @@ const formatDateTime = (value) => {
 
 const AdminPayments = () => {
   const settings = useMemo(() => loadAdminSettings(), []);
+  usePageTitle("Quản lý thanh toán");
 
   const [status, setStatus] = useState(settings.defaultPaymentStatus || "ALL");
   const [search, setSearch] = useState("");

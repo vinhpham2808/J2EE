@@ -48,6 +48,20 @@ body {
   @apply w-full rounded-xl bg-violet-600 hover:bg-violet-500 px-4 py-3 text-sm font-semibold text-white transition-all duration-150 active:scale-95 cursor-pointer;
 }
 
+/* ───────────────────────────────────────────────────────────── */
+/* GOOGLE SIGN-IN BUTTON FIX                                     */
+/* ───────────────────────────────────────────────────────────── */
+
+.google-btn-wrapper {
+  color-scheme: light;
+}
+
+.google-btn-wrapper > div[class*="haAclf"],
+.google-btn-wrapper .haAclf {
+  padding: 0 !important;
+  background-color: transparent !important;
+}
+
 .form-input {
   @apply w-full mt-1 px-4 py-2.5 rounded-xl text-sm outline-none transition-colors
          bg-slate-100 border border-slate-200 text-slate-900 placeholder-slate-400
@@ -114,7 +128,7 @@ body {
 }
 .budget-card__delete {
   @apply text-slate-300 dark:text-slate-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10
-         w-7 h-7 flex justify-center items-center rounded-lg transition-colors;
+         sm:w-7 sm:h-7 w-11 h-11 flex justify-center items-center rounded-lg transition-colors;
 }
 
 .budget-card__bar-wrap {
@@ -147,7 +161,7 @@ body {
   @apply space-y-4;
 }
 .budget-form__row {
-  @apply flex gap-4;
+  @apply flex flex-col sm:flex-row gap-4;
 }
 .budget-form__half {
   @apply flex-1;

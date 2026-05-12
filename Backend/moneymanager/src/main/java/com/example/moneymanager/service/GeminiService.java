@@ -48,6 +48,19 @@ public class GeminiService {
         return numerator.divide(denominator, scale, RoundingMode.HALF_UP);
     }
 
+    public String callGeminiWithPrompt(String systemPrompt, String userMessage, int maxOutputTokens) {
+        validateConfiguration();
+        ObjectNode requestBody = objectMapper.createObjectNode();
+        requestBody.set("systemInstruction", buildSystemInstruction(systemPrompt));
+        requestBody.set("contents", buildUserContents(userMessage));
+        ObjectNode genConfig = objectMapper.createObjectNode();
+        genConfig.put("temperature", 0.4);
+        genConfig.put("maxOutputTokens", maxOutputTokens);
+        requestBody.set("generationConfig", genConfig);
+        JsonNode responseBody = executeGenerateContentRequest(requestBody);
+        return extractOutputText(responseBody);
+    }
+
     public AssistantChatResponseDTO testConnection(String message) {
         String prompt = (message == null || message.isBlank())
                 ? "Trả lời đúng 5 từ: Gemini đang hoạt động tốt."

@@ -1,101 +1,113 @@
 package com.example.moneymanager.controller;
 
-import com.example.moneymanager.dto.AuthDTO;
-import com.example.moneymanager.dto.AutoRenewRequestDTO;
-import com.example.moneymanager.dto.ForgotPasswordRequestDTO;
-import com.example.moneymanager.dto.ProfileDTO;
-import com.example.moneymanager.dto.ProfileUpdateDTO;
-import com.example.moneymanager.dto.ResetPasswordRequestDTO;
-import com.example.moneymanager.dto.ResendOtpRequestDTO;
-import com.example.moneymanager.dto.SetupProfileDTO;
-import com.example.moneymanager.dto.VerifyOtpRequestDTO;
+import com.example.moneymanager.dto.*;
+import com.example.moneymanager.service.EmailNotificationPreferenceService;
 import com.example.moneymanager.service.ProfileService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
-import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
+
 @RestController
 @RequiredArgsConstructor
 public class ProfileController {
 
     private final ProfileService profileService;
+    private final EmailNotificationPreferenceService emailNotificationPreferenceService;
+
+    // ─── Registration ─────────────────────────────────────────────────
 
     @PostMapping("/register")
     public ResponseEntity<?> registerProfile(@RequestBody ProfileDTO profileDTO) {
-        try {
-            ProfileDTO registeredProfile = profileService.registerProfile(profileDTO);
-            return ResponseEntity.status(HttpStatus.CREATED).body(registeredProfile);
-        } catch (Exception e) {
-            e.printStackTrace();
-            String errorMsg = e.getMessage() != null ? e.getMessage() : "Lỗi hệ thống không xác định: " + e.getClass().getSimpleName();
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
-                    "message", errorMsg
-            ));
-        }
+        ProfileDTO registered = profileService.registerProfile(profileDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
+                "message", "Đăng ký thành công. Mã OTP đã được gửi tới email của bạn.",
+                "user", registered
+        ));
     }
 
-    @PostMapping("/verify-otp")
-    public ResponseEntity<Map<String, String>> verifyOtp(@RequestBody VerifyOtpRequestDTO requestDTO) {
-        try {
-            profileService.verifyOtp(requestDTO.getEmail(), requestDTO.getOtpCode());
-            return ResponseEntity.ok(Map.of("message", "Xác thực tài khoản thành công."));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
-                    "message", e.getMessage()
-            ));
-        }
+    // ─── OTP: Account Activation ─────────────────────────────────────
+
+    @PostMapping("/verify-activation")
+    public ResponseEntity<Map<String, String>> verifyActivation(@Valid @RequestBody VerifyActivationOtpDTO dto) {
+        profileService.activateProfileWithOtp(dto);
+        return ResponseEntity.ok(Map.of("message", "Tài khoản đã được kích hoạt thành công."));
     }
 
-    @PostMapping("/resend-otp")
-    public ResponseEntity<Map<String, String>> resendOtp(@RequestBody ResendOtpRequestDTO requestDTO) {
-        try {
-            profileService.resendOtp(requestDTO.getEmail());
-            return ResponseEntity.ok(Map.of("message", "Mã OTP đã được gửi lại tới email của bạn."));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
-                    "message", e.getMessage()
-            ));
-        }
-    }
-
+    /**
+     * Deprecated link-based activation — kept to return a clear 410 Gone for old email links.
+     */
     @GetMapping("/activate")
-    public ResponseEntity<String> activateProfile(@RequestParam String token) {
-        boolean isActivated = profileService.activateProfile(token);
-        if (isActivated) {
-            return ResponseEntity.ok("Kích hoạt tài khoản thành công.");
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Liên kết kích hoạt không tồn tại hoặc đã được sử dụng.");
-        }
+    public ResponseEntity<Map<String, String>> activateDeprecated() {
+        return ResponseEntity.status(HttpStatus.GONE).body(Map.of(
+                "message", "Liên kết kích hoạt không còn được hỗ trợ. Vui lòng sử dụng mã OTP trong email mới nhất."
+        ));
     }
+
+    // ─── OTP Resend ──────────────────────────────────────────────────
+
+    @PostMapping("/otp/resend")
+    public ResponseEntity<Map<String, String>> resendOtp(@Valid @RequestBody OtpRequestDTO dto) {
+        profileService.resendOtp(dto.getEmail());
+        return ResponseEntity.ok(Map.of(
+                "message", "Nếu email tồn tại trong hệ thống, mã OTP mới đã được gửi."
+        ));
+    }
+
+    // ─── Login ───────────────────────────────────────────────────────
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody AuthDTO authDTO) {
-        try {
-            if (!profileService.isAccountActive(authDTO.getEmail())) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
-                        "message", "Tài khoản chưa được kích hoạt. Vui lòng kích hoạt tài khoản trước.",
-                        "needsActivation", true,
-                        "email", authDTO.getEmail()
-                ));
-            }
-            Map<String, Object> response = profileService.authenticateAndGenerateToken(authDTO);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
-                    "message", e.getMessage()
+        if (!profileService.isAccountActive(authDTO.getEmail())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                    "message", "Tài khoản chưa được kích hoạt. Vui lòng nhập mã OTP trong email."
             ));
         }
+        Map<String, Object> response = profileService.authenticateAndGenerateToken(authDTO);
+        return ResponseEntity.ok(response);
     }
+
+    // ─── Forgot Password / Reset Password via OTP ────────────────────
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Map<String, String>> forgotPassword(@RequestBody ForgotPasswordRequestDTO requestDTO) {
+        profileService.forgotPassword(requestDTO);
+        return ResponseEntity.ok(Map.of(
+                "message", "Nếu email tồn tại và tài khoản đã kích hoạt, mã OTP sẽ được gửi."
+        ));
+    }
+
+    @PostMapping("/verify-reset-otp")
+    public ResponseEntity<Map<String, String>> verifyResetOtp(@Valid @RequestBody VerifyActivationOtpDTO dto) {
+        profileService.verifyResetOtp(dto);
+        return ResponseEntity.ok(Map.of("message", "Mã OTP hợp lệ. Vui lòng nhập mật khẩu mới."));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Map<String, String>> resetPasswordWithOtp(@Valid @RequestBody ResetPasswordOtpDTO dto) {
+        profileService.resetPasswordWithOtp(dto);
+        return ResponseEntity.ok(Map.of("message", "Đặt lại mật khẩu thành công."));
+    }
+
+    /**
+     * Deprecated token-based reset redirect — returns 410 Gone.
+     */
+    @GetMapping("/reset-password")
+    public ResponseEntity<Map<String, String>> resetPasswordDeprecated() {
+        return ResponseEntity.status(HttpStatus.GONE).body(Map.of(
+                "message", "Liên kết đặt lại mật khẩu không còn được hỗ trợ. Vui lòng sử dụng trang Quên mật khẩu."
+        ));
+    }
+
+    // ─── Profile ─────────────────────────────────────────────────────
 
     @GetMapping("/profile")
     public ResponseEntity<ProfileDTO> getPublicProfile() {
-        ProfileDTO profileDTO = profileService.getPublicProfile(null);
-        return ResponseEntity.ok(profileDTO);
+        return ResponseEntity.ok(profileService.getPublicProfile(null));
     }
 
     @PutMapping("/complete-profile")
@@ -120,42 +132,29 @@ public class ProfileController {
         return ResponseEntity.ok(profileService.updateAutoRenew(requestDTO));
     }
 
-    // Các endpoint cho chức năng quên mật khẩu
+    // ─── Email Preferences ───────────────────────────────────────────
 
-    @PostMapping("/forgot-password")
-    public ResponseEntity<Map<String, String>> forgotPassword(@RequestBody ForgotPasswordRequestDTO requestDTO) {
-        try {
-            profileService.forgotPassword(requestDTO);
-            return ResponseEntity.ok(Map.of(
-                    "message", "Liên kết đặt lại mật khẩu đã được gửi tới email của bạn."
-            ));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
-                    "message", e.getMessage()
-            ));
-        }
+    @GetMapping("/profile/email-preferences")
+    public ResponseEntity<List<EmailNotificationPreferenceDTO>> getEmailPreferences() {
+        Long userId = profileService.getCurrentProfile().getId();
+        return ResponseEntity.ok(emailNotificationPreferenceService.getUserPreferences(userId));
     }
-    @Value("${money.manager.frontend.url}")
-    private String frontendUrl;
 
-    @GetMapping("/reset-password")
-    public void redirectToFrontend(@RequestParam String token, HttpServletResponse response) throws IOException {
-        String normalizedUrl = frontendUrl.endsWith("/")
-                ? frontendUrl.substring(0, frontendUrl.length() - 1)
-                : frontendUrl;
-        response.sendRedirect(normalizedUrl + "/reset-password?token=" + token);
-    }
-    @PostMapping("/reset-password")
-    public ResponseEntity<Map<String, String>> resetPassword(@RequestBody ResetPasswordRequestDTO requestDTO) {
-        try {
-            profileService.resetPassword(requestDTO);
-            return ResponseEntity.ok(Map.of(
-                    "message", "Đặt lại mật khẩu thành công."
-            ));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
-                    "message", e.getMessage()
-            ));
+    @PutMapping("/profile/email-preferences")
+    public ResponseEntity<Map<String, String>> updateEmailPreferences(
+            @RequestBody List<EmailNotificationPreferenceDTO> preferences) {
+        if (preferences == null || preferences.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Danh sách cài đặt không được rỗng."));
         }
+        Long userId = profileService.getCurrentProfile().getId();
+        emailNotificationPreferenceService.updatePreferences(userId, preferences);
+        return ResponseEntity.ok(Map.of("message", "Cập nhật cài đặt email thành công."));
+    }
+
+    @PostMapping("/profile/email-preferences/reset")
+    public ResponseEntity<Map<String, String>> resetEmailPreferences() {
+        Long userId = profileService.getCurrentProfile().getId();
+        emailNotificationPreferenceService.resetToDefaults(userId);
+        return ResponseEntity.ok(Map.of("message", "Đặt lại cài đặt email về mặc định thành công."));
     }
 }

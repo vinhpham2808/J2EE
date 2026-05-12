@@ -1,21 +1,32 @@
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState, useRef } from "react";
 import { LoaderCircle, Zap } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContext.jsx";
+import { useTheme } from "../context/ThemeContext.jsx";
 import Header from "../components/Header.jsx";
 import Input from "../components/Input.jsx";
 import axiosConfig from "../util/axiosConfig.jsx";
-import { API_ENDPOINTS, BASE_URL } from "../util/apiEndpoints.js";
+import { API_ENDPOINTS } from "../util/apiEndpoints.js";
 import { validateEmail } from "../util/validation.js";
+import { usePageTitle } from "../hooks/usePageTitle.js";
+import Footer from "../components/Footer.jsx";
+
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 const Login = () => {
   const navigate = useNavigate();
+  usePageTitle("Đăng nhập");
   const { setUser } = useContext(AppContext);
+  const { theme } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const googleBtnContainerRef = useRef(null);
+  const googleBtnLightRef = useRef(null);
+  const googleBtnDarkRef = useRef(null);
 
   useEffect(() => {
     const rememberedEmail = localStorage.getItem("rememberedEmail");
@@ -25,13 +36,117 @@ const Login = () => {
     }
   }, []);
 
-  const handleForgotPassword = () => navigate("/forgot-password");
+  const handleGoogleCredential = useCallback(async (response) => {
+    setIsGoogleLoading(true);
+    setError("");
+    try {
+      const { data } = await axiosConfig.post(API_ENDPOINTS.GOOGLE_AUTH, {
+        idToken: response.credential,
+      });
+      const { token, user } = data;
+      if (token) {
+        // Google login không có "remember me" → dùng sessionStorage mặc định
+        // Nếu rememberMe đang bật → lưu localStorage
+        if (rememberMe) {
+          localStorage.setItem("token", token);
+          sessionStorage.removeItem("token");
+        } else {
+          sessionStorage.setItem("token", token);
+          localStorage.removeItem("token");
+        }
+        setUser(user);
+        if (user.role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/dashboard");
+        }
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || "Đăng nhập bằng Google thất bại. Vui lòng thử lại.");
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  }, [navigate, setUser, rememberMe]);
+
+  // Load Google Identity Services script và khởi tạo
+  useEffect(() => {
+    if (!GOOGLE_CLIENT_ID) return;
+
+    const initializeGoogle = () => {
+      if (window.google?.accounts?.id && googleBtnLightRef.current && googleBtnDarkRef.current) {
+        window.google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: handleGoogleCredential,
+          ux_mode: "popup",
+          use_fedcm_for_prompt: true,
+        });
+
+        renderGoogleButtons();
+      }
+    };
+
+    const renderGoogleButtons = () => {
+      if (!googleBtnLightRef.current || !googleBtnDarkRef.current || !googleBtnContainerRef.current) return;
+      
+      const containerWidth = googleBtnContainerRef.current.offsetWidth || 400;
+
+      window.google.accounts.id.renderButton(googleBtnLightRef.current, {
+        theme: "outline",
+        size: "large",
+        width: containerWidth,
+        shape: "rectangular",
+        logo_alignment: "center",
+      });
+
+      window.google.accounts.id.renderButton(googleBtnDarkRef.current, {
+        theme: "filled_black",
+        size: "large",
+        width: containerWidth,
+        shape: "rectangular",
+        logo_alignment: "center",
+      });
+    };
+
+    // Theo dõi load API
+    if (window.google?.accounts?.id) {
+      // Đợi 1 chút để DOM form kịp render Width 100%
+      setTimeout(initializeGoogle, 100);
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    script.onload = initializeGoogle;
+    document.head.appendChild(script);
+
+    return () => {
+      // Cleanup: cancel one-tap nếu có
+      if (window.google?.accounts?.id) {
+        window.google.accounts.id.cancel();
+      }
+    };
+  }, [handleGoogleCredential]);
 
   const handleGoogleLogin = () => {
-    const normalizedBaseUrl = BASE_URL.replace(/\/api\/v1\.0\/?$/, "");
-    const googleAuthUrl = import.meta.env.VITE_GOOGLE_AUTH_URL || `${normalizedBaseUrl}/oauth2/authorization/google`;
-    window.location.href = googleAuthUrl;
+    if (!GOOGLE_CLIENT_ID) {
+      setError("Google Client ID chưa được cấu hình.");
+      return;
+    }
+    if (!window.google?.accounts?.id) {
+      setError("Đang tải Google Sign-In, vui lòng thử lại sau giây lát.");
+      return;
+    }
+    window.google.accounts.id.prompt((notification) => {
+      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+        // Fallback: dùng renderButton nếu popup bị chặn
+        setError("Google popup bị chặn bởi trình duyệt. Vui lòng cho phép popup và thử lại.");
+      }
+    });
   };
+
+  const handleForgotPassword = () => navigate("/forgot-password");
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -77,9 +192,9 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0A0E1A]">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0A0E1A] flex flex-col">
       <Header />
-      <main className="mx-auto flex max-w-5xl items-center justify-center px-6 py-12">
+      <main className="mx-auto flex max-w-5xl items-center justify-center px-6 py-12 flex-1">
         <div className="grid w-full overflow-hidden rounded-2xl border border-slate-200 dark:border-white/10 md:grid-cols-[0.95fr_1.05fr] shadow-2xl">
 
           {/* Left visual panel */}
@@ -180,21 +295,17 @@ const Login = () => {
                 <span className="h-px flex-1 bg-slate-200 dark:bg-white/10" />
               </div>
 
-              <button
-                className="flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 dark:border-white/10
-                  bg-white dark:bg-white/5 px-4 py-3 font-medium text-slate-700 dark:text-slate-300
-                  hover:bg-slate-50 dark:hover:bg-white/10 transition-all"
-                onClick={handleGoogleLogin}
-                type="button"
-              >
-                <svg aria-hidden="true" className="h-5 w-5" viewBox="0 0 24 24">
-                  <path d="M21.35 11.1H12v2.98h5.35c-.23 1.44-1.78 4.23-5.35 4.23-3.22 0-5.85-2.67-5.85-5.96 0-3.3 2.63-5.96 5.85-5.96 1.83 0 3.05.79 3.75 1.47l2.56-2.5C16.65 3.83 14.52 3 12 3 7.03 3 3 7.06 3 12.05c0 4.98 4.03 9.05 9 9.05 5.19 0 8.62-3.7 8.62-8.9 0-.6-.07-1.04-.27-1.1Z" fill="#4285F4" />
-                  <path d="M6.6 14.28 5.9 16.91 3.32 16.97A9.12 9.12 0 0 1 3 12.05c0-1.56.38-3.03 1.04-4.3h.01l2.3.43 1.01 2.31a5.7 5.7 0 0 0-.76 2.79c0 .35.03.69.1 1.01Z" fill="#34A853" />
-                  <path d="m20.62 12.2-.27 1.22c-.92 4.42-4.06 7.67-8.35 7.67-3.49 0-6.5-2-7.95-4.92l3.28-2.69a5.38 5.38 0 0 0 4.67 2.82c2.2 0 4.03-1.49 4.7-3.58H12V12.2h8.62Z" fill="#FBBC05" />
-                  <path d="M20.35 6.63 17.35 9.3A5.14 5.14 0 0 0 12 6.03c-2.2 0-4.05 1.52-4.71 3.65L4.03 7.75A9.04 9.04 0 0 1 12 3c2.52 0 4.65.83 6.35 2.4Z" fill="#EA4335" />
-                </svg>
-                Đăng nhập bằng Google
-              </button>
+              {/* Render sẵn 2 nút Google nhưng dùng CSS để ẩn/hiện mượt mà khi đổi theme */}
+              <div className="w-full" ref={googleBtnContainerRef}>
+                <div 
+                  className="google-btn-wrapper flex justify-center dark:hidden" 
+                  ref={googleBtnLightRef}
+                ></div>
+                <div 
+                  className="google-btn-wrapper hidden dark:flex justify-center" 
+                  ref={googleBtnDarkRef}
+                ></div>
+              </div>
 
               <p className="text-center text-sm text-slate-600 dark:text-slate-400">
                 Chưa có tài khoản?{" "}
@@ -206,6 +317,7 @@ const Login = () => {
           </section>
         </div>
       </main>
+      <Footer />
     </div>
   );
 };

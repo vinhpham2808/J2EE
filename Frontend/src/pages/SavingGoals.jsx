@@ -9,9 +9,11 @@ import SavingGoalForm from "../components/SavingGoalForm.jsx";
 import ContributionModal from "../components/ContributionModal.jsx";
 import Modal from "../components/Modal.jsx";
 import DeleteAlert from "../components/DeleteAlert.jsx";
+import { usePageTitle } from "../hooks/usePageTitle.js";
 
 const SavingGoals = () => {
   useUser();
+  usePageTitle("Mục tiêu tiết kiếm");
 
   const [goals, setGoals] = useState([]);
   const [loading, setLoading] = useState(false);

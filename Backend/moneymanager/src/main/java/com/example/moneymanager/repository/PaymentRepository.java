@@ -23,4 +23,6 @@ public interface PaymentRepository extends JpaRepository<PaymentEntity, Long> {
     List<PaymentEntity> findByStatusWithProfileOrderByCreatedAtDesc(@Param("status") String status);
 
     long countByStatusIgnoreCase(String status);
+
+    void deleteByProfileId(Long profileId);
 }

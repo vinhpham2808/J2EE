@@ -34,6 +34,18 @@ public class BudgetEntity {
     @Column(nullable = false)
     private Integer year;
 
+    @Column(name = "notified_70", nullable = false)
+    @Builder.Default
+    private boolean notified70 = false;
+
+    @Column(name = "notified_80", nullable = false)
+    @Builder.Default
+    private boolean notified80 = false;
+
+    @Column(name = "notified_90", nullable = false)
+    @Builder.Default
+    private boolean notified90 = false;
+
     @Column(updatable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;

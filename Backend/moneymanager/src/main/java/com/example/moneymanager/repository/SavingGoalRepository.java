@@ -19,4 +19,8 @@ public interface SavingGoalRepository extends JpaRepository<SavingGoalEntity, Lo
 
     @Query("SELECT COALESCE(SUM(g.currentAmount), 0) FROM SavingGoalEntity g WHERE g.profile.id = :profileId AND g.status = :status")
     BigDecimal sumCurrentAmountByProfileIdAndStatus(@Param("profileId") Long profileId, @Param("status") GoalStatus status);
+
+    List<SavingGoalEntity> findByProfileId(Long profileId);
+
+    void deleteByProfileId(Long profileId);
 }

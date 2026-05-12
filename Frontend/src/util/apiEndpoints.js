@@ -9,14 +9,14 @@ export const API_ENDPOINTS = {
     // Auth endpoints
     LOGIN: "/login",
     REGISTER: "/register",
-    ACTIVATE: "/activate",
-    VERIFY_OTP: "/verify-otp",
-    RESEND_OTP: "/resend-otp",
+    VERIFY_ACTIVATION: "/verify-activation",
+    OTP_RESEND: "/otp/resend",
     FORGOT_PASSWORD: "/forgot-password",
+    VERIFY_RESET_OTP: "/verify-reset-otp",
     RESET_PASSWORD: "/reset-password",
+    GOOGLE_AUTH: "/auth/google",
 
     // User profile endpoints
-    ACTIVATE_ACCOUNT: (token) => `/activate?token=${token}`,
     GET_USER_INFO: "/profile",
     UPDATE_PROFILE: "/profile",
     UPDATE_AUTO_RENEW: "/profile/subscription/auto-renew",
@@ -31,6 +31,7 @@ export const API_ENDPOINTS = {
     GET_ALL_CATEGORIES: "/categories",
     ADD_CATEGORY: "/categories",
     UPDATE_CATEGORY: (categoryId) => `/categories/${categoryId}`,
+    DELETE_CATEGORY: (categoryId) => `/categories/${categoryId}`,
     CATEGORY_BY_TYPE: (type) => `/categories/type/${type}`,
 
     // Income endpoints
@@ -61,13 +62,23 @@ export const API_ENDPOINTS = {
 
     // AI assistant endpoints
     GEMINI_CHAT: "/gemini/chat",
+    GEMINI_SPENDING_TIPS: "/gemini/spending-tips",
 
+    // Monthly Report endpoints
+    MONTHLY_REPORT_CURRENT: "/reports/monthly",
+    MONTHLY_REPORT_BY_MONTH: (year, month) => `/reports/monthly/${year}/${month}`,
 
     // Admin endpoints
     ADMIN_OVERVIEW: "/admin/overview",
     ADMIN_PAYMENTS: "/admin/payments",
     ADMIN_BROADCAST: "/admin/notifications/broadcast",
     ADMIN_NOTIFICATIONS: "/admin/notifications",
+    ADMIN_NOTIFICATION_UPDATE: (id) => `/admin/notifications/${id}`,
+    ADMIN_NOTIFICATION_DELETE: (id) => `/admin/notifications/${id}`,
+    ADMIN_USERS: "/admin/users",
+    ADMIN_USER_DETAIL: (id) => `/admin/users/${id}`,
+    ADMIN_USER_UPDATE: (id) => `/admin/users/${id}`,
+    ADMIN_USER_DELETE: (id) => `/admin/users/${id}`,
 
     // Notification endpoints
     GET_NOTIFICATIONS: "/notifications",
@@ -84,6 +95,21 @@ export const API_ENDPOINTS = {
     SAVING_GOAL_CONTRIBUTIONS: (id) => `/saving-goals/${id}/contributions`,
     ADD_SAVING_GOAL_CONTRIBUTION: (id) => `/saving-goals/${id}/contributions`,
 
+    // Document generation (Lambda)
+    GENERATE_INVOICE: "/documents/invoice",
+    GENERATE_EXPENSE_REPORT: "/documents/report/expense",
+
     // Image upload
-    UPLOAD_IMAGE: `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`
+    UPLOAD_IMAGE: "/files/upload",
+
+    // Email Notification Preferences
+    GET_EMAIL_PREFERENCES: "/profile/email-preferences",
+    UPDATE_EMAIL_PREFERENCES: "/profile/email-preferences",
+    RESET_EMAIL_PREFERENCES: "/profile/email-preferences/reset",
+
+    // Forecast endpoints
+    FORECAST_MONTHLY: (year, month) => `/forecast/monthly?year=${year}&month=${month}`,
+    FORECAST_ANOMALIES: "/forecast/anomalies",
+    FORECAST_CATEGORY_TREND: (categoryId, months) => `/forecast/category-trend/${categoryId}?months=${months}`,
+    FORECAST_INSIGHTS: "/forecast/insights",
 }

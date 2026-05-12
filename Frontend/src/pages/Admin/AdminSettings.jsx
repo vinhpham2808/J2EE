@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { RotateCcw, Save, SlidersHorizontal, ChevronDown } from "lucide-react";
+import { usePageTitle } from "../../hooks/usePageTitle.js";
 
 const ADMIN_SETTINGS_KEY = "admin_settings";
 
@@ -11,6 +12,7 @@ const defaultSettings = {
 };
 
 const AdminSettings = () => {
+  usePageTitle("Cài đặt hệ thống");
   const [settings, setSettings] = useState(defaultSettings);
   const [message, setMessage] = useState("");
 

@@ -114,6 +114,13 @@ public class SubscriptionService {
         }
     }
 
+    public void ensureCanUseForecast(ProfileEntity profile) {
+        PlanFeatures features = getPlanFeatures(profile);
+        if (features.getPlan() != SubscriptionPlan.PREMIUM) {
+            throw new RuntimeException("Tính năng Dự báo và Cảnh báo bất thường chỉ có ở gói Premium. Vui lòng nâng cấp để sử dụng.");
+        }
+    }
+
     @Transactional
     public ProfileEntity activatePaidSubscription(ProfileEntity profile, String planId) {
         PlanCatalogItem plan = getPlanCatalogItem(planId);
