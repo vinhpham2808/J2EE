@@ -51,18 +51,10 @@ public class ProfileService {
             throw new RuntimeException("Email này đã được sử dụng.");
         });
 
-        // Tự động tạo dữ liệu tạm nếu thiếu (trường hợp mobile chỉ nhập email)
-        String tempPassword = (profileDTO.getPassword() == null || profileDTO.getPassword().isBlank())
-                ? UUID.randomUUID().toString().substring(0, 12)
-                : profileDTO.getPassword();
-        String tempFullName = (profileDTO.getFullName() == null || profileDTO.getFullName().isBlank())
-                ? profileDTO.getEmail().substring(0, profileDTO.getEmail().indexOf('@'))
-                : profileDTO.getFullName();
-
+        // Chỉ tạo profile với email — fullName và password sẽ được người dùng
+        // nhập sau qua /complete-profile (tránh dữ liệu tạm không chính xác)
         ProfileEntity newProfile = ProfileEntity.builder()
-                .fullName(tempFullName)
                 .email(profileDTO.getEmail())
-                .password(passwordEncoder.encode(tempPassword))
                 .profileImageUrl(profileDTO.getProfileImageUrl())
                 .build();
         newProfile.setIsActive(false);
@@ -85,8 +77,10 @@ public class ProfileService {
         profile.setOtpAttempts(0);
         profileRepository.save(profile);
 
+        // Nếu fullName chưa được nhập, dùng "bạn" làm tên hiển thị trong email
+        String displayName = profile.getFullName() != null ? profile.getFullName() : "bạn";
         String subject = "Mã xác thực tài khoản Money Manager";
-        String body = buildOtpEmailBody(otpCode, profile.getFullName());
+        String body = buildOtpEmailBody(otpCode, displayName);
         awsSesEmailService.sendHtmlEmail(profile.getEmail(), subject, body);
     }
 

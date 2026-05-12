@@ -7,6 +7,8 @@ import { SUCCESS_ALERT_MESSAGES, SUCCESS_ALERT_TITLE } from "../constants/alertM
 import { formatCurrencyInput, getApiErrorMessage, parseCurrencyInput, todayIso } from "../utils/format";
 import { PickDateField } from "../utils/pickDate";
 import { COLORS } from "../constants/colors";
+import ExpenseNoteField from "../components/ExpenseNoteField";
+import { parseNote, suggestCategory } from "../utils/smartNoteParser";
 
 export default function AddExpenseScreen() {
   const navigation = useNavigation();
@@ -16,6 +18,8 @@ export default function AddExpenseScreen() {
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(todayIso());
   const [categoryId, setCategoryId] = useState("");
+  const [note, setNote] = useState("");
+  const [splitInfo, setSplitInfo] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -34,6 +38,40 @@ export default function AddExpenseScreen() {
 
     fetchCategories();
   }, []);
+
+  /** Xử lý kết quả từ voice input — tự động điền form */
+  const handleVoiceResult = (voiceText) => {
+    if (!voiceText) return;
+
+    const parsed = parseNote(voiceText);
+
+    // Điền số tiền nếu parse được
+    if (parsed.amount > 0) {
+      setAmount(formatCurrencyInput(String(parsed.amount)));
+    }
+
+    // Điền tên khoản chi từ phần note (rút gọn)
+    if (parsed.note) {
+      // Lấy ~40 ký tự đầu làm tên
+      const shortName = parsed.note.length > 40
+        ? parsed.note.substring(0, 40) + "..."
+        : parsed.note;
+      setName(shortName);
+    }
+
+    // Lưu split info để hiển thị
+    if (parsed.splitInfo?.splits?.length > 0) {
+      setSplitInfo(parsed.splitInfo);
+    } else {
+      setSplitInfo(null);
+    }
+
+    // Gợi ý category
+    const suggested = suggestCategory(parsed.note, categories);
+    if (suggested) {
+      setCategoryId(String(suggested.id));
+    }
+  };
 
   const onSave = async () => {
     const normalizedName = name.trim();
@@ -61,13 +99,29 @@ export default function AddExpenseScreen() {
 
     setSubmitting(true);
     try {
-      await http.post(API_ENDPOINTS.ADD_EXPENSE, {
+      const payload = {
         name: normalizedName,
         amount: numericAmount,
         categoryId: Number(categoryId),
         date,
         icon: "💸"
-      });
+      };
+
+      // Gửi note nếu có
+      const noteTrimmed = note.trim();
+      if (noteTrimmed) {
+        payload.note = noteTrimmed;
+      }
+
+      // Gửi split info nếu có
+      if (splitInfo?.splits?.length > 0) {
+        payload.splitExpense = splitInfo.splits.map((s) => ({
+          person: s.person || null,
+          amount: s.share
+        }));
+      }
+
+      await http.post(API_ENDPOINTS.ADD_EXPENSE, payload);
 
       Alert.alert(SUCCESS_ALERT_TITLE, SUCCESS_ALERT_MESSAGES.create.expense, [
         {
@@ -95,6 +149,28 @@ export default function AddExpenseScreen() {
         keyboardType="numeric"
         placeholder="Ví dụ: 120.000"
       />
+
+      {/* Ghi chú + Voice Input */}
+      <ExpenseNoteField
+        value={note}
+        onChange={setNote}
+        onVoiceResult={handleVoiceResult}
+      />
+
+      {/* Hiển thị thông tin split expense nếu có */}
+      {splitInfo && splitInfo.splits.length > 0 && (
+        <View style={styles.splitBanner}>
+          <Text style={styles.splitTitle}>🔀 Phát hiện chia tiền</Text>
+          {splitInfo.splits.map((s, idx) => (
+            <Text key={idx} style={styles.splitText}>
+              {s.label}
+            </Text>
+          ))}
+          {splitInfo.myShareLabel && (
+            <Text style={styles.splitMyShare}>{splitInfo.myShareLabel}</Text>
+          )}
+        </View>
+      )}
 
       <PickDateField label="Ngày" value={date} onChange={setDate} />
 
@@ -141,7 +217,33 @@ const styles = StyleSheet.create({
     borderColor: COLORS.CARD_BORDER,
     paddingHorizontal: 14,
     paddingVertical: 11,
+    marginBottom: 12,
+    color: COLORS.TEXT
+  },
+  splitBanner: {
+    backgroundColor: COLORS.INFO_LIGHT,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#d0e3f5",
+    padding: 12,
     marginBottom: 12
+  },
+  splitTitle: {
+    fontWeight: "700",
+    color: COLORS.INFO,
+    fontSize: 14,
+    marginBottom: 6
+  },
+  splitText: {
+    fontSize: 13,
+    color: COLORS.TEXT,
+    marginBottom: 2
+  },
+  splitMyShare: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: COLORS.PRIMARY,
+    marginTop: 4
   },
   categoryContainer: {
     flexDirection: "row",

@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { Alert, FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
+import { Alert, FlatList, Pressable, RefreshControl, StyleSheet, Text, TextInput, View } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import http from "../services/http";
 import { API_ENDPOINTS } from "../constants/api";
@@ -8,8 +8,34 @@ import { formatDate, formatMoney, getApiErrorMessage } from "../utils/format";
 import IncomeExpenseChart from "../components/IncomeExpenseChart";
 import { COLORS } from "../constants/colors";
 
-function ExpenseItem({ item, onDelete }) {
+/** Highlight keyword trong text */
+function HighlightText({ text, keyword }) {
+  if (!keyword || !text) {
+    return <Text>{text}</Text>;
+  }
+
+  const parts = text.split(new RegExp(`(${escapeRegex(keyword)})`, "gi"));
+  return (
+    <Text>
+      {parts.map((part, i) =>
+        part.toLowerCase() === keyword.toLowerCase() ? (
+          <Text key={i} style={styles.highlight}>{part}</Text>
+        ) : (
+          <Text key={i}>{part}</Text>
+        )
+      )}
+    </Text>
+  );
+}
+
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** Item chi tiêu — hiển thị note nếu có */
+function ExpenseItem({ item, onDelete, searchKeyword }) {
   const amount = Number(item?.amount || 0);
+  const note = item?.note || "";
 
   return (
     <View style={styles.itemCard}>
@@ -19,8 +45,20 @@ function ExpenseItem({ item, onDelete }) {
         </View>
 
         <View style={styles.itemContent}>
-          <Text style={styles.itemName}>{item?.name || "Chi tiêu"}</Text>
+          {searchKeyword ? (
+            <HighlightText text={item?.name || "Chi tiêu"} keyword={searchKeyword} />
+          ) : (
+            <Text style={styles.itemName}>{item?.name || "Chi tiêu"}</Text>
+          )}
           <Text style={styles.itemMeta}>{formatDate(item?.date)} • {item?.categoryName || "Khác"}</Text>
+          {note ? (
+            <View style={styles.noteRow}>
+              <Text style={styles.noteIcon}>📝</Text>
+              <Text style={styles.noteText} numberOfLines={2}>
+                {note}
+              </Text>
+            </View>
+          ) : null}
         </View>
       </View>
 
@@ -38,6 +76,20 @@ export default function ExpenseScreen() {
   const navigation = useNavigation();
   const [expenses, setExpenses] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Lọc expenses theo search query
+  const filteredExpenses = useMemo(() => {
+    if (!searchQuery.trim()) return expenses;
+
+    const q = searchQuery.toLowerCase().trim();
+    return expenses.filter(
+      (item) =>
+        (item.name || "").toLowerCase().includes(q) ||
+        (item.note || "").toLowerCase().includes(q) ||
+        (item.categoryName || "").toLowerCase().includes(q)
+    );
+  }, [expenses, searchQuery]);
 
   const totalExpense = useMemo(() => {
     return expenses.reduce((sum, item) => sum + Number(item?.amount || 0), 0);
@@ -100,18 +152,41 @@ export default function ExpenseScreen() {
         </Pressable>
       </View>
 
+      {/* Search bar */}
+      <View style={styles.searchBar}>
+        <Text style={styles.searchIcon}>🔍</Text>
+        <TextInput
+          style={styles.searchInput}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholder="Tìm kiếm ghi chú, tên chi tiêu..."
+          placeholderTextColor={COLORS.TEXT_MUTED}
+        />
+        {searchQuery ? (
+          <Pressable onPress={() => setSearchQuery("")} style={styles.searchClear}>
+            <Text style={styles.searchClearText}>✕</Text>
+          </Pressable>
+        ) : null}
+      </View>
+
       <FlatList
-        data={expenses}
+        data={filteredExpenses}
         keyExtractor={(item) => String(item?.id)}
-        renderItem={({ item }) => <ExpenseItem item={item} onDelete={onDelete} />}
-        contentContainerStyle={[styles.listContent, !expenses.length && styles.listContentEmpty]}
+        renderItem={({ item }) => (
+          <ExpenseItem item={item} onDelete={onDelete} searchKeyword={searchQuery.trim()} />
+        )}
+        contentContainerStyle={[styles.listContent, !filteredExpenses.length && styles.listContentEmpty]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         ListHeaderComponent={
-          expenses.length ? (
+          filteredExpenses.length ? (
             <View>
-              <IncomeExpenseChart data={expenses} title="Tổng quan chi tiêu" colorPrimary={COLORS.EXPENSE} />
+              <IncomeExpenseChart data={filteredExpenses} title="Tổng quan chi tiêu" colorPrimary={COLORS.EXPENSE} />
               <View style={styles.listHeader}>
-                <Text style={styles.listTitle}>Danh sách chi tiêu</Text>
+                <Text style={styles.listTitle}>
+                  {searchQuery.trim()
+                    ? `Kết quả tìm kiếm (${filteredExpenses.length})`
+                    : "Danh sách chi tiêu"}
+                </Text>
               </View>
             </View>
           ) : null
@@ -119,11 +194,19 @@ export default function ExpenseScreen() {
         ListEmptyComponent={
           <View style={styles.emptyState}>
             <Text style={styles.emptyIcon}>🧾</Text>
-            <Text style={styles.emptyTitle}>Chưa có khoản chi nào</Text>
-            <Text style={styles.emptyText}>Hãy thêm giao dịch đầu tiên để bắt đầu theo dõi chi tiêu dễ hơn.</Text>
-            <Pressable style={styles.emptyAction} onPress={() => navigation.navigate("AddExpense")}>
-              <Text style={styles.emptyActionText}>+ Thêm chi tiêu</Text>
-            </Pressable>
+            <Text style={styles.emptyTitle}>
+              {searchQuery.trim() ? "Không tìm thấy kết quả" : "Chưa có khoản chi nào"}
+            </Text>
+            <Text style={styles.emptyText}>
+              {searchQuery.trim()
+                ? "Thử tìm kiếm với từ khóa khác."
+                : "Hãy thêm giao dịch đầu tiên để bắt đầu theo dõi chi tiêu dễ hơn."}
+            </Text>
+            {!searchQuery.trim() && (
+              <Pressable style={styles.emptyAction} onPress={() => navigation.navigate("AddExpense")}>
+                <Text style={styles.emptyActionText}>+ Thêm chi tiêu</Text>
+              </Pressable>
+            )}
           </View>
         }
       />
@@ -294,5 +377,59 @@ const styles = StyleSheet.create({
   emptyActionText: {
     color: COLORS.WHITE,
     fontWeight: "800"
+  },
+
+  // ─── Note ──────────────────────────────
+  noteRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginTop: 4,
+    gap: 4
+  },
+  noteIcon: {
+    fontSize: 11,
+    marginTop: 1
+  },
+  noteText: {
+    fontSize: 12,
+    color: COLORS.TEXT_SECONDARY,
+    flex: 1,
+    lineHeight: 16
+  },
+
+  // ─── Search bar ─────────────────────────
+  searchBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.CARD,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.CARD_BORDER,
+    paddingHorizontal: 12,
+    marginBottom: 10
+  },
+  searchIcon: {
+    fontSize: 14,
+    marginRight: 8
+  },
+  searchInput: {
+    flex: 1,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: COLORS.TEXT
+  },
+  searchClear: {
+    padding: 6
+  },
+  searchClearText: {
+    fontSize: 14,
+    color: COLORS.TEXT_SECONDARY
+  },
+
+  // ─── Highlight keyword ──────────────────
+  highlight: {
+    backgroundColor: "#fff3b0",
+    fontWeight: "700",
+    color: COLORS.TEXT
   }
 });
