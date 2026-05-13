@@ -21,11 +21,31 @@
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/devbot_logo_app.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "ios": {
       "bundleIdentifier": "com.money.manager.mobile",
-      "icon": "./src/assets/devbot_logo_app.png"
+      "icon": "./src/assets/devbot_logo_app.png",
+      "infoPlist": {
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": [
+              "com.googleusercontent.apps.701235381529-etkkmljibnlelejgqfe894f81k2tnccd"
+            ]
+          },
+          {
+            "CFBundleURLSchemes": [
+              "com.googleusercontent.apps.701235381529-etkkmljibnlelejgqfe894f81k2tnccd"
+            ]
+          }
+        ],
+        "NSSpeechRecognitionUsageDescription": "Allow $(PRODUCT_NAME) to use speech recognition for converting voice to text.",
+        "NSMicrophoneUsageDescription": "Allow $(PRODUCT_NAME) to use the microphone for voice input.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "plugins": [
       "@react-native-community/datetimepicker",
@@ -38,8 +58,7 @@
             "com.google.android.googlequicksearchbox"
           ]
         }
-      ],
-      "expo-web-browser"
+      ]
     ],
     "extra": {
       "eas": {

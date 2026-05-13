@@ -1,81 +1,96 @@
-import { useEffect, useRef, useState } from "react";
-import * as Google from "expo-auth-session/providers/google";
-import * as WebBrowser from "expo-web-browser";
+import { GoogleSignin, statusCodes } from "@react-native-google-signin/google-signin";
 import http from "./http";
 import { API_ENDPOINTS } from "../constants/api";
 
-// Đóng browser nếu session đang mở khi app mount lại
-WebBrowser.maybeCompleteAuthSession();
-
-// Cấu hình Google OAuth từ biến môi trường
+// Cấu hình Google Sign-In từ biến môi trường
 const WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
-const ANDROID_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID;
-const IOS_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
 
 /**
- * Hook đăng nhập Google dùng expo-auth-session.
+ * Cấu hình GoogleSignin một lần khi app khởi động.
+ * Universal Sign In (v16+) chỉ cần webClientId.
+ * Gọi hàm này ở App.js startup.
+ */
+export function configureGoogleSignin() {
+  GoogleSignin.configure({
+    webClientId: WEB_CLIENT_ID,
+  });
+}
+
+/**
+ * Native Google Sign-In.
  *
- * expo-auth-session tự động sinh redirectUri phù hợp với nền tảng:
- * - Android dev build: moneymanager://...
- * - iOS dev build:    moneymanager://...
- * - Expo Go:          exp://...  (qua proxy auth.expo.io)
- *
- * ⚠️ QUAN TRỌNG: Redirect URI này PHẢI được thêm vào Google Cloud Console:
- *    https://console.cloud.google.com/apis/credentials
- *    → Chọn Web Client ID → Authorized redirect URIs
- *    → Thêm URI được log ra ở dòng "[googleAuth] request.redirectUri"
+ * Sử dụng @react-native-google-signin/google-signin để mở bottom sheet
+ * đăng nhập Google thay vì browser redirect.
  *
  * Returns:
- *   [request, promptAsync, isLoading, error]
+ *   { idToken, user: { email, name, photo, ... } }
+ *
+ * Throws:
+ *   - Error("SIGN_IN_CANCELLED") nếu user huỷ
+ *   - Error(errorMessage) nếu thất bại khác
  */
-export function useGoogleAuth() {
-  const isMounted = useRef(true);
+export async function signInWithGoogleNative() {
+  try {
+    // Kiểm tra Google Play Services (Android)
+    await GoogleSignin.hasPlayServices({
+      showPlayServicesUpdateDialog: true,
+    });
 
-  useEffect(() => {
-    return () => {
-      isMounted.current = false;
-    };
-  }, []);
+    // Đăng nhập
+    const response = await GoogleSignin.signIn();
 
-  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    clientId: WEB_CLIENT_ID,
-    androidClientId: ANDROID_CLIENT_ID,
-    iosClientId: IOS_CLIENT_ID || ANDROID_CLIENT_ID,
-    selectAccount: true, // Luôn cho user chọn tài khoản Google
-    // Google Cloud Console đối với Web Client ID không hỗ trợ custom scheme.
-    // Nên chúng ta dùng redirect proxy của expo hoặc scheme mặc định.
-    // Trong trường hợp này, expo sẽ tạo redirect URI "com.money.manager.mobile:/oauthredirect"
-  });
+    // response.data chứa idToken, user info, ...
+    const data = response.data || response;
+    const idToken = data.idToken;
 
-  // Trích xuất lỗi từ response nếu có
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    if (response?.type === "error") {
-      const errorMsg =
-        response?.params?.error_description ||
-        response?.error?.message ||
-        "Google đăng nhập thất bại";
-      if (isMounted.current) {
-        setError(errorMsg);
-      }
-    } else if (response?.type === "success" || response?.type === "dismiss") {
-      if (isMounted.current) {
-        setError(null);
-      }
+    if (!idToken) {
+      throw new Error("Không nhận được idToken từ Google");
     }
-  }, [response]);
 
-  // Loading: request chưa sẵn sàng (đang khởi tạo Google OAuth)
-  const isLoading = !request;
+    // Lấy thông tin user
+    const currentUser = await GoogleSignin.getCurrentUser();
+    const userInfo = currentUser?.data?.user || currentUser?.user || data?.user || {};
 
-  return [request, promptAsync, isLoading, error];
+    console.log("[googleAuth] Native sign-in success:", userInfo.email);
+
+    return { idToken, user: userInfo };
+  } catch (error) {
+    if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+      console.log("[googleAuth] User cancelled sign-in");
+      throw new Error("SIGN_IN_CANCELLED");
+    }
+
+    if (error.code === statusCodes.IN_PROGRESS) {
+      console.log("[googleAuth] Sign-in already in progress");
+      throw new Error("Google đăng nhập đang được xử lý. Vui lòng đợi.");
+    }
+
+    if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+      console.warn("[googleAuth] Play Services not available");
+      throw new Error("Google Play Services không khả dụng trên thiết bị này.");
+    }
+
+    console.error("[googleAuth] Native sign-in error:", error?.message || error);
+    throw error;
+  }
+}
+
+/**
+ * Đăng xuất khỏi Google (gọi khi user sign out khỏi app).
+ */
+export async function signOutGoogle() {
+  try {
+    await GoogleSignin.signOut();
+    console.log("[googleAuth] Signed out from Google");
+  } catch (error) {
+    console.warn("[googleAuth] Sign-out error:", error?.message);
+  }
 }
 
 /**
  * Gửi idToken nhận được từ Google lên backend để đăng nhập/tạo tài khoản.
  *
- * @param {string} idToken - Google ID Token từ useGoogleAuth
+ * @param {string} idToken - Google ID Token
  * @returns {Promise<{token: string, user: object}>}
  */
 export async function exchangeGoogleToken(idToken) {

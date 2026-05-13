@@ -2,7 +2,7 @@ import React, { createContext, useCallback, useEffect, useMemo, useState } from 
 import http from "../services/http";
 import { API_ENDPOINTS } from "../constants/api";
 import { tokenStorage } from "../storage/tokenStorage";
-import { useGoogleAuth, exchangeGoogleToken } from "../services/googleAuth";
+import { signInWithGoogleNative, exchangeGoogleToken, signOutGoogle } from "../services/googleAuth";
 
 export const AuthContext = createContext({
   user: null,
@@ -18,9 +18,6 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isBootstrapping, setIsBootstrapping] = useState(true);
   const [googleAuthLoading, setGoogleAuthLoading] = useState(false);
-
-  // Hook Google Auth (phải nằm trong component React)
-  const [, googlePromptAsync, googleRequestLoading, googleError] = useGoogleAuth();
 
   const refreshUser = useCallback(async () => {
     const response = await http.get(API_ENDPOINTS.GET_USER_INFO);
@@ -47,61 +44,39 @@ export function AuthProvider({ children }) {
   }, [refreshUser]);
 
   const signInWithGoogle = useCallback(async () => {
-    if (!googlePromptAsync) {
-      throw new Error("Google Sign-In chưa sẵn sàng. Vui lòng thử lại.");
-    }
-
     setGoogleAuthLoading(true);
 
     try {
-      console.log("[AuthContext] Opening Google Sign-In...");
-      // Mở browser để user đăng nhập Google
-      const result = await googlePromptAsync();
+      console.log("[AuthContext] Opening native Google Sign-In...");
 
-      console.log("[AuthContext] Google auth result:", {
-        type: result?.type,
-        hasIdToken: !!result?.params?.id_token,
-        error: result?.params?.error_description,
-      });
+      // Native Google Sign-In bottom sheet
+      const { idToken } = await signInWithGoogleNative();
 
-      if (result?.type === "success") {
-        const { id_token } = result.params;
+      console.log("[AuthContext] Got idToken, exchanging with backend...");
+      const { token, user: profile } = await exchangeGoogleToken(idToken);
 
-        if (!id_token) {
-          throw new Error("Không nhận được idToken từ Google");
-        }
-
-        // Gửi idToken lên backend
-        console.log("[AuthContext] Exchanging idToken with backend...");
-        const { token, user: profile } = await exchangeGoogleToken(id_token);
-
-        if (!token) {
-          throw new Error("Backend không trả về token xác thực.");
-        }
-
-        // Lưu token
-        console.log("[AuthContext] Saving token, user:", profile?.email);
-        await tokenStorage.setToken(token, { remember: true });
-
-        if (profile) {
-          setUser(profile);
-          console.log("[AuthContext] User set, navigating to main app...");
-          return profile;
-        }
-
-        return refreshUser();
+      if (!token) {
+        throw new Error("Backend không trả về token xác thực.");
       }
 
-      if (result?.type === "error") {
-        const msg = result?.params?.error_description || "Google đăng nhập thất bại";
-        console.warn("[AuthContext] Google auth error:", msg);
-        throw new Error(msg);
+      // Lưu token
+      console.log("[AuthContext] Saving token, user:", profile?.email);
+      await tokenStorage.setToken(token, { remember: true });
+
+      if (profile) {
+        setUser(profile);
+        console.log("[AuthContext] User set, navigating to main app...");
+        return profile;
       }
 
-      // type === "dismiss" / "cancel" → user huỷ, không throw lỗi
-      console.log("[AuthContext] User dismissed Google Sign-In");
-      return null;
+      return refreshUser();
     } catch (error) {
+      // User huỷ → không throw lỗi
+      if (error?.message === "SIGN_IN_CANCELLED") {
+        console.log("[AuthContext] User cancelled Google Sign-In");
+        return null;
+      }
+
       console.error("[AuthContext] Google Sign-In failed:", error?.message);
       if (error?.response?.data?.message) {
         throw new Error(error.response.data.message);
@@ -110,10 +85,11 @@ export function AuthProvider({ children }) {
     } finally {
       setGoogleAuthLoading(false);
     }
-  }, [googlePromptAsync, refreshUser]);
+  }, [refreshUser]);
 
   const signOut = useCallback(async () => {
     await tokenStorage.clearToken();
+    await signOutGoogle();
     setUser(null);
   }, []);
 
@@ -155,7 +131,7 @@ export function AuthProvider({ children }) {
     isBootstrapping,
     signIn,
     signInWithGoogle,
-    googleAuthLoading: googleAuthLoading || googleRequestLoading,
+    googleAuthLoading,
     signOut,
     refreshUser
   }), [
@@ -164,7 +140,7 @@ export function AuthProvider({ children }) {
     signIn,
     signInWithGoogle,
     googleAuthLoading,
-    googleRequestLoading,
+
     signOut,
     user
   ]);
