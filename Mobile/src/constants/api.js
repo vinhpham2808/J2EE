@@ -17,6 +17,7 @@ export const API_ENDPOINTS = {
   FORGOT_PASSWORD: "/forgot-password",
   RESET_PASSWORD: "/reset-password",
   COMPLETE_PROFILE: "/complete-profile",
+  GOOGLE_AUTH: "/auth/google",
 
   // Profile
   GET_USER_INFO: "/profile",

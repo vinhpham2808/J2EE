@@ -22,7 +22,7 @@ import { COLORS } from "../constants/colors";
 
 export default function LoginScreen() {
   const navigation = useNavigation();
-  const { signIn } = useContext(AuthContext);
+  const { signIn, signInWithGoogle, googleAuthLoading } = useContext(AuthContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
@@ -114,8 +114,27 @@ export default function LoginScreen() {
     }
   };
 
-  const onSocialPress = (provider) => {
-    Alert.alert("Sắp có", `Đăng nhập bằng ${provider} chưa được kết nối.`);
+  const onGooglePress = async () => {
+    try {
+      await signInWithGoogle();
+    } catch (error) {
+      const isCancelled =
+        error?.message?.includes("dismiss") ||
+        error?.message?.includes("cancelled") ||
+        error?.message?.includes("cancel") ||
+        error?.message?.includes("POPUP_CLOSED_BY_USER");
+
+      if (isCancelled) {
+        // User huỷ đăng nhập Google → không cần thông báo
+        return;
+      }
+
+      const message = getApiErrorMessage(
+        error,
+        "Không thể đăng nhập bằng Google. Vui lòng thử lại."
+      );
+      Alert.alert("Đăng nhập thất bại", message);
+    }
   };
 
   return (
@@ -123,7 +142,7 @@ export default function LoginScreen() {
       style={styles.screen}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      {loading ? <Loader text="Devbot đang xác thực" overlay /> : null}
+      {loading || googleAuthLoading ? <Loader text="Devbot đang xác thực" overlay /> : null}
 
       <View style={styles.bgGlowTop} />
       <View style={styles.bgGlowBottom} />
@@ -191,7 +210,11 @@ export default function LoginScreen() {
           </View>
 
           <View style={styles.socialRow}>
-            <Pressable style={styles.socialBtn} onPress={() => onSocialPress("Google")}>
+            <Pressable
+              style={[styles.socialBtn, googleAuthLoading && styles.socialBtnDisabled]}
+              onPress={onGooglePress}
+              disabled={googleAuthLoading}
+            >
               <Text style={styles.socialIcon}>G</Text>
               <Text style={styles.socialLabel}>Google</Text>
             </Pressable>
@@ -348,6 +371,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8
+  },
+  socialBtnDisabled: {
+    opacity: 0.6
   },
   socialIcon: {
     color: COLORS.DARK_TEXT,

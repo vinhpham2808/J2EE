@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -30,6 +31,9 @@ public class GoogleAuthService {
 
     @Value("${google.client-id}")
     private String googleClientId;
+
+    @Value("${google.android-client-ids:${google.android-client-id:}}")
+    private String googleAndroidClientIds;
 
     public Map<String, Object> loginWithGoogle(String idToken) {
         // 1. Verify Google ID Token
@@ -84,9 +88,19 @@ public class GoogleAuthService {
 
     private GoogleIdToken.Payload verifyToken(String idTokenString) {
         try {
+            // Gom tất cả client IDs (web + android) thành một list
+            java.util.List<String> audiences = new java.util.ArrayList<>();
+            audiences.add(googleClientId);
+            if (googleAndroidClientIds != null && !googleAndroidClientIds.isBlank()) {
+                Arrays.stream(googleAndroidClientIds.split(","))
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
+                        .forEach(audiences::add);
+            }
+
             GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
                     new NetHttpTransport(), GsonFactory.getDefaultInstance())
-                    .setAudience(Collections.singletonList(googleClientId))
+                    .setAudience(audiences)
                     .build();
 
             GoogleIdToken idToken = verifier.verify(idTokenString);
