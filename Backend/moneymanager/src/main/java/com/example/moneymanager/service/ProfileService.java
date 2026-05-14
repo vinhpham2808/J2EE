@@ -114,16 +114,16 @@ public class ProfileService {
     // ─── Forgot Password ─────────────────────────────────────────────
 
     public void forgotPassword(ForgotPasswordRequestDTO requestDTO) {
-        Optional<ProfileEntity> profileOpt = profileRepository.findByEmail(requestDTO.getEmail());
+        ProfileEntity profile = profileRepository.findByEmail(requestDTO.getEmail())
+                .orElseThrow(() -> new RuntimeException("Email này chưa được đăng ký tài khoản."));
 
-        // Silent success if email not found (prevents enumeration)
-        if (profileOpt.isEmpty()) return;
+        if (!Boolean.TRUE.equals(profile.getIsActive())) {
+            throw new RuntimeException("Tài khoản chưa được kích hoạt. Vui lòng kích hoạt tài khoản trước.");
+        }
 
-        ProfileEntity profile = profileOpt.get();
-
-        // Skip inactive accounts and Google-only accounts silently
-        if (!Boolean.TRUE.equals(profile.getIsActive())) return;
-        if (profile.getPassword() == null && profile.getGoogleId() != null) return;
+        if (profile.getPassword() == null && profile.getGoogleId() != null) {
+            throw new RuntimeException("Tài khoản Google không hỗ trợ đặt lại mật khẩu. Vui lòng đăng nhập bằng Google.");
+        }
 
         if (!otpService.canResend(profile)) {
             long waitSeconds = otpService.getResendWaitSeconds(profile);
@@ -162,6 +162,12 @@ public class ProfileService {
     public boolean isAccountActive(String email) {
         return profileRepository.findByEmail(email)
                 .map(ProfileEntity::getIsActive)
+                .orElse(false);
+    }
+
+    public boolean isRegisteredButInactive(String email) {
+        return profileRepository.findByEmail(email)
+                .map(profile -> !Boolean.TRUE.equals(profile.getIsActive()))
                 .orElse(false);
     }
 

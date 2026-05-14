@@ -23,11 +23,23 @@ public class ProfileController {
 
     @PostMapping("/register")
     public ResponseEntity<?> registerProfile(@RequestBody ProfileDTO profileDTO) {
-        ProfileDTO registered = profileService.registerProfile(profileDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
+        try {
+            ProfileDTO registered = profileService.registerProfile(profileDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
                 "message", "Đăng ký thành công. Mã OTP đã được gửi tới email của bạn.",
                 "user", registered
-        ));
+            ));
+        } catch (RuntimeException e) {
+            String email = profileDTO.getEmail();
+            if (profileService.isRegisteredButInactive(email)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                        "message", "Tài khoản chưa được kích hoạt. Vui lòng nhập mã OTP trong email.",
+                        "needsActivation", true,
+                        "email", email
+                ));
+            }
+            throw e;
+        }
     }
 
     // ─── OTP: Account Activation ─────────────────────────────────────
@@ -62,7 +74,7 @@ public class ProfileController {
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody AuthDTO authDTO) {
-        if (!profileService.isAccountActive(authDTO.getEmail())) {
+        if (profileService.isRegisteredButInactive(authDTO.getEmail())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
                     "message", "Tài khoản chưa được kích hoạt. Vui lòng nhập mã OTP trong email."
             ));

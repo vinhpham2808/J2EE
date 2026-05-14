@@ -17,15 +17,13 @@ import { getApiErrorMessage } from "../utils/format";
 import { getRetryAfterSeconds } from "../utils/otp";
 import { COLORS } from "../constants/colors";
 
-export default function VerifyOtpScreen() {
+export default function ForgotPasswordOtpScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const email = route.params?.email || "";
-  const initialCountdown = Number(route.params?.initialCountdown || 0);
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
   const [loading, setLoading] = useState(false);
   const [resendDisabled, setResendDisabled] = useState(false);
   const [countdown, setCountdown] = useState(0);
@@ -33,16 +31,9 @@ export default function VerifyOtpScreen() {
 
   useEffect(() => {
     if (!email) {
-      navigation.navigate("Signup");
+      navigation.navigate("ForgotPassword");
     }
   }, [email, navigation]);
-
-  useEffect(() => {
-    if (Number.isFinite(initialCountdown) && initialCountdown > 0) {
-      setResendDisabled(true);
-      setCountdown(Math.ceil(initialCountdown));
-    }
-  }, [initialCountdown]);
 
   useEffect(() => {
     if (countdown > 0) {
@@ -81,32 +72,18 @@ export default function VerifyOtpScreen() {
       return;
     }
     setError("");
-    setSuccessMsg("");
     setLoading(true);
 
     try {
-      await http.post(API_ENDPOINTS.VERIFY_OTP, {
+      await http.post(API_ENDPOINTS.VERIFY_RESET_OTP, {
         email,
         otp: otpCode,
       });
       setLoading(false);
-
-      setSuccessMsg("verified");
-      setTimeout(() => {
-        Alert.alert(
-          "Đăng ký thành công",
-          "Tài khoản của bạn đã được xác thực. Hãy thiết lập thông tin cá nhân.",
-          [
-            {
-              text: "OK",
-              onPress: () => navigation.navigate("SetupProfile", { email }),
-            },
-          ]
-        );
-      }, 5000);
+      navigation.navigate("ResetPassword", { email, otp: otpCode });
     } catch (err) {
       setLoading(false);
-      const message = getApiErrorMessage(err, "Xác thực thất bại.");
+      const message = getApiErrorMessage(err, "Mã OTP không đúng hoặc đã hết hạn.");
       setError(message);
     }
   };
@@ -115,7 +92,6 @@ export default function VerifyOtpScreen() {
     setResendDisabled(true);
     setCountdown(60);
     setError("");
-    setSuccessMsg("");
     setOtp(["", "", "", "", "", ""]);
     inputRefs.current[0]?.focus();
 
@@ -151,8 +127,8 @@ export default function VerifyOtpScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>Kiểm tra email của bạn</Text>
-        <Text style={styles.subtitle}>Vui lòng nhập mã được gửi tới</Text>
+        <Text style={styles.title}>Xác thực OTP</Text>
+        <Text style={styles.subtitle}>Vui lòng nhập mã OTP được gửi tới</Text>
         <Text style={styles.emailText}>{email}</Text>
 
         <View style={styles.formCard}>
@@ -178,9 +154,9 @@ export default function VerifyOtpScreen() {
           ) : null}
 
           <Pressable
-            style={[styles.actionButton, (loading || !!successMsg) && styles.actionButtonDisabled]}
+            style={[styles.actionButton, loading && styles.actionButtonDisabled]}
             onPress={handleSubmit}
-            disabled={loading || !!successMsg}
+            disabled={loading}
           >
             <Text style={styles.actionButtonText}>
               {loading ? "Đang xác thực..." : "Xác thực"}
@@ -195,7 +171,6 @@ export default function VerifyOtpScreen() {
               </Text>
             </Pressable>
           </View>
-
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -291,13 +266,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(231, 111, 81, 0.3)",
     overflow: "hidden"
-  },
-  successText: {
-    color: COLORS.INCOME,
-    fontSize: 14,
-    textAlign: "center",
-    fontWeight: "600",
-    marginTop: 4
   },
   actionButton: {
     backgroundColor: COLORS.PRIMARY,

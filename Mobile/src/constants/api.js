@@ -15,6 +15,7 @@ export const API_ENDPOINTS = {
   VERIFY_OTP: "/verify-activation",
   RESEND_OTP: "/otp/resend",
   FORGOT_PASSWORD: "/forgot-password",
+  VERIFY_RESET_OTP: "/verify-reset-otp",
   RESET_PASSWORD: "/reset-password",
   COMPLETE_PROFILE: "/complete-profile",
   GOOGLE_AUTH: "/auth/google",
@@ -23,6 +24,12 @@ export const API_ENDPOINTS = {
   GET_USER_INFO: "/profile",
   UPDATE_PROFILE: "/profile",
   UPDATE_AUTO_RENEW: "/profile/subscription/auto-renew",
+
+  // Notifications
+  GET_NOTIFICATIONS: "/notifications",
+  GET_UNREAD_COUNT: "/notifications/unread-count",
+  MARK_NOTIFICATION_READ: (id) => `/notifications/${id}/read`,
+  MARK_ALL_NOTIFICATIONS_READ: "/notifications/read-all",
 
   // Dashboard
   DASHBOARD_DATA: "/dashboard",

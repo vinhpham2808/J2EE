@@ -1,25 +1,25 @@
-﻿export const SUCCESS_ALERT_TITLE = "Thanh cong";
+export const SUCCESS_ALERT_TITLE = "Thành công";
 
 export const SUCCESS_ALERT_MESSAGES = {
   create: {
-    income: "Da them khoan thu thanh cong.",
-    expense: "Da them khoan chi thanh cong.",
-    category: "Da them danh muc thanh cong.",
-    savingGoal: "Da tao muc tieu tiet kiem thanh cong."
+    income: "Đã thêm khoản thu thành công.",
+    expense: "Đã thêm khoản chi thành công.",
+    category: "Đã thêm danh mục thành công.",
+    savingGoal: "Đã tạo mục tiêu tiết kiệm thành công."
   },
   update: {
-    profile: "Da cap nhat ho so thanh cong.",
-    budget: "Da luu han muc ngan sach thanh cong.",
-    category: "Da cap nhat danh muc thanh cong."
+    profile: "Đã cập nhật hồ sơ thành công.",
+    budget: "Đã lưu hạn mức ngân sách thành công.",
+    category: "Đã cập nhật danh mục thành công."
   },
   delete: {
-    income: "Da xoa khoan thu thanh cong.",
-    expense: "Da xoa khoan chi thanh cong.",
-    budget: "Da xoa han muc ngan sach thanh cong.",
-    category: "Da xoa danh muc thanh cong.",
-    savingGoal: "Da xoa muc tieu tiet kiem thanh cong."
+    income: "Đã xóa khoản thu thành công.",
+    expense: "Đã xóa khoản chi thành công.",
+    budget: "Đã xóa hạn mức ngân sách thành công.",
+    category: "Đã xóa danh mục thành công.",
+    savingGoal: "Đã xóa mục tiêu tiết kiệm thành công."
   },
   contribute: {
-    savingGoal: "Dong gop vao muc tieu thanh cong."
+    savingGoal: "Đóng góp vào mục tiêu thành công."
   }
 };

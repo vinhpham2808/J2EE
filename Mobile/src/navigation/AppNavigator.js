@@ -13,6 +13,8 @@ import SignupScreen from "../screens/SignupScreen";
 import SetupProfileScreen from "../screens/CreateNameScreen";
 import CreatePasswordScreen from "../screens/CreatePasswordScreen";
 import ForgotPasswordScreen from "../screens/ForgotPasswordScreen";
+import ForgotPasswordOtpScreen from "../screens/ForgotPasswordOtpScreen";
+import ResetPasswordScreen from "../screens/ResetPasswordScreen";
 import VerifyOtpScreen from "../screens/VerifyOtpScreen";
 import DashboardScreen from "../screens/DashboardScreen";
 import ExpenseScreen from "../screens/ExpenseScreen";
@@ -211,6 +213,25 @@ function AuthStack({ shouldShowOnboarding }) {
           headerBackVisible: false,
           headerBackTitleVisible: false,
           headerTintColor: COLORS.DARK_TEXT
+        }}
+      />
+      <Stack.Screen
+        name="ForgotPasswordOtp"
+        component={ForgotPasswordOtpScreen}
+        options={{
+          title: "",
+          headerTransparent: true,
+          headerShadowVisible: false,
+          headerBackVisible: false,
+          headerBackTitleVisible: false,
+          headerTintColor: COLORS.DARK_TEXT
+        }}
+      />
+      <Stack.Screen
+        name="ResetPassword"
+        component={ResetPasswordScreen}
+        options={{
+          headerShown: false
         }}
       />
     </Stack.Navigator>
