@@ -4,6 +4,7 @@ import com.example.moneymanager.config.GeminiProperties;
 import com.example.moneymanager.dto.AssistantChatResponseDTO;
 import com.example.moneymanager.dto.ExpenseDTO;
 import com.example.moneymanager.dto.IncomeDTO;
+import com.example.moneymanager.dto.VoiceParseResponseDTO;
 import com.example.moneymanager.entity.ProfileEntity;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -108,6 +109,61 @@ public class GeminiService {
                 .reply(outputText.trim())
                 .model(geminiProperties.model())
                 .build();
+    }
+
+    public VoiceParseResponseDTO parseVoiceCommand(String text) {
+        validateConfiguration();
+
+        if (text == null || text.isBlank()) {
+            throw new RuntimeException("Nội dung giọng nói không được để trống.");
+        }
+
+        String currentDate = LocalDate.now().toString();
+        String systemPrompt = "Bạn là chuyên gia phân tích dữ liệu tài chính cho ứng dụng Money Manager.\n" +
+                "Nhiệm vụ của bạn là phân tích câu nói của người dùng về việc thu chi và trích xuất thông tin theo định dạng JSON.\n" +
+                "\n" +
+                "Cấu trúc JSON yêu cầu:\n" +
+                "{\n" +
+                "  \"type\": \"EXPENSE\" hoặc \"INCOME\",\n" +
+                "  \"amount\": số tiền (số nguyên),\n" +
+                "  \"name\": \"tên ngắn gọn của giao dịch\",\n" +
+                "  \"categoryHint\": \"gợi ý danh mục (ví dụ: Ăn uống, Lương, Mua sắm, ...)\",\n" +
+                "  \"date\": \"YYYY-MM-DD\" (mặc định là hôm nay nếu không có thông tin),\n" +
+                "  \"note\": \"ghi chú thêm (nếu có)\"\n" +
+                "}\n" +
+                "\n" +
+                "Quy tắc:\n" +
+                "1. Nếu người dùng nói \"chi\", \"mua\", \"trả\", \"tiêu\", ... -> type là \"EXPENSE\".\n" +
+                "2. Nếu người dùng nói \"thu\", \"nhận\", \"lương\", \"được tặng\", ... -> type là \"INCOME\".\n" +
+                "3. Nếu không rõ, mặc định là \"EXPENSE\".\n" +
+                "4. Date: Nếu người dùng nói \"hôm qua\", \"hôm nay\", \"ngày kia\", ... hãy tính toán đúng ngày YYYY-MM-DD dựa trên ngày hiện tại là: " + currentDate + ".\n" +
+                "5. Nếu có thông tin về việc chia tiền (ví dụ: \"chia với vợ\"), hãy ghi chú vào trường 'note' và nếu được hãy đề xuất số tiền sau khi chia nếu người dùng nói rõ (ví dụ: \"chi 200k... chia đôi với vợ\" -> amount: 100000, note: \"Tổng 200k, chia đôi với vợ\").\n" +
+                "\n" +
+                "Chỉ trả về DUY NHẤT mã JSON, không có văn bản giải thích, không dùng markdown code block (không cần ```json).";
+
+        ObjectNode requestBody = objectMapper.createObjectNode();
+        requestBody.set("systemInstruction", buildSystemInstruction(systemPrompt));
+        requestBody.set("contents", buildUserContents(text));
+
+        ObjectNode genConfig = buildGenerationConfig();
+        genConfig.put("temperature", 0.1); // Thấp để chính xác hơn
+        requestBody.set("generationConfig", genConfig);
+
+        try {
+            JsonNode responseBody = executeGenerateContentRequest(requestBody);
+            String outputText = extractOutputText(responseBody);
+
+            if (outputText == null || outputText.isBlank()) {
+                throw new RuntimeException("Gemini không trả về kết quả phân tích.");
+            }
+
+            // Clean output if it contains markdown markers
+            String cleanedJson = outputText.replaceAll("```json", "").replaceAll("```", "").trim();
+            return objectMapper.readValue(cleanedJson, VoiceParseResponseDTO.class);
+        } catch (Exception e) {
+            log.error("Error parsing voice with Gemini: {}", e.getMessage());
+            throw new RuntimeException("Không thể phân tích dữ liệu giọng nói: " + e.getMessage());
+        }
     }
 
     // Dashboard insight - phiên bản ngắn gọn

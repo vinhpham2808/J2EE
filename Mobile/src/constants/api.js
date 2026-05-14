@@ -34,6 +34,9 @@ export const API_ENDPOINTS = {
   // Dashboard
   DASHBOARD_DATA: "/dashboard",
 
+  // Gemini AI
+  VOICE_PARSE: "/gemini/voice-parse",
+
   // Categories
   GET_ALL_CATEGORIES: "/categories",
   ADD_CATEGORY: "/categories",
