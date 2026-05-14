@@ -4,6 +4,7 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import HomeTopHeader from "../components/HomeTopHeader";
 import HomeBanner from "../components/HomeBanner";
 import FinanceOverviewChart from "../components/FinanceOverviewChart";
+import NotificationModal from "../components/NotificationModal";
 import http from "../services/http";
 import { API_ENDPOINTS } from "../constants/api";
 import { buildMonthlyFinanceSeries } from "../utils/financeStats";
@@ -76,11 +77,22 @@ export default function DashboardScreen() {
   const [dashboard, setDashboard] = useState(null);
   const [savingGoals, setSavingGoals] = useState([]);
   const [monthlySeries, setMonthlySeries] = useState([]);
+  const [notificationVisible, setNotificationVisible] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchDashboard = useCallback(async () => {
     const response = await http.get(API_ENDPOINTS.DASHBOARD_DATA);
     setDashboard(response.data || null);
+  }, []);
+
+  const fetchUnreadCount = useCallback(async () => {
+    try {
+      const response = await http.get(API_ENDPOINTS.GET_UNREAD_COUNT);
+      setUnreadCount(Number(response.data?.unreadCount || 0));
+    } catch {
+      setUnreadCount(0);
+    }
   }, []);
 
   const fetchSavingGoals = useCallback(async () => {
@@ -111,13 +123,13 @@ export default function DashboardScreen() {
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await Promise.all([fetchDashboard(), fetchSavingGoals(), fetchMonthlyFinanceSeries()]);
+      await Promise.all([fetchDashboard(), fetchSavingGoals(), fetchMonthlyFinanceSeries(), fetchUnreadCount()]);
     } catch (error) {
       Alert.alert("Lỗi", getApiErrorMessage(error, "Không tải được dữ liệu trang chủ"));
     } finally {
       setRefreshing(false);
     }
-  }, [fetchDashboard, fetchSavingGoals, fetchMonthlyFinanceSeries]);
+  }, [fetchDashboard, fetchSavingGoals, fetchMonthlyFinanceSeries, fetchUnreadCount]);
 
   useFocusEffect(
     useCallback(() => {
@@ -131,62 +143,71 @@ export default function DashboardScreen() {
   );
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-      showsVerticalScrollIndicator={false}
-    >
-      <HomeTopHeader
-        onMenuPress={() => navigation.navigate("SettingTab")}
-        onBellPress={() => Alert.alert("Thông báo", "Bạn chưa có thông báo mới.")}
+    <>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        showsVerticalScrollIndicator={false}
+      >
+        <HomeTopHeader
+          onMenuPress={() => navigation.navigate("SettingTab")}
+          onBellPress={() => setNotificationVisible(true)}
+          unreadCount={unreadCount}
+        />
+        <HomeBanner />
+
+        {/* Finance Overview Section */}
+        <SectionHeader title="Tổng quan tài chính" />
+        <FinanceOverviewChart
+          totalBalance={dashboard?.totalBalance}
+          totalIncome={dashboard?.totalIncome}
+          totalExpense={dashboard?.totalExpense}
+          monthlySeries={monthlySeries}
+        />
+
+        {/* Saving Goals Section */}
+        <SectionHeader title="Mục tiêu tiết kiệm" onMore={() => navigation.navigate("SavingGoal")} />
+        <View style={styles.sectionCard}>
+          {savingGoals.length > 0 ? (
+            savingGoals.map((goal) => (
+              <SavingGoalCard
+                key={goal.id}
+                goal={goal}
+                onPress={() => navigation.navigate("SavingGoal")}
+              />
+            ))
+          ) : (
+            <View style={styles.emptyGoalContainer}>
+              <Text style={styles.emptyGoalIcon}>🎯</Text>
+              <Text style={styles.emptyGoalText}>Chưa có mục tiêu tiết kiệm nào.</Text>
+              <Pressable
+                style={styles.createGoalButton}
+                onPress={() => navigation.navigate("SavingGoal")}
+              >
+                <Text style={styles.createGoalButtonText}>Tạo mục tiêu</Text>
+              </Pressable>
+            </View>
+          )}
+        </View>
+
+        {/* Recent Transactions Section */}
+        <SectionHeader title="Giao dịch gần đây" onMore={() => navigation.navigate("ExpenseTab")} />
+        <View style={styles.sectionCard}>
+          {recentTransactions.length ? (
+            recentTransactions.map((item) => <TransactionRow key={item.id || `${item.name}-${item.date}`} item={item} />)
+          ) : (
+            <Text style={styles.emptyText}>Chưa có giao dịch gần đây.</Text>
+          )}
+        </View>
+      </ScrollView>
+
+      <NotificationModal
+        visible={notificationVisible}
+        onClose={() => setNotificationVisible(false)}
+        onUnreadCountChange={setUnreadCount}
       />
-      <HomeBanner />
-
-      {/* Finance Overview Section */}
-      <SectionHeader title="Tổng quan tài chính" />
-      <FinanceOverviewChart
-        totalBalance={dashboard?.totalBalance}
-        totalIncome={dashboard?.totalIncome}
-        totalExpense={dashboard?.totalExpense}
-        monthlySeries={monthlySeries}
-      />
-
-      {/* Saving Goals Section */}
-      <SectionHeader title="Mục tiêu tiết kiệm" onMore={() => navigation.navigate("SavingGoal")} />
-      <View style={styles.sectionCard}>
-        {savingGoals.length > 0 ? (
-          savingGoals.map((goal) => (
-            <SavingGoalCard
-              key={goal.id}
-              goal={goal}
-              onPress={() => navigation.navigate("SavingGoal")}
-            />
-          ))
-        ) : (
-          <View style={styles.emptyGoalContainer}>
-            <Text style={styles.emptyGoalIcon}>🎯</Text>
-            <Text style={styles.emptyGoalText}>Chưa có mục tiêu tiết kiệm nào.</Text>
-            <Pressable
-              style={styles.createGoalButton}
-              onPress={() => navigation.navigate("SavingGoal")}
-            >
-              <Text style={styles.createGoalButtonText}>Tạo mục tiêu</Text>
-            </Pressable>
-          </View>
-        )}
-      </View>
-
-      {/* Recent Transactions Section */}
-      <SectionHeader title="Giao dịch gần đây" onMore={() => navigation.navigate("ExpenseTab")} />
-      <View style={styles.sectionCard}>
-        {recentTransactions.length ? (
-          recentTransactions.map((item) => <TransactionRow key={item.id || `${item.name}-${item.date}`} item={item} />)
-        ) : (
-          <Text style={styles.emptyText}>Chưa có giao dịch gần đây.</Text>
-        )}
-      </View>
-    </ScrollView>
+    </>
   );
 }
 

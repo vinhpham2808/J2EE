@@ -50,7 +50,15 @@ export function AuthProvider({ children }) {
       console.log("[AuthContext] Opening native Google Sign-In...");
 
       // Native Google Sign-In bottom sheet
-      const { idToken } = await signInWithGoogleNative();
+      const googleResult = await signInWithGoogleNative();
+
+      // User huỷ
+      if (!googleResult) {
+        console.log("[AuthContext] User cancelled Google Sign-In");
+        return null;
+      }
+
+      const { idToken } = googleResult;
 
       console.log("[AuthContext] Got idToken, exchanging with backend...");
       const { token, user: profile } = await exchangeGoogleToken(idToken);

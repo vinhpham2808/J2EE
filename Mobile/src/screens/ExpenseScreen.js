@@ -7,6 +7,7 @@ import { SUCCESS_ALERT_MESSAGES, SUCCESS_ALERT_TITLE } from "../constants/alertM
 import { formatDate, formatMoney, getApiErrorMessage } from "../utils/format";
 import IncomeExpenseChart from "../components/IncomeExpenseChart";
 import { COLORS } from "../constants/colors";
+import VoiceInputButton from "../components/VoiceInputButton";
 
 /** Highlight keyword trong text */
 function HighlightText({ text, keyword }) {
@@ -138,6 +139,18 @@ export default function ExpenseScreen() {
     }, [onRefresh])
   );
 
+  const handleVoiceResult = async (text) => {
+    try {
+      const response = await http.post(API_ENDPOINTS.VOICE_PARSE, { text });
+      const data = response.data;
+      if (data) {
+        navigation.navigate("AddExpense", { initialData: data });
+      }
+    } catch (error) {
+      Alert.alert("Lỗi AI", getApiErrorMessage(error, "Không thể phân tích nội dung giọng nói"));
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.summaryCard}>
@@ -147,9 +160,12 @@ export default function ExpenseScreen() {
           <Text style={styles.summaryHint}>{expenses.length} giao dịch</Text>
         </View>
 
-        <Pressable style={styles.addButton} onPress={() => navigation.navigate("AddExpense")}>
-          <Text style={styles.addButtonText}>+ Thêm chi tiêu</Text>
-        </Pressable>
+        <View style={styles.actionRowMain}>
+          <Pressable style={styles.addButtonMain} onPress={() => navigation.navigate("AddExpense")}>
+            <Text style={styles.addButtonText}>+ Thêm chi tiêu</Text>
+          </Pressable>
+          <VoiceInputButton onResult={handleVoiceResult} />
+        </View>
       </View>
 
       {/* Search bar */}
@@ -253,8 +269,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.TEXT_SECONDARY
   },
-  addButton: {
+  actionRowMain: {
+    flexDirection: "row",
+    gap: 10,
     marginTop: 12,
+    alignItems: "center"
+  },
+  addButtonMain: {
+    flex: 1,
     backgroundColor: COLORS.PRIMARY,
     borderRadius: 12,
     paddingVertical: 12,

@@ -25,8 +25,17 @@ export const API_ENDPOINTS = {
   UPDATE_PROFILE: "/profile",
   UPDATE_AUTO_RENEW: "/profile/subscription/auto-renew",
 
+  // Notifications
+  GET_NOTIFICATIONS: "/notifications",
+  GET_UNREAD_COUNT: "/notifications/unread-count",
+  MARK_NOTIFICATION_READ: (id) => `/notifications/${id}/read`,
+  MARK_ALL_NOTIFICATIONS_READ: "/notifications/read-all",
+
   // Dashboard
   DASHBOARD_DATA: "/dashboard",
+
+  // Gemini AI
+  VOICE_PARSE: "/gemini/voice-parse",
 
   // Categories
   GET_ALL_CATEGORIES: "/categories",

@@ -14,12 +14,14 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import http from "../services/http";
 import { API_ENDPOINTS } from "../constants/api";
 import { getApiErrorMessage } from "../utils/format";
+import { getRetryAfterSeconds } from "../utils/otp";
 import { COLORS } from "../constants/colors";
 
 export default function VerifyOtpScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const email = route.params?.email || "";
+  const initialCountdown = Number(route.params?.initialCountdown || 0);
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState("");
@@ -34,6 +36,13 @@ export default function VerifyOtpScreen() {
       navigation.navigate("Signup");
     }
   }, [email, navigation]);
+
+  useEffect(() => {
+    if (Number.isFinite(initialCountdown) && initialCountdown > 0) {
+      setResendDisabled(true);
+      setCountdown(Math.ceil(initialCountdown));
+    }
+  }, [initialCountdown]);
 
   useEffect(() => {
     if (countdown > 0) {
@@ -81,9 +90,19 @@ export default function VerifyOtpScreen() {
         otp: otpCode,
       });
       setLoading(false);
-      setSuccessMsg("Xác thực thành công! Hãy thiết lập thông tin cá nhân.");
+
+      setSuccessMsg("verified");
       setTimeout(() => {
-        navigation.navigate("SetupProfile", { email });
+        Alert.alert(
+          "Đăng ký thành công",
+          "Tài khoản của bạn đã được xác thực. Hãy thiết lập thông tin cá nhân.",
+          [
+            {
+              text: "OK",
+              onPress: () => navigation.navigate("SetupProfile", { email }),
+            },
+          ]
+        );
       }, 5000);
     } catch (err) {
       setLoading(false);
@@ -104,6 +123,14 @@ export default function VerifyOtpScreen() {
       await http.post(API_ENDPOINTS.RESEND_OTP, { email });
       Alert.alert("Đã gửi lại", "Mã OTP mới đã được gửi tới email của bạn.");
     } catch (err) {
+      const retryAfterSeconds = getRetryAfterSeconds(err);
+      if (retryAfterSeconds > 0) {
+        setResendDisabled(true);
+        setCountdown(retryAfterSeconds);
+        setError("");
+        return;
+      }
+
       const message = getApiErrorMessage(err, "Gửi lại mã thất bại.");
       setError(message);
       setResendDisabled(false);
@@ -164,14 +191,11 @@ export default function VerifyOtpScreen() {
             <Text style={styles.resendLabel}>Không nhận được mã? </Text>
             <Pressable onPress={handleResend} disabled={resendDisabled}>
               <Text style={[styles.resendLink, resendDisabled && styles.resendLinkDisabled]}>
-                {resendDisabled ? `Gửi lại sau ${countdown}s` : "Gửi lại"}
+                {resendDisabled ? `Gửi lại (${countdown}s)` : "Gửi lại"}
               </Text>
             </Pressable>
           </View>
 
-          {successMsg ? (
-            <Text style={styles.successText}>{successMsg}</Text>
-          ) : null}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -307,6 +331,6 @@ const styles = StyleSheet.create({
     fontWeight: "700"
   },
   resendLinkDisabled: {
-    color: COLORS.TAB_INACTIVE
+    color: COLORS.EXPENSE_LIGHT
   }
 });

@@ -1,99 +1,144 @@
-import { GoogleSignin, statusCodes } from "@react-native-google-signin/google-signin";
-import http from "./http";
+import {
+  GoogleSignin,
+  isCancelledResponse,
+  isErrorWithCode,
+  isSuccessResponse,
+  statusCodes
+} from "@react-native-google-signin/google-signin";
 import { API_ENDPOINTS } from "../constants/api";
+import http from "./http";
 
-// Cấu hình Google Sign-In từ biến môi trường
-const WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+const GOOGLE_WEB_CLIENT_ID =
+  process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ||
+  process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID;
+const GOOGLE_IOS_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
 
-/**
- * Cấu hình GoogleSignin một lần khi app khởi động.
- * Universal Sign In (v16+) chỉ cần webClientId.
- * Gọi hàm này ở App.js startup.
- */
-export function configureGoogleSignin() {
-  GoogleSignin.configure({
-    webClientId: WEB_CLIENT_ID,
-  });
+let isConfigured = false;
+
+function createGoogleAuthError(message, code) {
+  const error = new Error(message);
+  error.code = code;
+  return error;
 }
 
-/**
- * Native Google Sign-In.
- *
- * Sử dụng @react-native-google-signin/google-signin để mở bottom sheet
- * đăng nhập Google thay vì browser redirect.
- *
- * Returns:
- *   { idToken, user: { email, name, photo, ... } }
- *
- * Throws:
- *   - Error("SIGN_IN_CANCELLED") nếu user huỷ
- *   - Error(errorMessage) nếu thất bại khác
- */
+function requireWebClientId() {
+  if (!GOOGLE_WEB_CLIENT_ID) {
+    throw createGoogleAuthError(
+      "Google Web Client ID chưa được cấu hình. Vui lòng thêm EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID vào Mobile/.env.",
+      "GOOGLE_WEB_CLIENT_ID_MISSING"
+    );
+  }
+}
+
+export function configureGoogleSignin() {
+  const config = {
+    offlineAccess: false,
+    scopes: ["email", "profile"],
+    profileImageSize: 120
+  };
+
+  if (GOOGLE_WEB_CLIENT_ID) {
+    config.webClientId = GOOGLE_WEB_CLIENT_ID;
+  }
+
+  if (GOOGLE_IOS_CLIENT_ID) {
+    config.iosClientId = GOOGLE_IOS_CLIENT_ID;
+  }
+
+  GoogleSignin.configure(config);
+  isConfigured = true;
+}
+
+function ensureConfigured() {
+  if (!isConfigured) {
+    configureGoogleSignin();
+  }
+}
+
+async function getIdTokenFromResponse(googleUser) {
+  if (googleUser?.idToken) {
+    return googleUser.idToken;
+  }
+
+  const tokens = await GoogleSignin.getTokens();
+  return tokens?.idToken || null;
+}
+
 export async function signInWithGoogleNative() {
+  ensureConfigured();
+  requireWebClientId();
+
   try {
-    // Kiểm tra Google Play Services (Android)
     await GoogleSignin.hasPlayServices({
-      showPlayServicesUpdateDialog: true,
+      showPlayServicesUpdateDialog: true
     });
 
-    // Đăng nhập
     const response = await GoogleSignin.signIn();
 
-    // response.data chứa idToken, user info, ...
-    const data = response.data || response;
-    const idToken = data.idToken;
+    if (isCancelledResponse(response)) {
+      return null;
+    }
+
+    if (!isSuccessResponse(response)) {
+      return null;
+    }
+
+    const googleUser = response.data;
+    const idToken = await getIdTokenFromResponse(googleUser);
 
     if (!idToken) {
-      throw new Error("Không nhận được idToken từ Google");
+      throw createGoogleAuthError(
+        "Không nhận được idToken từ Google. Hãy kiểm tra Google Web Client ID đang dùng trong app.",
+        "GOOGLE_ID_TOKEN_MISSING"
+      );
     }
 
-    // Lấy thông tin user
-    const currentUser = await GoogleSignin.getCurrentUser();
-    const userInfo = currentUser?.data?.user || currentUser?.user || data?.user || {};
-
-    console.log("[googleAuth] Native sign-in success:", userInfo.email);
-
-    return { idToken, user: userInfo };
+    return {
+      ...googleUser,
+      idToken
+    };
   } catch (error) {
-    if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-      console.log("[googleAuth] User cancelled sign-in");
-      throw new Error("SIGN_IN_CANCELLED");
+    if (isErrorWithCode(error)) {
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        return null;
+      }
+
+      if (error.code === statusCodes.IN_PROGRESS) {
+        throw createGoogleAuthError(
+          "Google đăng nhập đang được xử lý. Vui lòng đợi trong giây lát.",
+          error.code
+        );
+      }
+
+      if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        throw createGoogleAuthError(
+          "Google Play Services không khả dụng hoặc cần được cập nhật trên thiết bị này.",
+          error.code
+        );
+      }
     }
 
-    if (error.code === statusCodes.IN_PROGRESS) {
-      console.log("[googleAuth] Sign-in already in progress");
-      throw new Error("Google đăng nhập đang được xử lý. Vui lòng đợi.");
-    }
-
-    if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-      console.warn("[googleAuth] Play Services not available");
-      throw new Error("Google Play Services không khả dụng trên thiết bị này.");
-    }
-
-    console.error("[googleAuth] Native sign-in error:", error?.message || error);
     throw error;
   }
 }
 
-/**
- * Đăng xuất khỏi Google (gọi khi user sign out khỏi app).
- */
-export async function signOutGoogle() {
-  try {
-    await GoogleSignin.signOut();
-    console.log("[googleAuth] Signed out from Google");
-  } catch (error) {
-    console.warn("[googleAuth] Sign-out error:", error?.message);
+export async function exchangeGoogleToken(idToken) {
+  if (!idToken) {
+    throw createGoogleAuthError(
+      "Không thể đăng nhập bằng Google vì thiếu idToken.",
+      "GOOGLE_ID_TOKEN_MISSING"
+    );
   }
+
+  const response = await http.post(API_ENDPOINTS.GOOGLE_AUTH, { idToken });
+  return response.data || {};
 }
 
-/**
- * Gửi idToken nhận được từ Google lên backend để đăng nhập/tạo tài khoản.
- *
- * @param {string} idToken - Google ID Token
- * @returns {Promise<{token: string, user: object}>}
- */
-export async function exchangeGoogleToken(idToken) {
-  const res = await http.post(API_ENDPOINTS.GOOGLE_AUTH, { idToken });
-  return res.data;
+export async function signOutGoogle() {
+  try {
+    ensureConfigured();
+    await GoogleSignin.signOut();
+  } catch (error) {
+    console.warn("[googleAuth] Google sign-out skipped:", error?.message || error);
+  }
 }

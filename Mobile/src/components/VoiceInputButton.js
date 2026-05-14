@@ -31,15 +31,20 @@ export default function VoiceInputButton({ onResult, language = "vi-VN" }) {
   const [recognizing, setRecognizing] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [error, setError] = useState(null);
+  const [isStarting, setIsStarting] = useState(false);
 
   // Lắng nghe sự kiện speech recognition
   useSpeechRecognitionEvent("start", () => {
+    console.log("Speech recognition started");
     setRecognizing(true);
+    setIsStarting(false);
     setError(null);
   });
 
   useSpeechRecognitionEvent("end", () => {
+    console.log("Speech recognition ended");
     setRecognizing(false);
+    setIsStarting(false);
   });
 
   useSpeechRecognitionEvent("result", (event) => {
@@ -48,38 +53,60 @@ export default function VoiceInputButton({ onResult, language = "vi-VN" }) {
   });
 
   useSpeechRecognitionEvent("error", (event) => {
+    console.log("Speech recognition error:", event);
     setRecognizing(false);
+    setIsStarting(false);
     setError(event.message || "Không thể nhận dạng giọng nói");
   });
 
   const handleStart = useCallback(async () => {
+    if (recognizing || isStarting) {
+      console.log("Already recognizing or starting");
+      return;
+    }
+
     try {
-      // Yêu cầu quyền trước
-      const permResult = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
-      if (!permResult.granted) {
-        Alert.alert(
-          "Quyền bị từ chối",
-          "Vui lòng cấp quyền micro và nhận dạng giọng nói trong Cài đặt để sử dụng tính năng này."
-        );
+      setIsStarting(true);
+      setError(null);
+      setTranscript("");
+
+      // Yêu cầu quyền microphone
+      const { status } = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+      if (status !== "granted") {
+        setError("Ứng dụng cần quyền truy cập microphone để nhận diện giọng nói.");
+        setModalVisible(true);
+        setIsStarting(false);
         return;
       }
 
-      setTranscript("");
-      setError(null);
+      console.log("Aborting any existing sessions...");
+      await ExpoSpeechRecognitionModule.abort();
+
+      // Thêm độ trễ nhỏ để đảm bảo phiên cũ đã dừng hẳn
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      console.log("Opening modal and starting recognition...");
       setModalVisible(true);
 
-      // Đợi modal render xong rồi mới start
+      // Start recognition
+      ExpoSpeechRecognitionModule.start({
+        lang: language,
+        interimResults: true,
+        continuous: false
+      });
+
+      // Safety timeout to reset isStarting if start event never fires
       setTimeout(() => {
-        ExpoSpeechRecognitionModule.start({
-          lang: language,
-          interimResults: true,
-          continuous: false
-        });
-      }, 300);
+        setIsStarting(false);
+      }, 3000);
+
     } catch (err) {
+      console.error("handleStart error:", err);
+      setIsStarting(false);
       setError(err.message || "Không thể khởi động voice input");
+      setModalVisible(true); // Show error in modal
     }
-  }, [language]);
+  }, [language, recognizing, isStarting]);
 
   const handleStop = useCallback(() => {
     ExpoSpeechRecognitionModule.stop();
@@ -100,6 +127,7 @@ export default function VoiceInputButton({ onResult, language = "vi-VN" }) {
     setRecognizing(false);
     setTranscript("");
     setError(null);
+    setIsStarting(false);
   }, []);
 
   return (
@@ -108,9 +136,11 @@ export default function VoiceInputButton({ onResult, language = "vi-VN" }) {
       <Pressable
         style={({ pressed }) => [
           styles.micButton,
-          pressed && styles.micButtonPressed
+          pressed && styles.micButtonPressed,
+          (recognizing || isStarting) && styles.micButtonDisabled
         ]}
         onPress={handleStart}
+        disabled={recognizing || isStarting}
         accessibilityLabel="Nhập liệu bằng giọng nói"
         accessibilityRole="button"
       >
@@ -145,7 +175,7 @@ export default function VoiceInputButton({ onResult, language = "vi-VN" }) {
             {/* Kết quả transcript */}
             <View style={styles.transcriptContainer}>
               <Text style={styles.transcriptText}>
-                {transcript || (recognizing ? "Hãy nói nội dung chi tiêu..." : "")}
+                {transcript || (recognizing ? "Hãy nói nội dung giao dịch..." : (isStarting ? "Đang khởi động..." : ""))}
               </Text>
             </View>
 
@@ -166,11 +196,11 @@ export default function VoiceInputButton({ onResult, language = "vi-VN" }) {
                 </Pressable>
               ) : (
                 <Pressable
-                  style={[styles.confirmButton, !transcript.trim() && styles.buttonDisabled]}
-                  onPress={handleConfirm}
-                  disabled={!transcript.trim()}
+                  style={[styles.confirmButton, (!transcript.trim() && !error) && styles.buttonDisabled]}
+                  onPress={error ? handleCancel : handleConfirm}
+                  disabled={!transcript.trim() && !error}
                 >
-                  <Text style={styles.confirmText}>Xong</Text>
+                  <Text style={styles.confirmText}>{error ? "Đóng" : "Xong"}</Text>
                 </Pressable>
               )}
             </View>
@@ -192,6 +222,9 @@ const styles = StyleSheet.create({
   },
   micButtonPressed: {
     backgroundColor: COLORS.PRIMARY_LIGHT
+  },
+  micButtonDisabled: {
+    opacity: 0.6
   },
   modalOverlay: {
     flex: 1,

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import http from "../services/http";
 import { API_ENDPOINTS } from "../constants/api";
 import { SUCCESS_ALERT_MESSAGES, SUCCESS_ALERT_TITLE } from "../constants/alertMessages";
@@ -12,6 +12,8 @@ import { parseNote, suggestCategory } from "../utils/smartNoteParser";
 
 export default function AddExpenseScreen() {
   const navigation = useNavigation();
+  const route = useRoute();
+  const initialData = route.params?.initialData;
 
   const [categories, setCategories] = useState([]);
   const [name, setName] = useState("");
@@ -38,6 +40,24 @@ export default function AddExpenseScreen() {
 
     fetchCategories();
   }, []);
+
+  // Cập nhật form nếu có initialData mới từ route params (từ Voice AI bên ngoài)
+  useEffect(() => {
+    if (initialData) {
+      if (initialData.name) setName(initialData.name);
+      if (initialData.amount) setAmount(formatCurrencyInput(String(initialData.amount)));
+      if (initialData.date) setDate(initialData.date);
+      if (initialData.note) setNote(initialData.note);
+      
+      if (initialData.categoryHint && categories.length > 0) {
+        const hint = initialData.categoryHint.toLowerCase();
+        const matched = categories.find(c => 
+          c.name.toLowerCase().includes(hint) || hint.includes(c.name.toLowerCase())
+        );
+        if (matched) setCategoryId(String(matched.id));
+      }
+    }
+  }, [initialData, categories]);
 
   /** Xử lý kết quả từ voice input — tự động điền form */
   const handleVoiceResult = (voiceText) => {

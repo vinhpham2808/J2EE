@@ -7,6 +7,7 @@ import { SUCCESS_ALERT_MESSAGES, SUCCESS_ALERT_TITLE } from "../constants/alertM
 import { formatDate, formatMoney, getApiErrorMessage } from "../utils/format";
 import IncomeExpenseChart from "../components/IncomeExpenseChart";
 import { COLORS } from "../constants/colors";
+import VoiceInputButton from "../components/VoiceInputButton";
 
 const FILTER_TYPES = {
   current: "current",
@@ -71,8 +72,12 @@ export default function IncomeScreen() {
       params.month = Number(month);
     }
 
-    const response = await http.get(API_ENDPOINTS.GET_ALL_INCOMES, { params });
-    setIncomes(Array.isArray(response.data) ? response.data : []);
+    try {
+      const response = await http.get(API_ENDPOINTS.GET_ALL_INCOMES, { params });
+      setIncomes(Array.isArray(response.data) ? response.data : []);
+    } catch (error) {
+      console.error("Fetch incomes error:", error);
+    }
   }, [filterType, selectedMonth]);
 
   const onRefresh = useCallback(async () => {
@@ -112,6 +117,18 @@ export default function IncomeScreen() {
       onRefresh();
     }, [onRefresh])
   );
+
+  const handleVoiceResult = async (text) => {
+    try {
+      const response = await http.post(API_ENDPOINTS.VOICE_PARSE, { text });
+      const data = response.data;
+      if (data) {
+        navigation.navigate("AddIncome", { initialData: data });
+      }
+    } catch (error) {
+      Alert.alert("Lỗi AI", getApiErrorMessage(error, "Không thể phân tích nội dung giọng nói"));
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -162,9 +179,12 @@ export default function IncomeScreen() {
         <Text style={styles.summaryAmount}>{formatMoney(totalIncome)}</Text>
         <Text style={styles.summaryHint}>{incomes.length} giao dịch</Text>
 
-        <Pressable style={styles.addButton} onPress={() => navigation.navigate("AddIncome")}>
-          <Text style={styles.addButtonText}>+ Thêm thu nhập</Text>
-        </Pressable>
+        <View style={styles.actionRowMain}>
+          <Pressable style={styles.addButtonMain} onPress={() => navigation.navigate("AddIncome")}>
+            <Text style={styles.addButtonText}>+ Thêm thu nhập</Text>
+          </Pressable>
+          <VoiceInputButton onResult={handleVoiceResult} />
+        </View>
       </View>
 
       <FlatList
@@ -192,9 +212,11 @@ export default function IncomeScreen() {
                 ? "Nhập tháng theo định dạng YYYY-MM để xem dữ liệu."
                 : "Hãy thêm khoản thu đầu tiên để theo dõi tài chính rõ ràng hơn."}
             </Text>
-            <Pressable style={styles.emptyAction} onPress={() => navigation.navigate("AddIncome")}>
-              <Text style={styles.emptyActionText}>+ Thêm thu nhập</Text>
-            </Pressable>
+            <View style={styles.actionRowMain}>
+              <Pressable style={[styles.emptyAction, { flex: 1 }]} onPress={() => navigation.navigate("AddIncome")}>
+                <Text style={styles.emptyActionText}>+ Thêm thu nhập</Text>
+              </Pressable>
+            </View>
           </View>
         }
       />
@@ -290,8 +312,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.TEXT_SECONDARY
   },
-  addButton: {
+  actionRowMain: {
+    flexDirection: "row",
+    gap: 10,
     marginTop: 12,
+    alignItems: "center"
+  },
+  addButtonMain: {
+    flex: 1,
     backgroundColor: COLORS.PRIMARY,
     borderRadius: 12,
     paddingVertical: 12,
