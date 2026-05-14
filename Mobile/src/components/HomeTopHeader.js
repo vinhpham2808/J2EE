@@ -3,8 +3,9 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { COLORS } from "../constants/colors";
 
-export default function HomeTopHeader({ onMenuPress, onBellPress }) {
+export default function HomeTopHeader({ onMenuPress, onBellPress, unreadCount = 0 }) {
   const insets = useSafeAreaInsets();
+  const displayCount = unreadCount > 9 ? "9+" : String(unreadCount);
 
   return (
     <View style={[styles.container, { paddingTop: Math.max(insets.top, 8) }]}>
@@ -16,6 +17,11 @@ export default function HomeTopHeader({ onMenuPress, onBellPress }) {
 
       <Pressable style={styles.iconButton} onPress={onBellPress}>
         <Text style={styles.iconText}>🔔</Text>
+        {unreadCount > 0 ? (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{displayCount}</Text>
+          </View>
+        ) : null}
       </Pressable>
     </View>
   );
@@ -46,5 +52,24 @@ const styles = StyleSheet.create({
   },
   iconText: {
     fontSize: 18
+  },
+  badge: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    paddingHorizontal: 4,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: COLORS.EXPENSE,
+    borderWidth: 2,
+    borderColor: COLORS.CARD
+  },
+  badgeText: {
+    color: COLORS.WHITE,
+    fontSize: 9,
+    fontWeight: "900"
   }
 });
