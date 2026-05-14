@@ -15,6 +15,7 @@ export const API_ENDPOINTS = {
   VERIFY_OTP: "/verify-activation",
   RESEND_OTP: "/otp/resend",
   FORGOT_PASSWORD: "/forgot-password",
+  VERIFY_RESET_OTP: "/verify-reset-otp",
   RESET_PASSWORD: "/reset-password",
   COMPLETE_PROFILE: "/complete-profile",
   GOOGLE_AUTH: "/auth/google",

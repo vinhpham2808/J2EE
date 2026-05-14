@@ -20,12 +20,11 @@ export default function ForgotPasswordScreen() {
 
     setLoading(true);
     try {
-      const response = await http.post(API_ENDPOINTS.FORGOT_PASSWORD, { email: email.trim() });
-      Alert.alert("Thành công", response?.data?.message || "Đã gửi email đặt lại mật khẩu.", [
-        { text: "Đăng nhập", onPress: () => navigation.navigate("Login") }
-      ]);
+      await http.post(API_ENDPOINTS.FORGOT_PASSWORD, { email: email.trim() });
+      navigation.navigate("ForgotPasswordOtp", { email: email.trim() });
     } catch (error) {
-      Alert.alert("Thất bại", getApiErrorMessage(error, "Không thể gửi yêu cầu."));
+      const message = getApiErrorMessage(error, "Không thể gửi yêu cầu. Vui lòng thử lại.");
+      Alert.alert("Thất bại", message);
     } finally {
       setLoading(false);
     }

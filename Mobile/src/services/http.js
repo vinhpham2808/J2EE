@@ -2,7 +2,7 @@ import axios from "axios";
 import { BASE_URL } from "../constants/api";
 import { tokenStorage } from "../storage/tokenStorage";
 
-const publicEndpoints = ["/login", "/register", "/activate", "/verify-otp", "/resend-otp", "/forgot-password", "/reset-password", "/auth/google", "/health"];
+const publicEndpoints = ["/login", "/register", "/activate", "/verify-otp", "/resend-otp", "/forgot-password", "/verify-reset-otp", "/reset-password", "/auth/google", "/health"];
 
 const http = axios.create({
   baseURL: BASE_URL,
