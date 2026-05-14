@@ -165,6 +165,12 @@ public class ProfileService {
                 .orElse(false);
     }
 
+    public boolean isRegisteredButInactive(String email) {
+        return profileRepository.findByEmail(email)
+                .map(profile -> !Boolean.TRUE.equals(profile.getIsActive()))
+                .orElse(false);
+    }
+
     public Map<String, Object> authenticateAndGenerateToken(AuthDTO authDTO) {
         try {
             authenticationManager.authenticate(

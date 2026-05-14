@@ -14,6 +14,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import http from "../services/http";
 import { API_ENDPOINTS } from "../constants/api";
 import { getApiErrorMessage } from "../utils/format";
+import { getRetryAfterSeconds } from "../utils/otp";
 import { COLORS } from "../constants/colors";
 
 export default function ForgotPasswordOtpScreen() {
@@ -98,6 +99,14 @@ export default function ForgotPasswordOtpScreen() {
       await http.post(API_ENDPOINTS.RESEND_OTP, { email });
       Alert.alert("Đã gửi lại", "Mã OTP mới đã được gửi tới email của bạn.");
     } catch (err) {
+      const retryAfterSeconds = getRetryAfterSeconds(err);
+      if (retryAfterSeconds > 0) {
+        setResendDisabled(true);
+        setCountdown(retryAfterSeconds);
+        setError("");
+        return;
+      }
+
       const message = getApiErrorMessage(err, "Gửi lại mã thất bại.");
       setError(message);
       setResendDisabled(false);
@@ -158,7 +167,7 @@ export default function ForgotPasswordOtpScreen() {
             <Text style={styles.resendLabel}>Không nhận được mã? </Text>
             <Pressable onPress={handleResend} disabled={resendDisabled}>
               <Text style={[styles.resendLink, resendDisabled && styles.resendLinkDisabled]}>
-                {resendDisabled ? `Gửi lại sau ${countdown}s` : "Gửi lại"}
+                {resendDisabled ? `Gửi lại (${countdown}s)` : "Gửi lại"}
               </Text>
             </Pressable>
           </View>
@@ -290,6 +299,6 @@ const styles = StyleSheet.create({
     fontWeight: "700"
   },
   resendLinkDisabled: {
-    color: COLORS.DARK_TEXT_SECONDARY
+    color: COLORS.EXPENSE_LIGHT
   }
 });
