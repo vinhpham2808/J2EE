@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import http from "../services/http";
 import { API_ENDPOINTS } from "../constants/api";
 import { SUCCESS_ALERT_MESSAGES, SUCCESS_ALERT_TITLE } from "../constants/alertMessages";
@@ -9,12 +9,13 @@ import { PickDateField } from "../utils/pickDate";
 import { COLORS } from "../constants/colors";
 
 export default function AddIncomeScreen() {
-  const navigation = useNavigation();
+  const route = useRoute();
+  const initialData = route.params?.initialData;
 
   const [categories, setCategories] = useState([]);
-  const [name, setName] = useState("");
-  const [amount, setAmount] = useState("");
-  const [date, setDate] = useState(todayIso());
+  const [name, setName] = useState(initialData?.name || "");
+  const [amount, setAmount] = useState(initialData?.amount ? formatCurrencyInput(String(initialData?.amount)) : "");
+  const [date, setDate] = useState(initialData?.date || todayIso());
   const [categoryId, setCategoryId] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -34,6 +35,23 @@ export default function AddIncomeScreen() {
 
     fetchCategories();
   }, []);
+
+  // Cập nhật form nếu có initialData mới từ route params
+  useEffect(() => {
+    if (initialData) {
+      if (initialData.name) setName(initialData.name);
+      if (initialData.amount) setAmount(formatCurrencyInput(String(initialData.amount)));
+      if (initialData.date) setDate(initialData.date);
+      
+      if (initialData.categoryHint && categories.length > 0) {
+        const hint = initialData.categoryHint.toLowerCase();
+        const matched = categories.find(c => 
+          c.name.toLowerCase().includes(hint) || hint.includes(c.name.toLowerCase())
+        );
+        if (matched) setCategoryId(String(matched.id));
+      }
+    }
+  }, [initialData, categories]);
 
   const onSave = async () => {
     const normalizedName = name.trim();
