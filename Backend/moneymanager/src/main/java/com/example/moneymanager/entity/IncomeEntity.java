@@ -17,7 +17,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "tbl_incomes")
+@Table(name = "tbl_incomes", indexes = {
+    @Index(name = "idx_income_profile_date", columnList = "profile_id, date"),
+    @Index(name = "idx_income_profile_id", columnList = "profile_id")
+})
 public class IncomeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

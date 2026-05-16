@@ -21,9 +21,13 @@ const Forecast = () => {
     const [anomalies, setAnomalies] = useState([]);
     const [insights, setInsights] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isInsightsLoading, setIsInsightsLoading] = useState(false);
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
     const navigate = useNavigate();
+
+    const isCurrentOrPast = selectedYear < new Date().getFullYear() || 
+        (selectedYear === new Date().getFullYear() && selectedMonth <= new Date().getMonth() + 1);
 
     useEffect(() => {
         if (user && user.subscriptionPlan === "PREMIUM") {
@@ -44,7 +48,7 @@ const Forecast = () => {
             setMonthlyForecast(forecastRes.data);
             setAnomalies(anomaliesRes.data);
 
-            if (forecastRes.data) {
+            if (forecastRes.data && !isCurrentOrPast) {
                 fetchInsights(forecastRes.data);
             }
         } catch (error) {
@@ -56,11 +60,15 @@ const Forecast = () => {
     };
 
     const fetchInsights = async (forecastData) => {
+        setIsInsightsLoading(true);
+        setInsights(null);
         try {
             const res = await axiosConfig.post(API_ENDPOINTS.FORECAST_INSIGHTS, forecastData);
             setInsights(res.data);
         } catch (error) {
             console.error("Error fetching insights:", error);
+        } finally {
+            setIsInsightsLoading(false);
         }
     };
 
@@ -171,20 +179,41 @@ const Forecast = () => {
                                 )}
                             </div>
 
-                            {/* Gemini Insights */}
-                            {insights && (
-                                <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-6 text-white shadow-md relative overflow-hidden">
-                                    <div className="absolute top-0 right-0 p-4 opacity-10">
-                                        <Lightbulb size={120} />
+                            {/* AI Insights - chỉ hiển thị cho tháng tương lai */}
+                            {!isCurrentOrPast && (
+                                isInsightsLoading ? (
+                                    <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-6 text-white shadow-md relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 p-4 opacity-10">
+                                            <Lightbulb size={120} />
+                                        </div>
+                                        <h3 className="text-lg font-bold mb-4 flex items-center gap-2 relative z-10">
+                                            <Lightbulb size={20} className="text-amber-300" />
+                                            Nova Money đang phân tích dữ liệu của bạn, vui lòng chờ nhé...
+                                        </h3>
+                                        <div className="space-y-3 relative z-10">
+                                            <div className="h-3 bg-white/20 rounded-full w-full animate-pulse" />
+                                            <div className="h-3 bg-white/20 rounded-full w-5/6 animate-pulse" style={{ animationDelay: "0.2s" }} />
+                                            <div className="h-3 bg-white/20 rounded-full w-4/6 animate-pulse" style={{ animationDelay: "0.4s" }} />
+                                            <div className="h-3 bg-white/20 rounded-full w-3/6 animate-pulse" style={{ animationDelay: "0.6s" }} />
+                                        </div>
                                     </div>
-                                    <h3 className="text-lg font-bold mb-3 flex items-center gap-2 relative z-10">
-                                        <Lightbulb size={20} className="text-amber-300" />
-                                        Phân tích từ chuyên gia AI
-                                    </h3>
-                                    <p className="text-indigo-50 leading-relaxed relative z-10 text-sm whitespace-pre-wrap">
-                                        {insights.narrative}
-                                    </p>
-                                </div>
+                                ) : insights ? (
+                                    <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-6 text-white shadow-md relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 p-4 opacity-10">
+                                            <Lightbulb size={120} />
+                                        </div>
+                                        <h3 className="text-lg font-bold mb-3 flex items-center gap-2 relative z-10">
+                                            <Lightbulb size={20} className="text-amber-300" />
+                                            Phân tích từ chuyên gia AI
+                                        </h3>
+                                        <p className="text-indigo-50 leading-relaxed relative z-10 text-sm whitespace-pre-wrap">
+                                            {insights.narrative}
+                                        </p>
+                                        <p className="mt-3 text-xs text-indigo-200/70 relative z-10 flex items-center gap-1">
+                                            <span>⚠️</span> Nova Money là AI có thể trả lời sai sót, vui lòng kiểm tra lại thông tin.
+                                        </p>
+                                    </div>
+                                ) : null
                             )}
                         </div>
 

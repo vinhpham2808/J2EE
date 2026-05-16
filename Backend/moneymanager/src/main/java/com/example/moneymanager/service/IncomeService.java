@@ -91,6 +91,11 @@ public class IncomeService {
         return total != null ? total : BigDecimal.ZERO;
     }
 
+    public long getTotalIncomeCountForCurrentUser() {
+        ProfileEntity profile = profileService.getCurrentProfile();
+        return incomeRepository.countByProfileId(profile.getId());
+    }
+
     //filter incomes
     public List<IncomeDTO> filterIncomes(LocalDate startDate, LocalDate endDate, String keyword, Sort sort) {
         ProfileEntity profile = profileService.getCurrentProfile();

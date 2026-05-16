@@ -29,11 +29,22 @@ public class EmailController {
     private final SubscriptionService subscriptionService;
     private final DocumentService documentService;
     private final MailTemplateService mailTemplateService;
+    private final SpamProtectionService spamProtectionService;
 
     @GetMapping("/income-excel")
-    public ResponseEntity<Void> emailIncomeExcel() throws IOException, MessagingException {
-        subscriptionService.ensureCanExport(profileService.getCurrentProfile());
+    public ResponseEntity<?> emailIncomeExcel() throws IOException, MessagingException {
         ProfileEntity profile = profileService.getCurrentProfile();
+        SpamProtectionService.SpamCheckResult spamCheck = spamProtectionService.checkSpam(profile.getEmail());
+        
+        if (!spamCheck.isAllowed()) {
+            return ResponseEntity.status(429).body(Map.of(
+                "success", false,
+                "message", spamCheck.message(),
+                "blockedUntil", spamCheck.blockedUntil().toString()
+            ));
+        }
+
+        subscriptionService.ensureCanExport(profile);
 
         List<com.example.moneymanager.dto.IncomeDTO> incomes = incomeService.getCurrentMonthIncomesForCurrentUser();
         List<Map<String, Object>> incomeMapList = incomes.stream().map(dto -> {
@@ -63,9 +74,19 @@ public class EmailController {
 
 
     @GetMapping("/expense-excel")
-    public ResponseEntity<Void> emailExpenseExcel() throws IOException, MessagingException {
-        subscriptionService.ensureCanExport(profileService.getCurrentProfile());
+    public ResponseEntity<?> emailExpenseExcel() throws IOException, MessagingException {
         ProfileEntity profile = profileService.getCurrentProfile();
+        SpamProtectionService.SpamCheckResult spamCheck = spamProtectionService.checkSpam(profile.getEmail());
+        
+        if (!spamCheck.isAllowed()) {
+            return ResponseEntity.status(429).body(Map.of(
+                "success", false,
+                "message", spamCheck.message(),
+                "blockedUntil", spamCheck.blockedUntil().toString()
+            ));
+        }
+
+        subscriptionService.ensureCanExport(profile);
 
         List<com.example.moneymanager.dto.ExpenseDTO> expenses = expenseService.getCurrentMonthExpensesForCurrentUser();
         List<Map<String, Object>> expenseMapList = expenses.stream().map(dto -> {

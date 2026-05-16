@@ -48,7 +48,7 @@ const formatDateTime = (value) => {
 
 const AdminPayments = () => {
   const settings = useMemo(() => loadAdminSettings(), []);
-  usePageTitle("Quản lý thanh toán");
+  usePageTitle("Quản lý thanh toán", "Money Manager Admin");
 
   const [status, setStatus] = useState(settings.defaultPaymentStatus || "ALL");
   const [search, setSearch] = useState("");
@@ -95,7 +95,7 @@ const AdminPayments = () => {
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800 dark:text-white tracking-tight">Payment Management</h1>
+          <h1 className="text-3xl font-bold text-slate-800 dark:text-white tracking-tight">Quản lý thanh toán</h1>
           <p className="mt-2 text-slate-500 dark:text-slate-400">Theo dõi và quản lý giao dịch từ cơ sở dữ liệu.</p>
         </div>
         <button
@@ -103,7 +103,7 @@ const AdminPayments = () => {
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 transition"
         >
           <RefreshCcw size={16} />
-          Refresh
+          Làm mới
         </button>
       </div>
 
@@ -123,7 +123,7 @@ const AdminPayments = () => {
               type="submit"
               className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium transition"
             >
-              Search
+              Tìm kiếm
             </button>
           </form>
 
@@ -133,7 +133,7 @@ const AdminPayments = () => {
               onChange={(e) => setStatus(e.target.value)}
               className="px-3 py-2.5 pr-8 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-700 dark:text-slate-300 focus:outline-none appearance-none"
             >
-              <option value="ALL" className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300">All Status</option>
+              <option value="ALL" className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300">Tất cả trạng thái</option>
               <option value="PAID" className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300">PAID</option>
               <option value="PENDING" className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300">PENDING</option>
               <option value="PROCESSING" className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300">PROCESSING</option>
@@ -149,7 +149,7 @@ const AdminPayments = () => {
 
       <div className="bg-white dark:bg-[#0F172A] rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-slate-500 dark:text-slate-400">Loading payments...</div>
+          <div className="p-8 text-center text-slate-500 dark:text-slate-400">Đang tải dữ liệu thanh toán...</div>
         ) : error ? (
           <div className="p-8 text-center text-red-500 dark:text-red-400">{error}</div>
         ) : payments.length === 0 ? (
@@ -162,12 +162,12 @@ const AdminPayments = () => {
             <table className="w-full text-sm">
               <thead className="bg-slate-50 dark:bg-white/5 text-slate-600 dark:text-slate-400">
                 <tr>
-                  <th className="text-left px-4 py-3 font-semibold">Order Code</th>
-                  <th className="text-left px-4 py-3 font-semibold">User</th>
-                  <th className="text-left px-4 py-3 font-semibold">Plan</th>
-                  <th className="text-left px-4 py-3 font-semibold">Amount</th>
-                  <th className="text-left px-4 py-3 font-semibold">Status</th>
-                  <th className="text-left px-4 py-3 font-semibold">Created</th>
+                  <th className="text-left px-4 py-3 font-semibold">Mã đơn hàng</th>
+                  <th className="text-left px-4 py-3 font-semibold">Người dùng</th>
+                  <th className="text-left px-4 py-3 font-semibold">Gói</th>
+                  <th className="text-left px-4 py-3 font-semibold">Số tiền</th>
+                  <th className="text-left px-4 py-3 font-semibold">Trạng thái</th>
+                  <th className="text-left px-4 py-3 font-semibold">Ngày tạo</th>
                 </tr>
               </thead>
               <tbody>

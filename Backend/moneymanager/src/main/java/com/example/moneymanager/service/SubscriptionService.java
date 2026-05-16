@@ -1,5 +1,6 @@
 package com.example.moneymanager.service;
 
+import com.example.moneymanager.dto.SubscriptionPlanConfigDTO;
 import com.example.moneymanager.entity.ProfileEntity;
 import com.example.moneymanager.entity.SubscriptionPlan;
 import com.example.moneymanager.entity.SubscriptionStatus;
@@ -9,19 +10,33 @@ import com.example.moneymanager.repository.IncomeRepository;
 import com.example.moneymanager.repository.ProfileRepository;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 
 @Service
-@RequiredArgsConstructor
 public class SubscriptionService {
 
     private final ProfileRepository profileRepository;
     private final CategoryRepository categoryRepository;
     private final IncomeRepository incomeRepository;
     private final ExpenseRepository expenseRepository;
+    private final SubscriptionPlanConfigService planConfigService;
+
+    public SubscriptionService(
+            ProfileRepository profileRepository,
+            CategoryRepository categoryRepository,
+            IncomeRepository incomeRepository,
+            ExpenseRepository expenseRepository,
+            @Lazy SubscriptionPlanConfigService planConfigService) {
+        this.profileRepository = profileRepository;
+        this.categoryRepository = categoryRepository;
+        this.incomeRepository = incomeRepository;
+        this.expenseRepository = expenseRepository;
+        this.planConfigService = planConfigService;
+    }
 
     public PlanFeatures getPlanFeatures(ProfileEntity profile) {
         refreshSubscriptionIfExpired(profile);
@@ -42,11 +57,40 @@ public class SubscriptionService {
             throw new RuntimeException("Vui lòng chọn gói dịch vụ.");
         }
 
+        // Ưu tiên đọc từ DB (admin có thể chỉnh giá)
+        SubscriptionPlanConfigDTO dbPlan = planConfigService.getPlanByPlanId(planId.trim().toLowerCase());
+        if (dbPlan != null) {
+            SubscriptionPlan subscriptionPlan = resolveSubscriptionPlan(dbPlan.getSubscriptionPlan());
+            // PayOS giới hạn description tối đa 25 ký tự, vì vậy ta ưu tiên dùng tên gói hoặc chuỗi ngắn.
+            String shortDesc = dbPlan.getDisplayName();
+            if (shortDesc.length() > 25) {
+                shortDesc = shortDesc.substring(0, 25);
+            }
+            return new PlanCatalogItem(
+                    dbPlan.getPlanId(),
+                    dbPlan.getDisplayName(),
+                    shortDesc,
+                    dbPlan.getAmount(),
+                    dbPlan.getCycleMonths(),
+                    subscriptionPlan
+            );
+        }
+
+        // Fallback hardcode nếu DB chưa có dữ liệu
         return switch (planId.trim().toLowerCase()) {
             case "basic" -> new PlanCatalogItem("basic", "Gói Cơ Bản", "Gói Cơ Bản", 2000L, 1, SubscriptionPlan.BASIC);
             case "premium" -> new PlanCatalogItem("premium", "Gói Premium", "Gói Premium", 299000L, 12, SubscriptionPlan.PREMIUM);
             default -> throw new RuntimeException("Gói dịch vụ không hợp lệ.");
         };
+    }
+
+    private SubscriptionPlan resolveSubscriptionPlan(String subscriptionPlanStr) {
+        if (subscriptionPlanStr == null) return SubscriptionPlan.BASIC;
+        try {
+            return SubscriptionPlan.valueOf(subscriptionPlanStr.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return SubscriptionPlan.BASIC;
+        }
     }
 
     public void ensureCanCreateCategory(ProfileEntity profile) {

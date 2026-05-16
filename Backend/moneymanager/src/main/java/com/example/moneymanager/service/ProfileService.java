@@ -6,7 +6,9 @@ import com.example.moneymanager.entity.ProfileEntity;
 import com.example.moneymanager.entity.SubscriptionPlan;
 import com.example.moneymanager.entity.SubscriptionStatus;
 import com.example.moneymanager.exception.OtpCooldownException;
+import com.example.moneymanager.entity.RoleEntity;
 import com.example.moneymanager.repository.ProfileRepository;
+import com.example.moneymanager.repository.RoleRepository;
 import com.example.moneymanager.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +30,7 @@ import java.util.Optional;
 public class ProfileService {
 
     private final ProfileRepository profileRepository;
+    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
@@ -40,26 +43,24 @@ public class ProfileService {
 
     // ─── Registration ─────────────────────────────────────────────────
 
-    private static final SecureRandom secureRandom = new SecureRandom();
-    private static final int OTP_EXPIRY_MINUTES = 30;
-    private static final int MAX_OTP_ATTEMPTS = 5;
-    private static final int RESEND_COOLDOWN_SECONDS = 90;
-
-    public ProfileDTO registerProfile(ProfileDTO profileDTO) {
-        profileRepository.findByEmail(profileDTO.getEmail()).ifPresent(p -> {
+    public ProfileDTO registerProfile(RegisterRequestDTO registerDTO) {
+        profileRepository.findByEmail(registerDTO.getEmail()).ifPresent(p -> {
             throw new RuntimeException("Email này đã được sử dụng.");
         });
 
-        // Chỉ tạo profile với email — fullName và password sẽ được người dùng
-        // nhập sau qua /complete-profile (tránh dữ liệu tạm không chính xác)
+        RoleEntity userRole = roleRepository.findByNameIgnoreCase("user")
+                .orElseThrow(() -> new RuntimeException("Role 'user' not found in database"));
         ProfileEntity newProfile = ProfileEntity.builder()
-                .email(profileDTO.getEmail())
-                .profileImageUrl(profileDTO.getProfileImageUrl())
+                .fullName(registerDTO.getFullName())
+                .email(registerDTO.getEmail())
+                .password(passwordEncoder.encode(registerDTO.getPassword()))
+                .profileImageUrl(registerDTO.getProfileImageUrl())
+                .isActive(false)
+                .subscriptionPlan(SubscriptionPlan.FREE)
+                .subscriptionStatus(SubscriptionStatus.INACTIVE)
+                .autoRenew(false)
+                .role(userRole)
                 .build();
-        newProfile.setIsActive(false);
-        newProfile.setSubscriptionPlan(SubscriptionPlan.FREE);
-        newProfile.setSubscriptionStatus(SubscriptionStatus.INACTIVE);
-        newProfile.setAutoRenew(false);
         newProfile = profileRepository.save(newProfile);
 
         emailNotificationPreferenceService.initializeDefaultPreferences(newProfile.getId());
@@ -213,6 +214,16 @@ public class ProfileService {
             throw new RuntimeException("Email này đã được sử dụng.");
         }
 
+        boolean isEmailChange = !email.equalsIgnoreCase(profile.getEmail());
+        if (isEmailChange) {
+            if (requestDTO.getCurrentPassword() == null || requestDTO.getCurrentPassword().isBlank()) {
+                throw new RuntimeException("Vui lòng nhập mật khẩu hiện tại để đổi email.");
+            }
+            if (profile.getPassword() == null || !passwordEncoder.matches(requestDTO.getCurrentPassword(), profile.getPassword())) {
+                throw new RuntimeException("Mật khẩu hiện tại không chính xác.");
+            }
+        }
+
         boolean wantsPasswordChange =
                 (requestDTO.getCurrentPassword() != null && !requestDTO.getCurrentPassword().isBlank())
                 || (requestDTO.getNewPassword() != null && !requestDTO.getNewPassword().isBlank());
@@ -231,7 +242,9 @@ public class ProfileService {
 
         profile.setFullName(fullName);
         profile.setEmail(email);
-        profile.setProfileImageUrl(requestDTO.getProfileImageUrl());
+        if (requestDTO.getProfileImageUrl() != null) {
+            profile.setProfileImageUrl(requestDTO.getProfileImageUrl());
+        }
         profile = profileRepository.save(profile);
 
         return Map.of("token", jwtUtil.generateToken(profile.getEmail()), "user", toDTO(profile));
@@ -245,18 +258,6 @@ public class ProfileService {
     }
 
     // ─── Converters ──────────────────────────────────────────────────
-
-    public ProfileEntity toEntity(ProfileDTO profileDTO) {
-        return ProfileEntity.builder()
-                .id(profileDTO.getId())
-                .fullName(profileDTO.getFullName())
-                .email(profileDTO.getEmail())
-                .password(passwordEncoder.encode(profileDTO.getPassword()))
-                .profileImageUrl(profileDTO.getProfileImageUrl())
-                .createdAt(profileDTO.getCreatedAt())
-                .updatedAt(profileDTO.getUpdatedAt())
-                .build();
-    }
 
     public ProfileDTO toDTO(ProfileEntity profileEntity) {
         profileEntity = subscriptionService.refreshSubscriptionIfExpired(profileEntity);

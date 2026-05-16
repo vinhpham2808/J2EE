@@ -1,6 +1,7 @@
 package com.example.moneymanager.controller;
 
 import com.example.moneymanager.entity.ProfileEntity;
+import com.example.moneymanager.service.AIRateLimitService;
 import com.example.moneymanager.service.DashboardService;
 import com.example.moneymanager.service.ProfileService;
 import com.example.moneymanager.service.SubscriptionService;
@@ -23,6 +24,7 @@ public class DashboardController {
     private final DashboardService dashboardService;
     private final ProfileService profileService;
     private final SubscriptionService subscriptionService;
+    private final AIRateLimitService aiRateLimitService;
 
     @GetMapping
     public ResponseEntity<Map<String, Object>> getDashboardData() {
@@ -49,6 +51,8 @@ public class DashboardController {
                 errorResponse.put("insight", "Vui lòng đăng nhập để sử dụng tính năng này");
                 return ResponseEntity.badRequest().body(errorResponse);
             }
+
+            aiRateLimitService.checkLimit("OTHER_AI");
 
             Map<String, String> insightData = dashboardService.getAiInsight();
             return ResponseEntity.ok(insightData);
@@ -80,6 +84,9 @@ public class DashboardController {
 
             // 1.5 Kiểm tra quyền truy cập tính năng AI chuyên sâu
             subscriptionService.ensureCanUseDetailedAi(currentProfile);
+
+            // 1.6 Kiểm tra giới hạn rate limit
+            aiRateLimitService.checkLimit("OTHER_AI");
 
             // 2. Lấy dashboard data
             Map<String, Object> dashboardData = dashboardService.getDashboardData();

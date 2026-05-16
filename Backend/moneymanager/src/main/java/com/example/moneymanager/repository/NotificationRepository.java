@@ -18,11 +18,14 @@ public interface NotificationRepository extends JpaRepository<NotificationEntity
     @Query("SELECT n FROM NotificationEntity n WHERE (n.profile.id = :profileId OR n.profile IS NULL) ORDER BY n.createdAt DESC")
     List<NotificationEntity> findTopNByProfileIdOrProfileIsNullOrderByCreatedAtDesc(@Param("profileId") Long profileId, Pageable pageable);
 
-    @Query("SELECT COUNT(n) FROM NotificationEntity n WHERE n.profile.id = :profileId AND n.isRead = false")
+    @Query("SELECT COUNT(n) FROM NotificationEntity n WHERE n.profile.id = :profileId AND (n.isRead IS NULL OR n.isRead = false)")
     long countUnreadByProfileId(@Param("profileId") Long profileId);
 
     // Get all broadcast notifications
     List<NotificationEntity> findByProfileIsNullOrderByCreatedAtDesc();
+
+    @Query("SELECT COUNT(n) FROM NotificationEntity n WHERE n.profile IS NULL AND NOT EXISTS (SELECT r FROM NotificationReadEntity r WHERE r.notification = n AND r.profile.id = :profileId)")
+    long countUnreadBroadcastsForProfile(@Param("profileId") Long profileId);
 
     // Find notifications by profile, type, and created after a specific time (for duplicate check)
     List<NotificationEntity> findByProfileIdAndTypeAndCreatedAtAfter(Long profileId, NotificationType type, LocalDateTime after);

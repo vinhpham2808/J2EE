@@ -122,6 +122,11 @@ public class ExpenseService {
         return total != null ? total : BigDecimal.ZERO;
     }
 
+    public long getTotalExpenseCountForCurrentUser() {
+        ProfileEntity profile = profileService.getCurrentProfile();
+        return expenseRepository.countByProfileId(profile.getId());
+    }
+
     // Filter expenses
     public List<ExpenseDTO> filterExpenses(LocalDate startDate, LocalDate endDate, String keyword, Sort sort) {
         ProfileEntity profile = profileService.getCurrentProfile();

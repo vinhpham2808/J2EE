@@ -34,6 +34,8 @@ public interface IncomeRepository extends JpaRepository<IncomeEntity, Long> {
     @EntityGraph(attributePaths = {"category"})
     List<IncomeEntity> findByProfileIdAndDateBetween(Long profileId, LocalDate startDate, LocalDate endDate);
 
+    long countByProfileId(Long profileId);
+
     long countByProfileIdAndDateBetween(Long profileId, LocalDate startDate, LocalDate endDate);
 
     List<IncomeEntity> findByProfileIdAndDate(Long profileId, LocalDate date);

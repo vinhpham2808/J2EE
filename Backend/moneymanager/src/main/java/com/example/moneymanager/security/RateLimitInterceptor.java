@@ -3,6 +3,7 @@ package com.example.moneymanager.security;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -30,7 +31,8 @@ public class RateLimitInterceptor implements HandlerInterceptor {
             new RateRule(CTX + "/register",                   5,  60_000),
             new RateRule(CTX + "/payments/payos/create",      3,  60_000),
             new RateRule(CTX + "/gemini/chat",               15,  60_000),
-            new RateRule(CTX + "/gemini/spending-tips",       5,  60_000)
+            new RateRule(CTX + "/gemini/spending-tips",       5,  60_000),
+            new RateRule(CTX + "/gemini/test",                3,  60_000)
     );
 
     // key: "fullPath:clientIp" → sliding window of request timestamps
@@ -75,14 +77,20 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     }
 
     private String resolveClientIp(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isBlank()) {
-            return forwarded.split(",")[0].trim();
-        }
-        String realIp = request.getHeader("X-Real-IP");
-        if (realIp != null && !realIp.isBlank()) {
-            return realIp.trim();
-        }
         return request.getRemoteAddr();
+    }
+
+    // Evict stale window entries every 5 minutes to prevent memory leak
+    @Scheduled(fixedDelay = 300_000)
+    public void evictExpiredWindows() {
+        long maxWindowMs = RULES.stream().mapToLong(RateRule::windowMs).max().orElse(60_000);
+        long cutoff = System.currentTimeMillis() - maxWindowMs;
+        windowMap.entrySet().removeIf(entry -> {
+            Deque<Long> deque = entry.getValue();
+            while (!deque.isEmpty() && deque.peekFirst() < cutoff) {
+                deque.pollFirst();
+            }
+            return deque.isEmpty();
+        });
     }
 }

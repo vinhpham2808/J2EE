@@ -76,13 +76,9 @@ const Signup = () => {
 
           <div className="p-8">
             {/* Header */}
-            <div className="flex items-center gap-2.5 mb-6">
-              <div className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center">
-                <Zap size={14} className="text-white" fill="white" />
-              </div>
-              <span className="font-bold text-slate-900 dark:text-white">
-                Money<span className="text-amber-500">Manager</span>
-              </span>
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <img src="/favicon.svg" alt="Money Manager Logo" className="w-8 h-8" />
+              <span className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Money<span className="text-amber-500">Manager</span></span>
             </div>
 
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">Tạo tài khoản</h2>

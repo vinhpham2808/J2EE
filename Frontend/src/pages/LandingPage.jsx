@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
-import { Sun, Moon, TrendingUp, Shield, BarChart3, Wallet, Target, Sparkles, Star, ArrowRight, Check, ChevronRight, Menu, X } from 'lucide-react';
+import { 
+    Sun, Moon, TrendingUp, Shield, BarChart3, Wallet, Target, Sparkles, 
+    Star, ArrowRight, Check, ChevronRight, Menu, X, ArrowUpRight, ShieldCheck, Zap
+} from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
 import { usePageTitle } from '../hooks/usePageTitle.js';
 
@@ -10,6 +13,15 @@ const LandingPage = () => {
     usePageTitle("Trang chủ");
     const { theme } = useTheme();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [scrolled, setScrolled] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setScrolled(window.scrollY > 20);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     const scrollTo = (id) => {
         setMobileMenuOpen(false);
@@ -19,98 +31,100 @@ const LandingPage = () => {
     const navLinks = [
         { label: 'Tính Năng', target: 'features' },
         { label: 'Mục Tiêu', target: 'goals' },
-        { label: 'Báo Cáo', target: 'experience' },
         { label: 'Bảng Giá', target: 'pricing' },
     ];
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0A0E1A] text-slate-900 dark:text-slate-100 font-['IBM_Plex_Sans'] antialiased scroll-smooth">
+        <div className="min-h-screen bg-slate-50 dark:bg-[#0A0E1A] text-slate-900 dark:text-slate-100 font-['Inter',sans-serif] antialiased scroll-smooth selection:bg-amber-500/30">
 
             {/* ═══════════════════════════════════════════════════════════════ */}
             {/*  Floating Navbar                                                    */}
             {/* ═══════════════════════════════════════════════════════════════ */}
-            <nav className="fixed top-4 left-4 right-4 z-50 max-w-7xl mx-auto
-                backdrop-blur-xl bg-white/80 dark:bg-[#0F172A]/80
-                border border-slate-200/60 dark:border-white/10
-                rounded-2xl shadow-lg dark:shadow-black/20
-                px-4 lg:px-6 h-16 flex items-center justify-between">
-                
-                {/* Logo */}
-                <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-violet-600 flex items-center justify-center">
-                        <TrendingUp size={16} className="text-white" />
+            <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${scrolled ? 'py-4' : 'py-6'}`}>
+                <div className={`max-w-7xl mx-auto px-4 lg:px-6 transition-all duration-300 ${
+                    scrolled 
+                    ? 'backdrop-blur-xl bg-white/80 dark:bg-[#0F172A]/80 border border-slate-200/60 dark:border-white/10 rounded-2xl shadow-lg dark:shadow-black/20'
+                    : 'bg-transparent border-transparent'
+                }`}>
+                    <div className="h-16 flex items-center justify-between">
+                        {/* Logo */}
+                        <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => scrollTo('hero')}>
+                            <img src="/favicon.svg" alt="Money Manager Logo" className="w-8 h-8 drop-shadow-md" />
+                            <span className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
+                                Money<span className="text-amber-500">Manager</span>
+                            </span>
+                        </div>
+
+                        {/* Desktop Nav Links */}
+                        <div className="hidden md:flex items-center gap-2">
+                            {navLinks.map(link => (
+                                <button
+                                    key={link.target}
+                                    onClick={() => scrollTo(link.target)}
+                                    className="px-4 py-2 rounded-xl text-sm font-semibold
+                                        text-slate-500 dark:text-slate-400
+                                        hover:text-slate-900 dark:hover:text-white
+                                        hover:bg-slate-100 dark:hover:bg-white/5
+                                        transition-all duration-200"
+                                >
+                                    {link.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Right Actions */}
+                        <div className="flex items-center gap-3">
+                            <ThemeToggle />
+                            
+                            <button
+                                onClick={() => navigate('/login')}
+                                className="hidden sm:inline-flex px-5 py-2.5 rounded-xl text-sm font-bold
+                                    text-slate-700 dark:text-slate-200
+                                    hover:text-slate-900 dark:hover:text-white
+                                    hover:bg-slate-100 dark:hover:bg-white/10
+                                    transition-all duration-200"
+                            >
+                                Đăng Nhập
+                            </button>
+                            <button
+                                onClick={() => navigate('/signup')}
+                                className="px-5 py-2.5 rounded-xl text-sm font-bold
+                                    bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 
+                                    text-white shadow-lg shadow-violet-500/25
+                                    transition-all duration-200 active:scale-95 flex items-center gap-2"
+                            >
+                                Bắt Đầu <ArrowRight size={16} />
+                            </button>
+                            
+                            {/* Mobile menu toggle */}
+                            <button
+                                className="md:hidden p-2 rounded-xl text-slate-500 dark:text-slate-400
+                                    hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+                                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            >
+                                {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                            </button>
+                        </div>
                     </div>
-                    <span className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
-                        Money<span className="text-amber-500">Manager</span>
-                    </span>
-                </div>
-
-                {/* Desktop Nav Links */}
-                <div className="hidden md:flex items-center gap-1">
-                    {navLinks.map(link => (
-                        <button
-                            key={link.target}
-                            onClick={() => scrollTo(link.target)}
-                            className="px-4 py-2 rounded-xl text-sm font-medium
-                                text-slate-500 dark:text-slate-400
-                                hover:text-slate-900 dark:hover:text-white
-                                hover:bg-slate-100 dark:hover:bg-white/5
-                                transition-colors duration-200 cursor-pointer"
-                        >
-                            {link.label}
-                        </button>
-                    ))}
-                </div>
-
-                {/* Right Actions */}
-                <div className="flex items-center gap-2">
-                    <ThemeToggle />
-                    
-                    <button
-                        onClick={() => navigate('/login')}
-                        className="hidden sm:inline-flex px-4 py-2 rounded-xl text-sm font-medium
-                            text-slate-600 dark:text-slate-300
-                            hover:text-slate-900 dark:hover:text-white
-                            hover:bg-slate-100 dark:hover:bg-white/5
-                            transition-colors duration-200 cursor-pointer"
-                    >
-                        Đăng Nhập
-                    </button>
-                    <button
-                        onClick={() => navigate('/signup')}
-                        className="px-4 py-2 rounded-xl text-sm font-semibold
-                            bg-violet-600 hover:bg-violet-500 text-white
-                            transition-all duration-150 active:scale-95 cursor-pointer"
-                    >
-                        Bắt Đầu
-                    </button>
-                    
-                    {/* Mobile menu toggle */}
-                    <button
-                        className="md:hidden p-2 rounded-xl text-slate-500 dark:text-slate-400
-                            hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
-                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                    >
-                        {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-                    </button>
                 </div>
             </nav>
 
             {/* Mobile Menu Overlay */}
             {mobileMenuOpen && (
-                <div className="fixed inset-0 z-40 md:hidden">
-                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
-                    <div className="absolute top-20 left-4 right-4 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl p-4 animate-in slide-in-from-top-2 duration-200">
+                <div className="fixed inset-0 z-40 md:hidden pt-24 px-4">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
+                    <div className="relative bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-white/10 rounded-3xl shadow-2xl p-6 flex flex-col gap-2">
                         {navLinks.map(link => (
                             <button
                                 key={link.target}
                                 onClick={() => scrollTo(link.target)}
-                                className="w-full text-left px-4 py-3 rounded-xl text-sm font-medium
-                                    text-slate-600 dark:text-slate-300
-                                    hover:bg-slate-100 dark:hover:bg-white/5
-                                    transition-colors cursor-pointer"
+                                className="w-full text-left px-5 py-4 rounded-xl text-base font-semibold
+                                    text-slate-700 dark:text-slate-200
+                                    hover:bg-slate-50 dark:hover:bg-white/5
+                                    transition-colors flex justify-between items-center"
                             >
                                 {link.label}
+                                <ChevronRight size={18} className="opacity-50" />
                             </button>
                         ))}
                     </div>
@@ -120,92 +134,108 @@ const LandingPage = () => {
             {/* ═══════════════════════════════════════════════════════════════ */}
             {/*  Hero Section                                                        */}
             {/* ═══════════════════════════════════════════════════════════════ */}
-            <section id="hero" className="relative pt-32 pb-20 lg:pt-40 lg:pb-28 overflow-hidden scroll-mt-20">
+            <section id="hero" className="relative pt-40 pb-20 lg:pt-52 lg:pb-32 overflow-hidden scroll-mt-20">
                 {/* Background Effects */}
-                <div className="absolute inset-0 -z-10">
-                    <div className="absolute top-20 right-0 w-[600px] h-[600px] bg-violet-600/10 rounded-full blur-[120px]" />
-                    <div className="absolute bottom-0 left-20 w-[400px] h-[400px] bg-amber-500/10 rounded-full blur-[100px]" />
+                <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
+                    <div className="absolute top-[-10%] right-[-5%] w-[800px] h-[800px] bg-violet-600/15 rounded-full blur-[150px] mix-blend-multiply dark:mix-blend-screen" />
+                    <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] bg-amber-500/15 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen" />
+                    <div className="absolute top-[20%] left-[20%] w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-[100px] mix-blend-multiply dark:mix-blend-screen" />
                 </div>
 
-                <div className="max-w-7xl mx-auto px-4 lg:px-8 flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+                <div className="max-w-7xl mx-auto px-4 lg:px-8 flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
                     {/* Left Text */}
-                    <div className="lg:w-1/2 text-center lg:text-left">
-                        <span className="inline-flex items-center gap-2 px-3 py-1.5 mb-6 rounded-full
-                            bg-amber-500/10 border border-amber-500/20
-                            text-amber-600 dark:text-amber-400 text-xs font-bold uppercase tracking-widest">
-                            <Sparkles size={14} />
-                            Được 150.000+ nhà đầu tư tin dùng
-                        </span>
-                        <h1 className="text-4xl lg:text-6xl font-extrabold leading-[1.08] mb-6 tracking-tight
+                    <div className="lg:w-1/2 text-center lg:text-left relative z-10">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 mb-8 rounded-full
+                            bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20
+                            text-amber-600 dark:text-amber-400 text-xs font-bold uppercase tracking-widest
+                            shadow-[0_0_15px_rgba(245,158,11,0.15)] animate-fade-in-up">
+                            <Sparkles size={14} className="animate-pulse" />
+                            Nền tảng quản lý tài chính thế hệ mới
+                        </div>
+                        <h1 className="text-5xl lg:text-7xl font-extrabold leading-[1.1] mb-8 tracking-tight
                             text-slate-900 dark:text-white">
-                            Đầu tư thông minh,{' '}
-                            <span className="text-transparent bg-clip-text bg-linear-to-r from-violet-500 to-amber-400">
-                                tự tin làm chủ
+                            Làm chủ tài chính,{' '}
+                            <span className="block mt-2 text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-amber-500">
+                                kiến tạo tương lai
                             </span>
                         </h1>
-                        <p className="text-lg text-slate-500 dark:text-slate-400 mb-10 max-w-xl leading-relaxed">
-                            Theo dõi thu nhập, chi tiêu, ngân sách và mục tiêu tiết kiệm trong một nền tảng trực quan và an toàn tuyệt đối.
+                        <p className="text-xl text-slate-600 dark:text-slate-400 mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed font-medium">
+                            Money Manager giúp bạn theo dõi thu chi, lên ngân sách và đạt mục tiêu tiết kiệm một cách thông minh và hoàn toàn tự động.
                         </p>
-                        <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+                        <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-5">
                             <button
                                 onClick={() => navigate('/signup')}
-                                className="w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-sm
-                                    bg-violet-600 hover:bg-violet-500 text-white
-                                    shadow-lg shadow-violet-600/25
-                                    transition-all duration-150 active:scale-95 cursor-pointer"
+                                className="w-full sm:w-auto px-10 py-4 rounded-2xl font-bold text-base
+                                    bg-slate-900 dark:bg-white text-white dark:text-slate-900
+                                    shadow-xl shadow-slate-900/20 dark:shadow-white/10
+                                    transition-all duration-200 hover:-translate-y-1 hover:shadow-2xl"
                             >
                                 Bắt đầu miễn phí
                             </button>
                             <button
                                 onClick={() => navigate('/dashboard')}
-                                className="w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-sm
-                                    border border-slate-200 dark:border-white/20
+                                className="w-full sm:w-auto px-10 py-4 rounded-2xl font-bold text-base
+                                    bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10
                                     text-slate-700 dark:text-slate-300
-                                    hover:border-amber-500/50 hover:text-amber-600 dark:hover:text-amber-400
-                                    transition-all duration-200 cursor-pointer"
+                                    hover:bg-slate-50 dark:hover:bg-white/10 hover:border-violet-500/30
+                                    transition-all duration-200 hover:-translate-y-1"
                             >
-                                Xem demo
+                                Xem Demo Trực Tiếp
                             </button>
+                        </div>
+                        
+                        <div className="mt-12 flex items-center justify-center lg:justify-start gap-6 text-sm font-semibold text-slate-500 dark:text-slate-400">
+                            <div className="flex items-center gap-2"><ShieldCheck size={18} className="text-emerald-500"/> Bảo mật 256-bit</div>
+                            <div className="flex items-center gap-2"><Zap size={18} className="text-amber-500"/> Tích hợp AI</div>
                         </div>
                     </div>
 
                     {/* Right Dashboard Preview */}
-                    <div className="lg:w-1/2 relative">
-                        <div className="relative backdrop-blur-xl bg-white/60 dark:bg-white/5
-                            border border-slate-200/60 dark:border-white/10
-                            rounded-[2rem] shadow-2xl shadow-slate-200/50 dark:shadow-black/30 p-4 lg:p-6">
+                    <div className="lg:w-1/2 relative w-full perspective-1000">
+                        <div className="relative z-10 rounded-[2.5rem] border border-white/40 dark:border-white/10 
+                            bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl shadow-2xl p-4 lg:p-6
+                            transform lg:rotate-y-[-10deg] lg:rotate-x-[5deg] transition-transform duration-700 hover:rotate-0">
+                            <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-br from-white/60 to-white/10 dark:from-white/5 dark:to-transparent pointer-events-none" />
                             <img
                                 alt="Financial Dashboard Preview"
-                                className="rounded-3xl w-full object-cover aspect-4/3 opacity-90"
+                                className="rounded-[2rem] w-full object-cover shadow-inner"
                                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUxTWDZB85sXTl6SXbfWuvp2EUwLCemU-FZvdBrNbssTraz-_Y22L4ezm8SGurAhMgqEGPD-UEF-E0bryNloTPVNSkA8T-aSq9nS-UeQ9t5vcafsDhRU1n9cXK6gaCZAEE0HEip4NNU372iXDsKNeyiG4HOszQ7eU4uQXzYrVq7_l8jvfjBZ_9-yS6X2sowV7OIzqjN26PJoqVJUl4Qpz5IB-DqKmi19hoAXv_t2vr41thRXHHknsaLredFVFulvU4-wuAyQc9t7Gy"
                             />
+                            
                             {/* Floating stat card 1 */}
-                            <div className="absolute -top-4 -left-6 lg:-left-10 backdrop-blur-xl bg-white/90 dark:bg-[#1E293B]/90
-                                border border-slate-200/60 dark:border-white/10 rounded-2xl p-4 lg:p-5 shadow-xl">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-                                        <TrendingUp size={20} className="text-emerald-500" />
+                            <div className="absolute -top-8 -left-8 lg:-left-12 backdrop-blur-2xl bg-white/95 dark:bg-[#1E293B]/95
+                                border border-white dark:border-white/10 rounded-2xl p-5 shadow-2xl animate-bounce-slow">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                                        <TrendingUp size={24} className="text-white" />
                                     </div>
                                     <div>
-                                        <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium uppercase tracking-wider">TK tháng này</p>
-                                        <p className="text-lg font-bold text-slate-900 dark:text-white">+12,5Mđ</p>
+                                        <p className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mb-1">Thu Nhập Tháng</p>
+                                        <p className="text-2xl font-black text-slate-900 dark:text-white">+85,5Mđ</p>
                                     </div>
                                 </div>
                             </div>
+
                             {/* Floating stat card 2 */}
-                            <div className="absolute -bottom-4 -right-4 lg:-right-8 backdrop-blur-xl bg-white/90 dark:bg-[#1E293B]/90
-                                border border-slate-200/60 dark:border-white/10 rounded-2xl p-4 lg:p-5 shadow-xl">
-                                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium uppercase tracking-wider mb-3">GD gần đây</p>
-                                <div className="space-y-2.5">
-                                    <div className="flex items-center gap-3 text-xs">
-                                        <div className="w-7 h-7 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500">🛒</div>
-                                        <span className="font-medium text-slate-700 dark:text-slate-300 flex-1">Dịch vụ chính</span>
-                                        <span className="font-semibold text-red-500">-1,2M</span>
+                            <div className="absolute -bottom-8 -right-4 lg:-right-10 backdrop-blur-2xl bg-white/95 dark:bg-[#1E293B]/95
+                                border border-white dark:border-white/10 rounded-2xl p-6 shadow-2xl animate-float">
+                                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mb-4">Giao dịch nổi bật</p>
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-4 text-sm">
+                                        <div className="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-500/20 flex items-center justify-center text-xl">🛒</div>
+                                        <div className="flex-1">
+                                            <p className="font-bold text-slate-900 dark:text-white">Siêu thị Lotte</p>
+                                            <p className="text-xs text-slate-500">Hôm qua</p>
+                                        </div>
+                                        <span className="font-black text-slate-900 dark:text-white">-1.200K</span>
                                     </div>
-                                    <div className="flex items-center gap-3 text-xs">
-                                        <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">💰</div>
-                                        <span className="font-medium text-slate-700 dark:text-slate-300 flex-1">Nhận Lương</span>
-                                        <span className="font-semibold text-emerald-500">+65M</span>
+                                    <div className="flex items-center gap-4 text-sm">
+                                        <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center text-xl">💼</div>
+                                        <div className="flex-1">
+                                            <p className="font-bold text-slate-900 dark:text-white">Lương Tháng</p>
+                                            <p className="text-xs text-slate-500">25 Thg 5</p>
+                                        </div>
+                                        <span className="font-black text-emerald-600 dark:text-emerald-400">+45.000K</span>
                                     </div>
                                 </div>
                             </div>
@@ -214,64 +244,48 @@ const LandingPage = () => {
                 </div>
             </section>
 
-            {/* ═══════════════════════════════════════════════════════════════ */}
-            {/*  Trust Metrics Bar                                                   */}
-            {/* ═══════════════════════════════════════════════════════════════ */}
-            <section className="py-12 border-y border-slate-200 dark:border-white/5">
-                <div className="max-w-7xl mx-auto px-4 lg:px-8">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-                        {[
-                            { value: '2,4T VND', label: 'Tài sản quản lý', color: 'text-violet-600 dark:text-violet-400' },
-                            { value: '150K+', label: 'Người dùng', color: 'text-amber-600 dark:text-amber-400' },
-                            { value: '4.9/5', label: 'Đánh giá', color: 'text-emerald-600 dark:text-emerald-400' },
-                            { value: '99.9%', label: 'Uptime', color: 'text-blue-600 dark:text-blue-400' },
-                        ].map((stat, i) => (
-                            <div key={i}>
-                                <p className={`text-3xl lg:text-4xl font-extrabold ${stat.color} mb-1`}>{stat.value}</p>
-                                <p className="text-xs text-slate-400 dark:text-slate-500 font-medium uppercase tracking-wider">{stat.label}</p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
+
 
             {/* ═══════════════════════════════════════════════════════════════ */}
             {/*  Features Section                                                    */}
             {/* ═══════════════════════════════════════════════════════════════ */}
-            <section id="features" className="py-24 scroll-mt-20">
-                <div className="max-w-7xl mx-auto px-4 lg:px-8">
-                    <div className="text-center mb-16">
-                        <span className="inline-block px-3 py-1 mb-4 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-600 dark:text-violet-400 text-xs font-bold uppercase tracking-widest">
-                            Tính Năng
+            <section id="features" className="py-24 lg:py-32 scroll-mt-20 relative">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-violet-500/5 rounded-full blur-[120px] pointer-events-none" />
+                <div className="max-w-7xl mx-auto px-4 lg:px-8 relative z-10">
+                    <div className="text-center mb-20">
+                        <span className="inline-block px-4 py-2 mb-6 rounded-full bg-violet-100 dark:bg-violet-500/10 text-violet-700 dark:text-violet-400 text-xs font-bold uppercase tracking-widest">
+                            Giải Pháp Toàn Diện
                         </span>
-                        <h2 className="text-3xl lg:text-5xl font-extrabold text-slate-900 dark:text-white mb-4 tracking-tight">
-                            Tính năng đột phá
+                        <h2 className="text-4xl lg:text-6xl font-black text-slate-900 dark:text-white mb-6 tracking-tight">
+                            Hệ sinh thái tính năng đột phá
                         </h2>
-                        <p className="text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
-                            Mọi công cụ bạn cần để làm chủ tài chính cá nhân đều được tích hợp trong một trải nghiệm duy nhất.
+                        <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto font-medium leading-relaxed">
+                            Mọi công cụ phân tích và tối ưu hóa tài chính bạn cần đều được tích hợp trong một trải nghiệm mượt mà, duy nhất.
                         </p>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {[
-                            { icon: BarChart3, title: 'Theo dõi thu chi', desc: 'Tự động phân loại các khoản chi tiêu từ hóa đơn và lịch sử giao dịch một cách thông minh.' },
-                            { icon: Wallet, title: 'Quản lý ngân sách', desc: 'Thiết lập giới hạn chi tiêu cho từng danh mục và nhận cảnh báo khi bạn sắp vượt ngưỡng.' },
-                            { icon: Target, title: 'Mục tiêu tiết kiệm', desc: 'Hình ảnh hóa các kế hoạch mua nhà, xe hay du lịch với lộ trình tích lũy cụ thể hàng tháng.' },
-                            { icon: BarChart3, title: 'Báo cáo trực quan', desc: 'Biểu đồ xu hướng tài chính giúp bạn hiểu rõ dòng tiền của mình đang đi về đâu.' },
-                            { icon: Sparkles, title: 'Phân tích AI', desc: 'Trí tuệ nhân tạo gợi ý cách tối ưu hóa chi phí dựa trên thói quen sinh hoạt của bạn.' },
-                            { icon: Shield, title: 'Bảo mật cấp Vault', desc: 'Dữ liệu được mã hóa đầu cuối với tiêu chuẩn ngân hàng, đảm bảo quyền riêng tư tuyệt đối.' },
+                            { icon: BarChart3, title: 'Theo Dõi Thu Chi', desc: 'Tự động phân loại giao dịch thông minh. Nắm bắt chi tiết dòng tiền ra vào mỗi ngày.', color: 'violet' },
+                            { icon: Wallet, title: 'Ngân Sách Thông Minh', desc: 'Kiểm soát chi tiêu vượt định mức. Tự động cảnh báo khi bạn sắp dùng hết ngân sách.', color: 'emerald' },
+                            { icon: Target, title: 'Mục Tiêu Tích Lũy', desc: 'Hình ảnh hóa ước mơ mua nhà, mua xe với lộ trình đạt được rõ ràng từng bước một.', color: 'amber' },
+                            { icon: BarChart3, title: 'Báo Cáo Trực Quan', desc: 'Đồ thị sinh động, dễ hiểu giúp bạn nhìn nhận xu hướng tiêu dùng theo tuần, tháng, năm.', color: 'blue' },
+                            { icon: Sparkles, title: 'Trợ Lý AI Độc Quyền', desc: 'AI phân tích thói quen và đưa ra lời khuyên cá nhân hóa giúp bạn tiết kiệm thông minh hơn.', color: 'fuchsia' },
+                            { icon: Shield, title: 'Bảo Mật Cấp Ngân Hàng', desc: 'Dữ liệu được mã hóa chuẩn quốc tế 256-bit, đảm bảo quyền riêng tư tuyệt đối cho bạn.', color: 'slate' },
                         ].map((feature, i) => (
-                            <div key={i} className="group backdrop-blur-md bg-white dark:bg-white/5
-                                border border-slate-200 dark:border-white/10
-                                rounded-2xl p-8
-                                hover:border-amber-500/30 dark:hover:border-amber-500/30
-                                hover:bg-slate-50 dark:hover:bg-white/[0.07]
-                                transition-all duration-200 cursor-pointer">
-                                <div className="w-12 h-12 rounded-xl bg-violet-500/10 flex items-center justify-center mb-6
-                                    group-hover:bg-violet-500 group-hover:text-white transition-colors duration-200">
-                                    <feature.icon size={22} className="text-violet-600 dark:text-violet-400 group-hover:text-white" />
+                            <div key={i} className="group relative p-8 rounded-[2rem] bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10
+                                hover:shadow-2xl hover:shadow-violet-500/10 hover:-translate-y-2 transition-all duration-300">
+                                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3
+                                    ${feature.color === 'violet' ? 'bg-violet-100 text-violet-600 dark:bg-violet-500/20 dark:text-violet-400' : ''}
+                                    ${feature.color === 'emerald' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400' : ''}
+                                    ${feature.color === 'amber' ? 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400' : ''}
+                                    ${feature.color === 'blue' ? 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400' : ''}
+                                    ${feature.color === 'fuchsia' ? 'bg-fuchsia-100 text-fuchsia-600 dark:bg-fuchsia-500/20 dark:text-fuchsia-400' : ''}
+                                    ${feature.color === 'slate' ? 'bg-slate-100 text-slate-600 dark:bg-slate-700/50 dark:text-slate-300' : ''}
+                                `}>
+                                    <feature.icon size={28} />
                                 </div>
-                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">{feature.title}</h3>
-                                <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{feature.desc}</p>
+                                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">{feature.title}</h3>
+                                <p className="text-slate-600 dark:text-slate-400 leading-relaxed font-medium">{feature.desc}</p>
                             </div>
                         ))}
                     </div>
@@ -281,150 +295,63 @@ const LandingPage = () => {
             {/* ═══════════════════════════════════════════════════════════════ */}
             {/*  Goals Section                                                       */}
             {/* ═══════════════════════════════════════════════════════════════ */}
-            <section id="goals" className="py-24 bg-slate-50/50 dark:bg-white/2 scroll-mt-20">
+            <section id="goals" className="py-24 lg:py-32 bg-slate-100/50 dark:bg-slate-900/50 scroll-mt-20 border-y border-slate-200 dark:border-white/5">
                 <div className="max-w-7xl mx-auto px-4 lg:px-8">
-                    <div className="text-center mb-16">
-                        <span className="inline-block px-3 py-1 mb-4 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-bold uppercase tracking-widest">
-                            Mục Tiêu
-                        </span>
-                        <h2 className="text-3xl lg:text-5xl font-extrabold text-slate-900 dark:text-white mb-4 tracking-tight">
-                            Hiện thực hóa mọi ước mơ
-                        </h2>
-                        <p className="text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
-                            Thiết lập mục tiêu tiết kiệm, theo dõi tiến độ từng ngày và nhận động lực để chạm đích nhanh hơn.
-                        </p>
+                    <div className="flex flex-col lg:flex-row items-end justify-between gap-8 mb-16">
+                        <div className="max-w-2xl">
+                            <span className="inline-block px-4 py-2 mb-6 rounded-full bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 text-xs font-bold uppercase tracking-widest">
+                                Đạt Được Mục Tiêu
+                            </span>
+                            <h2 className="text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
+                                Hiện thực hóa ước mơ của bạn
+                            </h2>
+                        </div>
+                        <button onClick={() => navigate('/dashboard')} className="group flex items-center gap-2 font-bold text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300">
+                            Khám phá Mục Tiêu <ArrowUpRight size={20} className="transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+                        </button>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {[
-                            { icon: '🏠', title: 'Mua nhà', desc: 'Căn hộ 2 phòng ngủ tại quận trung tâm', pct: 68, current: '1.360.000.000đ', target: '2.000.000.000đ', color: 'bg-violet-500', barColor: 'bg-violet-500' },
-                            { icon: '✈️', title: 'Du lịch Châu Âu', desc: 'Tour 3 nước Pháp - Ý - Thụy Sĩ 14 ngày', pct: 42, current: '63.000.000đ', target: '150.000.000đ', color: 'bg-amber-500', barColor: 'bg-amber-500' },
-                            { icon: '🚗', title: 'Xe hơi', desc: 'Sedan hạng C tiết kiệm nhiên liệu', pct: 23, current: '184.000.000đ', target: '800.000.000đ', color: 'bg-emerald-500', barColor: 'bg-emerald-500' },
+                            { icon: '🏠', title: 'Mua nhà', desc: 'Căn hộ 2 phòng ngủ', pct: 68, current: '1.360M', target: '2.000M', color: 'violet' },
+                            { icon: '✈️', title: 'Châu Âu', desc: 'Tour 3 nước 14 ngày', pct: 42, current: '63M', target: '150M', color: 'amber' },
+                            { icon: '🚗', title: 'Xe hơi', desc: 'Sedan hạng C', pct: 23, current: '184M', target: '800M', color: 'emerald' },
                         ].map((goal, i) => (
-                            <div key={i} className="backdrop-blur-md bg-white dark:bg-white/5
-                                border border-slate-200 dark:border-white/10
-                                rounded-2xl p-8
-                                hover:border-amber-500/30 dark:hover:border-amber-500/30
-                                transition-all duration-200 cursor-pointer group">
-                                <div className={`w-12 h-12 rounded-xl ${goal.color}/10 flex items-center justify-center text-2xl mb-5`}>
-                                    {goal.icon}
-                                </div>
-                                <div className="flex justify-between items-start mb-2">
-                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">{goal.title}</h3>
-                                    <span className={`text-xs font-black px-2.5 py-1 rounded-full ${goal.color}/10 ${goal.color.replace('bg-', 'text-')}`}>
+                            <div key={i} className="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-white/10 rounded-[2rem] p-8 hover:shadow-2xl hover:border-slate-300 dark:hover:border-white/20 transition-all duration-300">
+                                <div className="flex justify-between items-start mb-6">
+                                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-sm
+                                        ${goal.color === 'violet' ? 'bg-violet-50 dark:bg-violet-500/10' : ''}
+                                        ${goal.color === 'amber' ? 'bg-amber-50 dark:bg-amber-500/10' : ''}
+                                        ${goal.color === 'emerald' ? 'bg-emerald-50 dark:bg-emerald-500/10' : ''}
+                                    `}>
+                                        {goal.icon}
+                                    </div>
+                                    <span className={`text-sm font-black px-3 py-1.5 rounded-full bg-slate-100 dark:bg-white/5 
+                                        ${goal.color === 'violet' ? 'text-violet-600 dark:text-violet-400' : ''}
+                                        ${goal.color === 'amber' ? 'text-amber-600 dark:text-amber-400' : ''}
+                                        ${goal.color === 'emerald' ? 'text-emerald-600 dark:text-emerald-400' : ''}
+                                    `}>
                                         {goal.pct}%
                                     </span>
                                 </div>
-                                <p className="text-xs text-slate-400 dark:text-slate-500 mb-4">{goal.desc}</p>
-                                <div className="h-2 w-full bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden mb-3">
-                                    <div className={`h-full ${goal.barColor} rounded-full transition-all duration-700`} style={{ width: `${goal.pct}%` }} />
-                                </div>
-                                <div className="flex justify-between text-xs font-semibold">
-                                    <span className="text-slate-700 dark:text-slate-300">{goal.current}</span>
-                                    <span className="text-slate-400 dark:text-slate-500">/ {goal.target}</span>
+                                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">{goal.title}</h3>
+                                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-8">{goal.desc}</p>
+                                
+                                <div className="space-y-3">
+                                    <div className="flex justify-between text-sm font-bold">
+                                        <span className="text-slate-900 dark:text-white">{goal.current}</span>
+                                        <span className="text-slate-400 dark:text-slate-500">{goal.target}</span>
+                                    </div>
+                                    <div className="h-3 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                                        <div className={`h-full rounded-full transition-all duration-1000 ease-out
+                                            ${goal.color === 'violet' ? 'bg-violet-500' : ''}
+                                            ${goal.color === 'amber' ? 'bg-amber-500' : ''}
+                                            ${goal.color === 'emerald' ? 'bg-emerald-500' : ''}
+                                        `} style={{ width: `${goal.pct}%` }} />
+                                    </div>
                                 </div>
                             </div>
                         ))}
-                    </div>
-
-                    <div className="text-center">
-                        <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">
-                            Hãy để chúng tôi đồng hành cùng mọi cột mốc tài chính của bạn
-                        </p>
-                        <button
-                            onClick={() => navigate('/signup')}
-                            className="px-10 py-4 rounded-xl font-bold text-sm
-                                bg-violet-600 hover:bg-violet-500 text-white
-                                shadow-lg shadow-violet-600/25
-                                transition-all duration-150 active:scale-95 cursor-pointer"
-                        >
-                            Bắt đầu mục tiêu đầu tiên
-                        </button>
-                    </div>
-                </div>
-            </section>
-
-            {/* ═══════════════════════════════════════════════════════════════ */}
-            {/*  Dashboard Preview / Experience Section                              */}
-            {/* ═══════════════════════════════════════════════════════════════ */}
-            <section id="experience" className="py-24 overflow-hidden scroll-mt-20">
-                <div className="max-w-7xl mx-auto px-4 lg:px-8">
-                    <div className="flex flex-col lg:flex-row items-center gap-16 lg:gap-20">
-                        <div className="lg:w-2/5">
-                            <h2 className="text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white mb-8 tracking-tight">
-                                Trải nghiệm quyền năng tài chính thực thụ
-                            </h2>
-                            <ul className="space-y-5">
-                                {[
-                                    'Giao diện Dashboard tùy chỉnh theo nhu cầu',
-                                    'Đồng bộ hóa đa thiết bị theo thời gian thực',
-                                    'Xuất dữ liệu báo cáo chuyên sâu chỉ với 1 click',
-                                ].map((item, i) => (
-                                    <li key={i} className="flex items-start gap-3">
-                                        <div className="mt-0.5 w-5 h-5 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
-                                            <Check size={12} className="text-emerald-500" />
-                                        </div>
-                                        <span className="text-slate-600 dark:text-slate-300 font-medium">{item}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                            <button
-                                onClick={() => navigate('/signup')}
-                                className="mt-10 inline-flex items-center gap-2 font-bold text-sm
-                                    text-violet-600 dark:text-violet-400
-                                    hover:gap-3 transition-all duration-200 cursor-pointer"
-                            >
-                                Khám phá chi tiết hệ thống <ChevronRight size={16} />
-                            </button>
-                        </div>
-                        <div className="lg:w-3/5">
-                            <div className="backdrop-blur-md bg-white dark:bg-white/5
-                                border border-slate-200 dark:border-white/10
-                                rounded-[2rem] shadow-xl overflow-hidden">
-                                <div className="flex h-[400px]">
-                                    {/* Mini Sidebar */}
-                                    <div className="w-16 bg-slate-900 dark:bg-slate-800 flex flex-col items-center py-6 gap-6">
-                                        <div className="w-8 h-8 rounded-lg bg-violet-600 flex items-center justify-center">
-                                            <BarChart3 size={14} className="text-white" />
-                                        </div>
-                                        <div className="w-6 h-6 rounded bg-white/10" />
-                                        <div className="w-6 h-6 rounded bg-white/10" />
-                                        <div className="w-6 h-6 rounded bg-white/10" />
-                                    </div>
-                                    {/* Mini Content */}
-                                    <div className="flex-1 p-6">
-                                        <div className="flex justify-between items-center mb-6">
-                                            <h4 className="font-bold text-slate-900 dark:text-white">Tổng Quan</h4>
-                                            <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-white/10" />
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-4 mb-6">
-                                            <div className="bg-slate-50 dark:bg-white/5 rounded-xl p-4 border border-slate-100 dark:border-white/5">
-                                                <p className="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Tổng Số Dư</p>
-                                                <p className="text-lg font-bold text-slate-900 dark:text-white">248,5Mđ</p>
-                                            </div>
-                                            <div className="bg-slate-50 dark:bg-white/5 rounded-xl p-4 border border-slate-100 dark:border-white/5">
-                                                <p className="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Chi Tiêu Tuần</p>
-                                                <p className="text-lg font-bold text-amber-600 dark:text-amber-400">4,2Mđ</p>
-                                            </div>
-                                        </div>
-                                        <div className="bg-slate-50 dark:bg-white/5 rounded-xl p-4 border border-slate-100 dark:border-white/5">
-                                            <div className="flex items-center justify-between mb-4">
-                                                <p className="font-semibold text-sm text-slate-700 dark:text-slate-300">Dòng Tiền</p>
-                                                <div className="flex gap-2">
-                                                    <div className="w-3 h-3 rounded-full bg-emerald-500" />
-                                                    <div className="w-3 h-3 rounded-full bg-violet-500" />
-                                                </div>
-                                            </div>
-                                            <div className="flex items-end gap-2 h-24">
-                                                {[60, 40, 90, 50, 100, 75, 85].map((h, i) => (
-                                                    <div key={i} className="flex-1 bg-violet-500/20 rounded-t-md" style={{ height: `${h}%` }} />
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </section>
@@ -432,150 +359,80 @@ const LandingPage = () => {
             {/* ═══════════════════════════════════════════════════════════════ */}
             {/*  Pricing Section                                                     */}
             {/* ═══════════════════════════════════════════════════════════════ */}
-            <section id="pricing" className="py-24 bg-slate-50/50 dark:bg-white/2 scroll-mt-20">
-                <div className="max-w-7xl mx-auto px-4 lg:px-8">
-                    <div className="text-center mb-16">
-                        <span className="inline-block px-3 py-1 mb-4 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-bold uppercase tracking-widest">
-                            Bảng Giá
-                        </span>
-                        <h2 className="text-3xl lg:text-5xl font-extrabold text-slate-900 dark:text-white mb-4 tracking-tight">
-                            Gói dịch vụ linh hoạt
+            <section id="pricing" className="py-24 lg:py-32 scroll-mt-20 relative">
+                <div className="max-w-7xl mx-auto px-4 lg:px-8 relative z-10">
+                    <div className="text-center mb-20">
+                        <h2 className="text-4xl lg:text-6xl font-black text-slate-900 dark:text-white mb-6 tracking-tight">
+                            Bảng giá linh hoạt
                         </h2>
-                        <p className="text-slate-500 dark:text-slate-400 max-w-xl mx-auto">
-                            Chọn lộ trình tài chính phù hợp với mục tiêu của bạn.
+                        <p className="text-lg text-slate-600 dark:text-slate-400 max-w-xl mx-auto font-medium">
+                            Chọn lộ trình tài chính hoàn hảo dành riêng cho bạn.
                         </p>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto items-center">
+                        
                         {/* Free */}
-                        <div className="backdrop-blur-md bg-white dark:bg-white/5
-                            border border-slate-200 dark:border-white/10
-                            rounded-2xl p-8 flex flex-col
-                            hover:border-amber-500/30 dark:hover:border-amber-500/30
-                            transition-all duration-200">
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Miễn Phí</h3>
-                            <div className="flex items-baseline gap-1 mb-6">
-                                <span className="text-4xl font-black text-slate-900 dark:text-white">0đ</span>
-                                <span className="text-slate-400 dark:text-slate-500 text-sm">/tháng</span>
+                        <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-[2.5rem] p-8 lg:p-10 hover:border-slate-300 dark:hover:border-white/20 transition-all">
+                            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Cơ Bản</h3>
+                            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-6">Trải nghiệm ban đầu</p>
+                            <div className="flex items-baseline gap-1 mb-8 pb-8 border-b border-slate-100 dark:border-white/10">
+                                <span className="text-5xl font-black text-slate-900 dark:text-white">0đ</span>
+                                <span className="text-slate-500 font-medium">/tháng</span>
                             </div>
-                            <ul className="space-y-3 mb-8 flex-1">
-                                {['Theo dõi 2 ví cơ bản', 'Báo cáo hàng tháng', 'Phân tích AI chuyên sâu'].map((f, i) => (
-                                    <li key={i} className={`flex items-center gap-2.5 text-sm ${i === 2 ? 'text-slate-300 dark:text-slate-600 line-through' : 'text-slate-600 dark:text-slate-400 font-medium'}`}>
-                                        {i === 2 ? <X size={14} className="text-slate-300" /> : <Check size={14} className="text-emerald-500" />}
-                                        {f}
+                            <ul className="space-y-4 mb-10">
+                                {['Tối đa 2 Ví điện tử', 'Quản lý thu chi cơ bản', 'Báo cáo hàng tháng'].map((f, i) => (
+                                    <li key={i} className="flex items-center gap-3 text-slate-700 dark:text-slate-300 font-medium">
+                                        <Check size={20} className="text-emerald-500" /> {f}
                                     </li>
                                 ))}
                             </ul>
-                            <button className="w-full py-3 rounded-xl font-bold text-sm
-                                border border-slate-200 dark:border-white/10
-                                text-slate-700 dark:text-slate-300
-                                hover:border-violet-500/50 hover:text-violet-600 dark:hover:text-violet-400
-                                transition-all duration-200 cursor-pointer"
-                                onClick={() => navigate('/signup')}>
-                                Bắt đầu ngay
+                            <button onClick={() => navigate('/signup')} className="w-full py-4 rounded-2xl font-bold bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-900 dark:text-white transition-colors">
+                                Dùng Miễn Phí
                             </button>
                         </div>
 
-                        {/* Pro (Highlighted) */}
-                        <div className="relative bg-linear-to-br from-violet-600 to-violet-700
-                            rounded-2xl p-8 flex flex-col shadow-xl shadow-violet-600/20 scale-[1.03] z-10
-                            border border-violet-400/20">
-                            <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full
-                                bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest">
-                                Phổ Biến
+                        {/* Basic (Highlighted) */}
+                        <div className="relative bg-gradient-to-b from-slate-900 to-slate-800 dark:from-violet-900/40 dark:to-[#0F172A] rounded-[2.5rem] p-8 lg:p-10 border border-slate-700 dark:border-violet-500/30 shadow-2xl shadow-slate-900/50 dark:shadow-violet-900/50 scale-[1.05] z-10">
+                            <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-6 py-1.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-white text-xs font-black uppercase tracking-widest shadow-lg">
+                                Phổ Biến Nhất
                             </div>
-                            <h3 className="text-lg font-bold text-white mb-1 mt-2">Pro</h3>
-                            <div className="flex items-baseline gap-1 mb-6">
-                                <span className="text-4xl font-black text-white">99k</span>
-                                <span className="text-white/60 text-sm">/tháng</span>
+                            <h3 className="text-2xl font-bold text-white mb-2 mt-4">Basic</h3>
+                            <p className="text-slate-400 text-sm font-medium mb-6">Mở khóa sức mạnh quản lý</p>
+                            <div className="flex items-baseline gap-1 mb-8 pb-8 border-b border-slate-700 dark:border-white/10">
+                                <span className="text-5xl font-black text-white">50k</span>
+                                <span className="text-slate-400 font-medium">/tháng</span>
                             </div>
-                            <ul className="space-y-3 mb-8 flex-1">
-                                {['Không giới hạn ví', 'Đồng bộ ngân hàng tự động', '10 Mục tiêu tiết kiệm Pro', 'Hỗ trợ 24/7 Priority'].map((f, i) => (
-                                    <li key={i} className="flex items-center gap-2.5 text-sm text-white/90 font-medium">
-                                        <Check size={14} className="text-amber-400" />
-                                        {f}
+                            <ul className="space-y-4 mb-10">
+                                {['Không giới hạn Ví', 'Báo cáo chi tiết nâng cao', 'Tính năng phân tích AI', 'Quản lý Nợ & Cho vay'].map((f, i) => (
+                                    <li key={i} className="flex items-center gap-3 text-slate-200 font-medium">
+                                        <Check size={20} className="text-amber-400" /> {f}
                                     </li>
                                 ))}
                             </ul>
-                            <button className="w-full py-3 rounded-xl font-bold text-sm
-                                bg-amber-500 hover:bg-amber-400 text-white
-                                transition-all duration-150 active:scale-95 cursor-pointer"
-                                onClick={() => navigate('/signup')}>
-                                Nâng cấp Pro
+                            <button onClick={() => navigate('/signup')} className="w-full py-4 rounded-2xl font-bold bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white shadow-lg shadow-amber-500/25 transition-all hover:scale-[1.02]">
+                                Nâng Cấp Basic
                             </button>
                         </div>
 
                         {/* Premium */}
-                        <div className="backdrop-blur-md bg-white dark:bg-white/5
-                            border border-slate-200 dark:border-white/10
-                            rounded-2xl p-8 flex flex-col
-                            hover:border-amber-500/30 dark:hover:border-amber-500/30
-                            transition-all duration-200">
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Premium</h3>
-                            <div className="flex items-baseline gap-1 mb-6">
-                                <span className="text-4xl font-black text-slate-900 dark:text-white">249k</span>
-                                <span className="text-slate-400 dark:text-slate-500 text-sm">/tháng</span>
+                        <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-[2.5rem] p-8 lg:p-10 hover:border-slate-300 dark:hover:border-white/20 transition-all">
+                            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Premium</h3>
+                            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-6">Tự do tài chính tuyệt đối</p>
+                            <div className="flex items-baseline gap-1 mb-8 pb-8 border-b border-slate-100 dark:border-white/10">
+                                <span className="text-5xl font-black text-slate-900 dark:text-white">150k</span>
+                                <span className="text-slate-500 font-medium">/tháng</span>
                             </div>
-                            <ul className="space-y-3 mb-8 flex-1">
-                                {['Toàn bộ tính năng Pro', 'Cố vấn tài chính AI cá nhân', 'Quản lý đầu tư Portfolio'].map((f, i) => (
-                                    <li key={i} className="flex items-center gap-2.5 text-sm text-slate-600 dark:text-slate-400 font-medium">
-                                        <Check size={14} className="text-emerald-500" />
-                                        {f}
+                            <ul className="space-y-4 mb-10">
+                                {['Tất cả tính năng Basic', 'Nhóm gia đình (5 người)', 'Tư vấn AI cá nhân hóa', 'Bảo hiểm giao dịch'].map((f, i) => (
+                                    <li key={i} className="flex items-center gap-3 text-slate-700 dark:text-slate-300 font-medium">
+                                        <Check size={20} className="text-emerald-500" /> {f}
                                     </li>
                                 ))}
                             </ul>
-                            <button className="w-full py-3 rounded-xl font-bold text-sm
-                                border border-slate-200 dark:border-white/10
-                                text-slate-700 dark:text-slate-300
-                                hover:border-violet-500/50 hover:text-violet-600 dark:hover:text-violet-400
-                                transition-all duration-200 cursor-pointer"
-                                onClick={() => navigate('/signup')}>
-                                Liên hệ tư vấn
+                            <button onClick={() => navigate('/signup')} className="w-full py-4 rounded-2xl font-bold bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-900 dark:text-white transition-colors">
+                                Nâng Cấp Premium
                             </button>
                         </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* ═══════════════════════════════════════════════════════════════ */}
-            {/*  Testimonials Section                                                */}
-            {/* ═══════════════════════════════════════════════════════════════ */}
-            <section id="testimonials" className="py-24 scroll-mt-20">
-                <div className="max-w-7xl mx-auto px-4 lg:px-8">
-                    <div className="text-center mb-16">
-                        <h2 className="text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white mb-4 tracking-tight">
-                            Người dùng nói về chúng tôi
-                        </h2>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {[
-                            { quote: 'Từ ngày dùng app này, mình đã tiết kiệm được thêm 20% thu nhập hàng tháng nhờ việc kiểm soát chi tiêu chặt chẽ hơn.', name: 'Minh Anh', role: 'Freelancer Designer' },
-                            { quote: 'Tính năng AI phân tích tài chính rất hay, nó chỉ ra cho mình những khoản chi phí rác mà trước giờ mình không hề để ý.', name: 'Hoàng Long', role: 'Marketing Manager' },
-                            { quote: 'Mình đã thử qua nhiều app quản lý tiền nhưng Money Manager là tinh tế nhất. Không quảng cáo, không rườm rà.', name: 'Thanh Thảo', role: 'Content Creator' },
-                        ].map((t, i) => (
-                            <div key={i} className="backdrop-blur-md bg-white dark:bg-white/5
-                                border border-slate-200 dark:border-white/10
-                                rounded-2xl p-8 relative
-                                hover:border-amber-500/30 dark:hover:border-amber-500/30
-                                transition-all duration-200">
-                                <div className="flex gap-1 mb-4">
-                                    {[...Array(5)].map((_, j) => (
-                                        <Star key={j} size={14} className="text-amber-400 fill-amber-400" />
-                                    ))}
-                                </div>
-                                <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed mb-6 italic">
-                                    "{t.quote}"
-                                </p>
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-violet-500/20 flex items-center justify-center text-violet-600 dark:text-violet-400 font-bold text-sm">
-                                        {t.name.charAt(0)}
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-bold text-slate-900 dark:text-white">{t.name}</p>
-                                        <p className="text-xs text-slate-400 dark:text-slate-500">{t.role}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
                     </div>
                 </div>
             </section>
@@ -583,112 +440,67 @@ const LandingPage = () => {
             {/* ═══════════════════════════════════════════════════════════════ */}
             {/*  Signup CTA Section                                                  */}
             {/* ═══════════════════════════════════════════════════════════════ */}
-            <section className="py-24 bg-linear-to-br from-slate-900 to-[#0F172A]">
-                <div className="max-w-3xl mx-auto px-4 lg:px-8 text-center">
-                    <h2 className="text-3xl lg:text-4xl font-extrabold text-white mb-4 tracking-tight">
-                        Sẵn sàng làm chủ tài chính?
+            <section className="py-24 lg:py-32 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-violet-900 to-[#0F172A] -z-20" />
+                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 -z-10" />
+                
+                <div className="max-w-4xl mx-auto px-4 lg:px-8 text-center relative z-10">
+                    <h2 className="text-4xl lg:text-6xl font-black text-white mb-8 tracking-tight">
+                        Kiểm soát tiền bạc.<br/>Làm chủ cuộc sống.
                     </h2>
-                    <p className="text-white/60 text-lg mb-10 max-w-xl mx-auto">
-                        Tham gia cùng 150.000+ người dùng đang kiểm soát tương lai tài chính của họ. Miễn phí mãi mãi.
+                    <p className="text-xl text-white/70 mb-12 max-w-2xl mx-auto font-medium">
+                        Tham gia cùng hàng ngàn người dùng đang thay đổi thói quen tài chính mỗi ngày. Bắt đầu hành trình của bạn ngay bây giờ.
                     </p>
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
                         <button
                             onClick={() => navigate('/signup')}
-                            className="w-full sm:w-auto px-10 py-4 rounded-xl font-bold text-sm
-                                bg-amber-500 hover:bg-amber-400 text-slate-900
-                                shadow-lg shadow-amber-500/25
-                                transition-all duration-150 active:scale-95 cursor-pointer"
+                            className="w-full sm:w-auto px-12 py-5 rounded-2xl font-black text-lg
+                                bg-white text-slate-900 hover:bg-slate-100
+                                shadow-2xl shadow-white/20
+                                transition-all duration-200 hover:-translate-y-1"
                         >
-                            Bắt đầu miễn phí
-                        </button>
-                        <button
-                            onClick={() => navigate('/login')}
-                            className="w-full sm:w-auto px-10 py-4 rounded-xl font-bold text-sm
-                                border border-white/20 text-white
-                                hover:bg-white/10 transition-all duration-200 cursor-pointer"
-                        >
-                            Đăng nhập
+                            Đăng Ký Tài Khoản Mới
                         </button>
                     </div>
-                    <p className="text-white/30 text-xs mt-6">
-                        Không cần thẻ tín dụng • Hủy bất kỳ lúc nào
-                    </p>
+
                 </div>
             </section>
 
             {/* ═══════════════════════════════════════════════════════════════ */}
             {/*  Footer                                                              */}
             {/* ═══════════════════════════════════════════════════════════════ */}
-            <footer className="border-t border-slate-200 dark:border-white/5 bg-[#F8FAFC] dark:bg-[#0A0E1A]">
-                <div className="max-w-7xl mx-auto px-4 lg:px-8 py-16">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-                        <div className="col-span-2 md:col-span-1">
-                            <div className="flex items-center gap-2 mb-4">
-                                <div className="w-7 h-7 rounded-lg bg-violet-600 flex items-center justify-center">
-                                    <TrendingUp size={14} className="text-white" />
-                                </div>
-                                <span className="text-lg font-bold text-slate-900 dark:text-white">
+            <footer className="bg-white dark:bg-[#0A0E1A] pt-20 pb-10 border-t border-slate-200 dark:border-white/5">
+                <div className="max-w-7xl mx-auto px-4 lg:px-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+                        <div className="lg:col-span-2">
+                            <div className="flex items-center gap-2 mb-6 cursor-pointer" onClick={() => scrollTo('hero')}>
+                                <img src="/favicon.svg" alt="Money Manager Logo" className="w-8 h-8" />
+                                <span className="text-xl font-bold text-slate-900 dark:text-white">
                                     Money<span className="text-amber-500">Manager</span>
                                 </span>
                             </div>
-                            <p className="text-sm text-slate-400 dark:text-slate-500 leading-relaxed">
-                                Nền tảng quản lý tài chính thế hệ mới, giúp bạn kiến tạo một tương lai thịnh vượng.
+                            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed max-w-sm">
+                                Nền tảng tài chính thông minh nhất giúp bạn theo dõi chi tiêu, tiết kiệm và đầu tư hiệu quả cho tương lai.
                             </p>
                         </div>
-                        <div>
-                            <h5 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-4">Liên Kết</h5>
-                            <ul className="space-y-2.5">
-                                {['Về chúng tôi', 'Tính năng', 'Giá dịch vụ', 'Blog tài chính'].map((l, i) => (
+                        <div className="lg:col-span-2">
+                            <h5 className="font-bold text-slate-900 dark:text-white mb-6">Sản Phẩm</h5>
+                            <ul className="space-y-4">
+                                {['Tính năng nổi bật', 'Bảng giá dịch vụ', 'Trải nghiệm AI', 'Báo cáo thông minh'].map((l, i) => (
                                     <li key={i}>
-                                        <button onClick={() => scrollTo(['hero', 'features', 'pricing', 'hero'][i])}
-                                            className="text-sm text-slate-400 dark:text-slate-500 hover:text-amber-500 transition-colors cursor-pointer">
-                                            {l}
-                                        </button>
+                                        <button className="text-sm text-slate-500 dark:text-slate-400 font-medium hover:text-amber-500 dark:hover:text-amber-400 transition-colors">{l}</button>
                                     </li>
                                 ))}
                             </ul>
-                        </div>
-                        <div>
-                            <h5 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-4">Bảo Mật</h5>
-                            <ul className="space-y-2.5">
-                                {['Chính Sách Bảo Mật', 'Điều Khoản Dịch Vụ', 'Bảo Mật', 'Cài Đặt Cookies'].map((l, i) => (
-                                    <li key={i}>
-                                        <button className="text-sm text-slate-400 dark:text-slate-500 hover:text-amber-500 transition-colors cursor-pointer">{l}</button>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                        <div>
-                            <h5 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-4">Đăng Ký</h5>
-                            <p className="text-xs text-slate-400 dark:text-slate-500 mb-3">Nhận mẹo tài chính hàng tuần.</p>
-                            <div className="flex">
-                                <input className="flex-1 rounded-l-xl px-3 py-2.5 text-xs outline-none
-                                    bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 border-r-0
-                                    text-slate-900 dark:text-white placeholder-slate-400
-                                    focus:border-violet-500" placeholder="Email của bạn" type="email" />
-                                <button className="px-4 rounded-r-xl bg-violet-600 hover:bg-violet-500 text-white transition-colors cursor-pointer">
-                                    <ArrowRight size={16} />
-                                </button>
-                            </div>
                         </div>
                     </div>
-                    <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-slate-200 dark:border-white/5 gap-4">
-                        <p className="text-xs text-slate-400 dark:text-slate-500">
-                            &copy; {new Date().getFullYear()} MoneyManager - Được phát triển bởi <span className="text-amber-600 dark:text-amber-400">BotDev</span>. All rights reserved.
+                    <div className="flex flex-col md:flex-row justify-center items-center pt-8 border-t border-slate-200 dark:border-white/5">
+                        <p className="text-sm font-medium text-slate-500 dark:text-slate-400 text-center">
+                            &copy; {new Date().getFullYear()} MoneyManager. Thiết kế bởi <span className="font-bold text-slate-900 dark:text-white">BotDev Team</span>.
                         </p>
-                        <div className="flex gap-4">
-                            {[TrendingUp, Shield, BarChart3].map((Icon, i) => (
-                                <button key={i} className="w-8 h-8 rounded-lg flex items-center justify-center
-                                    text-slate-400 dark:text-slate-500 hover:text-amber-500 hover:bg-amber-500/10
-                                    transition-colors cursor-pointer">
-                                    <Icon size={14} />
-                                </button>
-                            ))}
-                        </div>
                     </div>
                 </div>
             </footer>
-
         </div>
     );
 };

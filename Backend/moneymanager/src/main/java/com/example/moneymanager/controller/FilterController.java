@@ -17,11 +17,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/filter")
 public class FilterController {
+
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("date", "amount", "description", "category.name");
 
     private final ExpenseService expenseService;
     private final IncomeService incomeService;
@@ -30,12 +33,12 @@ public class FilterController {
 
     @PostMapping
     public ResponseEntity<?> filterTransactions(@RequestBody FilterDTO filter) {
-        //preparing the data or validation
         LocalDate startDate = filter.getStartDate() != null ? filter.getStartDate() : LocalDate.MIN;
         LocalDate endDate = filter.getEndDate() != null ? filter.getEndDate() : LocalDate.now();
         String keyword = filter.getKeyword() != null ? filter.getKeyword() : "";
-        String sortField = filter.getSortField() != null ? filter.getSortField() : "date";
-        if ("category".equals(sortField)) sortField = "category.name";
+        String raw = filter.getSortField() != null ? filter.getSortField() : "date";
+        if ("category".equals(raw)) raw = "category.name";
+        String sortField = ALLOWED_SORT_FIELDS.contains(raw) ? raw : "date";
         Sort.Direction direction = "desc".equalsIgnoreCase(filter.getSortOrder()) ? Sort.Direction.DESC : Sort.Direction.ASC;
         Sort sort = Sort.by(direction, sortField);
         subscriptionService.ensureCanUseFilters(profileService.getCurrentProfile(), startDate);

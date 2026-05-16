@@ -16,9 +16,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "tbl_budgets", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"profile_id", "category_id", "month", "year"})
-})
+@Table(name = "tbl_budgets",
+        uniqueConstraints = {@UniqueConstraint(columnNames = {"profile_id", "category_id", "month", "year"})},
+        indexes = {@Index(name = "idx_budget_profile_month_year", columnList = "profile_id, month, year")}
+)
 public class BudgetEntity {
 
     @Id

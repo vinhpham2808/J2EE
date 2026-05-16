@@ -7,7 +7,6 @@ import { AppContext } from "../context/AppContext.jsx";
 import { useUser } from "../hooks/useUser.jsx";
 import axiosConfig from "../util/axiosConfig.jsx";
 import { API_ENDPOINTS } from "../util/apiEndpoints.js";
-import { getPaymentPlans } from "../util/paymentPlans.js";
 import { usePageTitle } from "../hooks/usePageTitle.js";
 
 const PAYMENT_STORAGE_KEY = "latestPayment";
@@ -17,16 +16,34 @@ const Payment = () => {
   useUser();
   usePageTitle("Thanh toán nâng cấp");
   const { user, setUser } = useContext(AppContext);
-  const PAYMENT_PLANS = useMemo(() => {
-    return getPaymentPlans().map((plan) => ({ ...plan, icon: ICON_MAP[plan.icon] || ShieldCheck }));
+  const [rawPlans, setRawPlans] = useState([]);
+  const [plansLoading, setPlansLoading] = useState(true);
+
+  // Fetch plans from API
+  useEffect(() => {
+    axiosConfig.get(API_ENDPOINTS.GET_SUBSCRIPTION_PLANS)
+      .then((res) => setRawPlans(res.data || []))
+      .catch(() => toast.error("Không thể tải danh sách gói dịch vụ."))
+      .finally(() => setPlansLoading(false));
   }, []);
 
-  const [selectedPlanId, setSelectedPlanId] = useState(PAYMENT_PLANS[0]?.id || "");
+  const PAYMENT_PLANS = useMemo(() => {
+    return rawPlans.map((plan) => ({ ...plan, icon: ICON_MAP[plan.icon] || ShieldCheck }));
+  }, [rawPlans]);
+
+  const [selectedPlanId, setSelectedPlanId] = useState("");
   const [latestPayment, setLatestPayment] = useState(null);
   const [showUpgradeOptions, setShowUpgradeOptions] = useState(false);
   const [showManagePanel, setShowManagePanel] = useState(false);
   const [autoRenew, setAutoRenew] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+
+  // Set default selected plan after plans load
+  useEffect(() => {
+    if (PAYMENT_PLANS.length > 0 && !selectedPlanId) {
+      setSelectedPlanId(PAYMENT_PLANS[0].planId);
+    }
+  }, [PAYMENT_PLANS]);
 
   useEffect(() => {
     const savedPayment = localStorage.getItem(PAYMENT_STORAGE_KEY);
@@ -42,7 +59,7 @@ const Payment = () => {
     }
   }, []);
 
-  const selectedPlan = PAYMENT_PLANS.find((plan) => plan.id === selectedPlanId) ?? PAYMENT_PLANS[0];
+  const selectedPlan = PAYMENT_PLANS.find((plan) => plan.planId === selectedPlanId) ?? PAYMENT_PLANS[0];
 
   const activeSubscription = useMemo(() => {
     if (user?.subscriptionStatus === "ACTIVE" && user?.subscriptionPlan) {
@@ -50,7 +67,7 @@ const Payment = () => {
       return { ...matchedPlan, activatedAt: user.subscriptionActivatedAt, expiresAt: user.subscriptionExpiresAt, autoRenew: Boolean(user.autoRenew), orderCode: latestPayment?.orderCode || "--" };
     }
     if (latestPayment?.status === "PAID") {
-      const matchedPlan = PAYMENT_PLANS.find((plan) => plan.id === latestPayment.planId) ?? PAYMENT_PLANS[0];
+      const matchedPlan = PAYMENT_PLANS.find((plan) => plan.planId === latestPayment.planId) ?? PAYMENT_PLANS[0];
       return { ...matchedPlan, activatedAt: latestPayment.updatedAt || latestPayment.createdAt, expiresAt: addMonths(latestPayment.updatedAt || latestPayment.createdAt, matchedPlan.cycleMonths), autoRenew: Boolean(latestPayment.autoRenew), orderCode: latestPayment.orderCode };
     }
     return null;
@@ -62,8 +79,8 @@ const Payment = () => {
     event.preventDefault();
     setIsCreating(true);
     try {
-      const response = await axiosConfig.post(API_ENDPOINTS.CREATE_PAYMENT, { planId: selectedPlan.id });
-      const paymentData = { ...response.data, planId: selectedPlan.id, planName: selectedPlan.displayName, cycleLabel: selectedPlan.cycleLabel, cycleMonths: selectedPlan.cycleMonths, autoRenew };
+      const response = await axiosConfig.post(API_ENDPOINTS.CREATE_PAYMENT, { planId: selectedPlan.planId });
+      const paymentData = { ...response.data, planId: selectedPlan.planId, planName: selectedPlan.displayName, cycleLabel: selectedPlan.cycleLabel, cycleMonths: selectedPlan.cycleMonths, autoRenew };
       savePayment(paymentData);
       window.location.href = response.data.checkoutUrl;
     } catch (error) {
@@ -88,8 +105,24 @@ const Payment = () => {
 
   const handleUpgradePlan = () => {
     setShowUpgradeOptions(true);
-    if (activeSubscription?.id === "basic") setSelectedPlanId("premium");
+    if (activeSubscription?.planId === "basic") setSelectedPlanId("premium");
   };
+
+  if (plansLoading) {
+    return (
+      <Dashboard activeMenu="Thanh toán">
+        <div className="mx-auto my-6 max-w-5xl">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 w-48 bg-slate-200 dark:bg-white/10 rounded-lg" />
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="h-64 bg-slate-200 dark:bg-white/10 rounded-2xl" />
+              <div className="h-64 bg-slate-200 dark:bg-white/10 rounded-2xl" />
+            </div>
+          </div>
+        </div>
+      </Dashboard>
+    );
+  }
 
   return (
     <Dashboard activeMenu="Thanh toán">
@@ -178,18 +211,18 @@ const Payment = () => {
                 {activeSubscription && <p className="text-sm text-slate-500 dark:text-slate-400 mb-5">Chọn gói mới để nâng cấp hoặc gia hạn tài khoản.</p>}
                 <div className="mt-4 grid gap-4 md:grid-cols-2">
                   {PAYMENT_PLANS.map((plan) => {
-                    const isSelected = plan.id === selectedPlanId;
-                    const isCurrentPlan = activeSubscription?.id === plan.id;
+                    const isSelected = plan.planId === selectedPlanId;
+                    const isCurrentPlan = activeSubscription?.planId === plan.planId;
                     const Icon = plan.icon;
                     return (
                       <button
-                        key={plan.id}
+                        key={plan.planId}
                         className={`rounded-2xl border p-5 text-left transition-all ${
                           isSelected
                             ? "border-violet-500 bg-violet-600 text-white shadow-lg shadow-violet-600/20"
                             : "border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-slate-900 dark:text-white hover:border-violet-500/50"
                         }`}
-                        onClick={() => setSelectedPlanId(plan.id)}
+                        onClick={() => setSelectedPlanId(plan.planId)}
                         type="button"
                       >
                         <div className="flex items-start justify-between gap-3 mb-4">
@@ -242,7 +275,7 @@ const Payment = () => {
                   type="submit"
                 >
                   <CreditCard size={16} />
-                  {isCreating ? "Đang chuyển..." : activeSubscription ? selectedPlan.id === activeSubscription.id ? "Gia hạn gói" : "Nâng cấp gói" : "Thanh toán"}
+                  {isCreating ? "Đang chuyển..." : activeSubscription ? selectedPlan.planId === activeSubscription.planId ? "Gia hạn gói" : "Nâng cấp gói" : "Thanh toán"}
                 </button>
               </form>
             </div>

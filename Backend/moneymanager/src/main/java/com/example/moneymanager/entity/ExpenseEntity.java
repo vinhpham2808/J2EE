@@ -17,7 +17,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "tbl_expenses")
+@Table(name = "tbl_expenses", indexes = {
+    @Index(name = "idx_expense_profile_date", columnList = "profile_id, date"),
+    @Index(name = "idx_expense_profile_id", columnList = "profile_id")
+})
 public class ExpenseEntity {
 
     @Id

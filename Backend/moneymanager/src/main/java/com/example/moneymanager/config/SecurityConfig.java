@@ -38,6 +38,15 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
+                .headers(h -> h
+                        .frameOptions(fo -> fo.deny())
+                        .contentTypeOptions(Customizer.withDefaults())
+                        .httpStrictTransportSecurity(hsts -> hsts
+                                .includeSubDomains(true)
+                                .maxAgeInSeconds(31536000))
+                        .contentSecurityPolicy(csp -> csp
+                                .policyDirectives("default-src 'none'; frame-ancestors 'none'"))
+                )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/status",
@@ -55,7 +64,8 @@ public class SecurityConfig {
                                 "/reset-password",
                                 "/gemini/test",
                                 "/payments/payos/webhook",
-                                "/auth/google"
+                                "/auth/google",
+                                "/subscription-plans"
                         ).permitAll()
                         // Admin-only endpoints — enforced at Spring Security level
                         .requestMatchers("/admin/**").hasRole("ADMIN")

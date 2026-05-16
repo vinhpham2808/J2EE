@@ -49,8 +49,9 @@ public class PaymentController {
             CreatePaymentResponseDTO responseDTO = paymentService.syncPaymentStatus(orderCode);
             return ResponseEntity.ok(responseDTO);
         } catch (Exception e) {
+            String errorMsg = e.getMessage() != null ? e.getMessage() : "Lỗi không xác định khi đồng bộ trạng thái.";
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
-                    "message", e.getMessage()
+                    "message", errorMsg
             ));
         }
     }

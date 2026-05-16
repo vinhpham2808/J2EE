@@ -12,7 +12,7 @@ const defaultSettings = {
 };
 
 const AdminSettings = () => {
-  usePageTitle("Cài đặt hệ thống");
+  usePageTitle("Cài đặt hệ thống", "Money Manager Admin");
   const [settings, setSettings] = useState(defaultSettings);
   const [message, setMessage] = useState("");
 
@@ -41,19 +41,19 @@ const AdminSettings = () => {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div>
-        <h1 className="text-3xl font-bold text-slate-800 dark:text-white tracking-tight">Settings</h1>
+        <h1 className="text-3xl font-bold text-slate-800 dark:text-white tracking-tight">Cài đặt</h1>
         <p className="mt-2 text-slate-500 dark:text-slate-400">Cấu hình nhanh cho khu vực admin mà không ảnh hưởng chức năng hiện tại.</p>
       </div>
 
       <div className="bg-white dark:bg-[#0F172A] p-6 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm space-y-5">
         <h2 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
           <SlidersHorizontal size={18} />
-          Dashboard Preferences
+          Tùy chọn Bảng điều khiển
         </h2>
 
         <label className="flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-white/10">
           <div>
-            <p className="font-medium text-slate-700 dark:text-slate-300">Auto refresh payment data</p>
+            <p className="font-medium text-slate-700 dark:text-slate-300">Tự động làm mới dữ liệu thanh toán</p>
             <p className="text-sm text-slate-500 dark:text-slate-400">Tự động làm mới danh sách thanh toán mỗi 20 giây</p>
           </div>
           <input
@@ -66,14 +66,14 @@ const AdminSettings = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <label className="block">
-            <span className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Default payment status filter</span>
+            <span className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Trạng thái thanh toán mặc định</span>
             <div className="relative">
               <select
                 value={settings.defaultPaymentStatus}
                 onChange={(e) => setSettings((prev) => ({ ...prev, defaultPaymentStatus: e.target.value }))}
                 className="w-full px-3 py-2.5 pr-8 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-700 dark:text-slate-300 focus:outline-none appearance-none"
               >
-                <option value="ALL" className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300">ALL</option>
+                <option value="ALL" className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300">TẤT CẢ</option>
                 <option value="PAID" className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300">PAID</option>
                 <option value="PENDING" className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300">PENDING</option>
                 <option value="PROCESSING" className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300">PROCESSING</option>
@@ -87,7 +87,7 @@ const AdminSettings = () => {
           </label>
 
           <label className="block">
-            <span className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Rows per payment page</span>
+            <span className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Số dòng trên mỗi trang</span>
             <div className="relative">
               <select
                 value={settings.paymentPageSize}
@@ -106,7 +106,7 @@ const AdminSettings = () => {
 
         <label className="flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-white/10">
           <div>
-            <p className="font-medium text-slate-700 dark:text-slate-300">Compact payment table</p>
+            <p className="font-medium text-slate-700 dark:text-slate-300">Bảng thanh toán thu gọn</p>
             <p className="text-sm text-slate-500 dark:text-slate-400">Dùng kiểu bảng gọn cho màn hình nhỏ</p>
           </div>
           <input
@@ -122,13 +122,13 @@ const AdminSettings = () => {
             onClick={handleSave}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium transition"
           >
-            <Save size={16} /> Save settings
+            <Save size={16} /> Lưu cài đặt
           </button>
           <button
             onClick={handleReset}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 transition"
           >
-            <RotateCcw size={16} /> Reset default
+            <RotateCcw size={16} /> Khôi phục mặc định
           </button>
           {message && <span className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">{message}</span>}
         </div>

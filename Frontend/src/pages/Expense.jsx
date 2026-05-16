@@ -42,7 +42,7 @@ const Expense = () => {
       if (response.data) setExpenseData(response.data);
     } catch (error) {
       console.error("Failed to fetch expense details:", error);
-      toast.error("Failed to fetch expense details.");
+      toast.error("Không thể tải chi tiết chi tiêu.");
     } finally {
       setLoading(false);
     }
@@ -55,19 +55,19 @@ const Expense = () => {
       return [];
     } catch (error) {
       console.error("Failed to fetch expense categories:", error);
-      toast.error("Failed to fetch expense categories.");
+      toast.error("Không thể tải danh mục chi tiêu.");
       return [];
     }
   };
 
   const handleAddExpense = async (expense) => {
     const { name, categoryId, amount, date, icon } = expense;
-    if (!name.trim()) { toast.error("Name is required."); return; }
-    if (!categoryId) { toast.error("Category is required."); return; }
-    if (!amount || isNaN(amount) || Number(amount) <= 0) { toast.error("Amount should be a valid number greater than 0."); return; }
-    if (!date) { toast.error("Date is required."); return; }
+    if (!name.trim()) { toast.error("Vui lòng nhập tên chi tiêu."); return; }
+    if (!categoryId) { toast.error("Vui lòng chọn danh mục."); return; }
+    if (!amount || isNaN(amount) || Number(amount) <= 0) { toast.error("Số tiền phải lớn hơn 0."); return; }
+    if (!date) { toast.error("Vui lòng chọn ngày."); return; }
     const today = new Date().toISOString().split("T")[0];
-    if (date > today) { toast.error("Date cannot be in the future"); return; }
+    if (date > today) { toast.error("Ngày không được chọn ở tương lai."); return; }
 
     try {
       const response = await axiosConfig.post(API_ENDPOINTS.ADD_EXPENSE, { name, categoryId, amount: Number(amount), date, icon });
@@ -88,7 +88,7 @@ const Expense = () => {
       fetchExpenseCategories();
     } catch (error) {
       console.error("Error adding expense:", error.response?.data?.message || error.message);
-      toast.error(error.response?.data?.message || "Failed to add expense.");
+      toast.error(error.response?.data?.message || "Không thể thêm chi tiêu.");
     }
   };
 
@@ -96,10 +96,10 @@ const Expense = () => {
     try {
       await axiosConfig.delete(API_ENDPOINTS.DELETE_EXPENSE(id));
       setOpenDeleteAlert({ show: false, data: null });
-      toast.success("Expense details deleted successfully");
+      toast.success("Xóa chi tiêu thành công.");
       fetchExpenseDetails();
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to delete expense.");
+      toast.error(error.response?.data?.message || "Không thể xóa chi tiêu.");
     }
   };
 
@@ -117,7 +117,21 @@ const Expense = () => {
       window.URL.revokeObjectURL(url);
       toast.success("Đã tải báo cáo Excel về máy!");
     } catch (error) {
-      toast.error(error.response?.data?.message || "Lỗi khi tải báo cáo Excel.");
+      if (error.response?.status === 429) {
+        // Blob is used, so we need to parse the JSON error
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const data = JSON.parse(reader.result);
+            toast.error(data.message || "Bạn thao tác quá nhanh.");
+          } catch (e) {
+            toast.error("Bạn đã bị giới hạn tính năng này.");
+          }
+        };
+        reader.readAsText(error.response.data);
+      } else {
+        toast.error(error.response?.data?.message || "Lỗi khi tải báo cáo Excel.");
+      }
     }
   };
 
@@ -239,7 +253,7 @@ const Expense = () => {
         </Modal>
 
         <Modal isOpen={openDeleteAlert.show} onClose={() => setOpenDeleteAlert({ show: false, data: null })} title="Xóa chi tiêu">
-          <DeleteAlert content="Are you sure you want to delete this expense detail?" onDelete={() => deleteExpense(openDeleteAlert.data)} />
+          <DeleteAlert content="Bạn có chắc chắn muốn xóa chi tiêu này không?" onDelete={() => deleteExpense(openDeleteAlert.data)} />
         </Modal>
 
         {/* Receipt Preview Modal */}

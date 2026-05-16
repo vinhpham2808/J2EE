@@ -5,11 +5,14 @@ COPILOT.md
 # === AI Assistant Rules & Guidelines (LOCAL ONLY) ===
 .claude/
 .copilot/
+.commandcode/
 .claude/.instructions.md
 .copilot/.instructions.md
 .instructions.md
 .prompt.md
 .agent.md
+AGENTS.md
+COMMANDCODE.md
 
 
 # === Environment files (ALL levels — never commit secrets) ===

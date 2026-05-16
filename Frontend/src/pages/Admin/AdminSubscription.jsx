@@ -1,76 +1,93 @@
 import { useEffect, useState } from "react";
-import { Plus, Trash2, Save, X, Edit2, ChevronDown } from "lucide-react";
-import { getPaymentPlans, savePaymentPlans, DEFAULT_PAYMENT_PLANS } from "../../util/paymentPlans.js";
+import { Plus, Trash2, Save, X, Edit2, ChevronDown, RefreshCw } from "lucide-react";
 import toast from "react-hot-toast";
 import { usePageTitle } from "../../hooks/usePageTitle.js";
+import axiosConfig from "../../util/axiosConfig.jsx";
+import { API_ENDPOINTS } from "../../util/apiEndpoints.js";
+
+const DEFAULT_NEW_PLAN = {
+  planId: "pkg_new",
+  subscriptionPlan: "PREMIUM",
+  displayName: "Gói mới",
+  amount: 100000,
+  description: "Mô tả gói dịch vụ",
+  badge: "Mới",
+  cycleLabel: "1 tháng",
+  cycleMonths: 1,
+  icon: "Star",
+  accent: "from-blue-600 via-blue-500 to-indigo-500",
+  features: ["Tính năng 1", "Tính năng 2"],
+  displayOrder: 99,
+};
 
 const AdminSubscription = () => {
-  usePageTitle("Quản lý gói thanh toán");
+  usePageTitle("Quản lý gói thanh toán", "Money Manager Admin");
   const [plans, setPlans] = useState([]);
-  const [editingPlanIndex, setEditingPlanIndex] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [editingPlan, setEditingPlan] = useState(null); // null | plan object (with id for edit, no id for new)
   const [formData, setFormData] = useState(null);
+  const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    setPlans(getPaymentPlans());
-  }, []);
-
-  const handleSaveAll = (newPlans) => {
-    savePaymentPlans(newPlans);
-    setPlans(newPlans);
-    toast.success("Đã cập nhật các gói thanh toán");
+  const fetchPlans = async () => {
+    setLoading(true);
+    try {
+      const res = await axiosConfig.get(API_ENDPOINTS.GET_SUBSCRIPTION_PLANS);
+      setPlans(res.data || []);
+    } catch (err) {
+      toast.error("Không thể tải danh sách gói. Vui lòng thử lại.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleEdit = (index) => {
-    setEditingPlanIndex(index);
-    setFormData({ ...plans[index] });
+  useEffect(() => {
+    fetchPlans();
+  }, []);
+
+  const handleEdit = (plan) => {
+    setEditingPlan(plan);
+    setFormData({ ...plan });
   };
 
   const handleAddNew = () => {
-    const newPlan = {
-      id: "pkg_" + Date.now(),
-      subscriptionPlan: "PREMIUM",
-      displayName: "Gói mới",
-      amount: 100000,
-      description: "Mô tả gói dịch vụ",
-      badge: "Mới",
-      cycleLabel: "1 tháng",
-      cycleMonths: 1,
-      icon: "Star",
-      accent: "from-blue-600 via-blue-500 to-indigo-500",
-      features: ["Tính năng 1", "Tính năng 2"]
-    };
-    setEditingPlanIndex(plans.length);
-    setFormData({ ...newPlan });
+    setEditingPlan({ isNew: true });
+    setFormData({ ...DEFAULT_NEW_PLAN });
   };
 
-  const handleDelete = (index) => {
-    if (!window.confirm("Bạn có chắc chắn muốn xóa gói này?")) return;
-    const newPlans = [...plans];
-    newPlans.splice(index, 1);
-    handleSaveAll(newPlans);
-  };
-
-  const handleSaveEdit = () => {
-    const newPlans = [...plans];
-    if (editingPlanIndex >= plans.length) {
-      newPlans.push(formData);
-    } else {
-      newPlans[editingPlanIndex] = formData;
+  const handleDelete = async (plan) => {
+    if (!window.confirm(`Bạn có chắc chắn muốn xóa gói "${plan.displayName}"?`)) return;
+    try {
+      await axiosConfig.delete(API_ENDPOINTS.ADMIN_DELETE_SUBSCRIPTION_PLAN(plan.id));
+      toast.success("Đã xóa gói thanh toán.");
+      fetchPlans();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Không thể xóa gói.");
     }
-    handleSaveAll(newPlans);
-    setEditingPlanIndex(null);
-    setFormData(null);
+  };
+
+  const handleSaveEdit = async () => {
+    setSaving(true);
+    try {
+      if (editingPlan?.isNew) {
+        await axiosConfig.post(API_ENDPOINTS.ADMIN_CREATE_SUBSCRIPTION_PLAN, formData);
+        toast.success("Đã thêm gói mới.");
+      } else {
+        await axiosConfig.put(API_ENDPOINTS.ADMIN_UPDATE_SUBSCRIPTION_PLAN(editingPlan.id), formData);
+        toast.success("Đã cập nhật gói thanh toán.");
+      }
+      setEditingPlan(null);
+      setFormData(null);
+      fetchPlans();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Không thể lưu gói.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const cancelEdit = () => {
-    setEditingPlanIndex(null);
+    setEditingPlan(null);
     setFormData(null);
-  };
-
-  const handleReset = () => {
-    if (window.confirm("Bạn có muốn khôi phục lại các gói mặc định không? Gói đang có sẽ bị mất.")) {
-      handleSaveAll(DEFAULT_PAYMENT_PLANS);
-    }
   };
 
   const updateFeature = (fIndex, val) => {
@@ -98,10 +115,10 @@ const AdminSubscription = () => {
         </div>
         <div className="flex gap-3">
           <button
-            onClick={handleReset}
-            className="px-4 py-2 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 font-medium rounded-xl hover:bg-slate-50 dark:hover:bg-white/5"
+            onClick={fetchPlans}
+            className="px-4 py-2 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 font-medium rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-2"
           >
-            Khôi phục mặc định
+            <RefreshCw size={16} /> Làm mới
           </button>
           <button
             onClick={handleAddNew}
@@ -112,11 +129,11 @@ const AdminSubscription = () => {
         </div>
       </div>
 
-      {editingPlanIndex !== null && formData ? (
+      {editingPlan !== null && formData ? (
         <div className="bg-white dark:bg-[#0F172A] p-6 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm space-y-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold text-slate-800 dark:text-white">
-              {editingPlanIndex >= plans.length ? "Thêm gói mới" : "Chỉnh sửa gói"}
+              {editingPlan?.isNew ? "Thêm gói mới" : "Chỉnh sửa gói"}
             </h2>
             <button onClick={cancelEdit} className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-white">
               <X size={24} />
@@ -136,17 +153,17 @@ const AdminSubscription = () => {
               </label>
 
               <label className="block">
-                <span className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Mã tham chiếu hệ thống (ID)</span>
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Mã kế hoạch (planId)</span>
                 <input
                   type="text"
-                  value={formData.id}
-                  onChange={(e) => setFormData({ ...formData, id: e.target.value })}
+                  value={formData.planId}
+                  onChange={(e) => setFormData({ ...formData, planId: e.target.value })}
                   className="w-full border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 bg-slate-50 dark:bg-white/3 text-slate-500 dark:text-slate-400"
                 />
               </label>
 
               <label className="block">
-                <span className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Giá kịch bản (VND)</span>
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Giá (VND)</span>
                 <input
                   type="number"
                   value={formData.amount}
@@ -179,6 +196,16 @@ const AdminSubscription = () => {
                   onChange={(e) => setFormData({ ...formData, badge: e.target.value })}
                   placeholder="VD: Phổ biến, Nâng cao..."
                   className="w-full border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 bg-white dark:bg-white/5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-500/30"
+                />
+              </label>
+
+              <label className="block">
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Thứ tự hiển thị</span>
+                <input
+                  type="number"
+                  value={formData.displayOrder}
+                  onChange={(e) => setFormData({ ...formData, displayOrder: Number(e.target.value) })}
+                  className="w-full border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 bg-white dark:bg-white/5 text-slate-900 dark:text-white"
                 />
               </label>
             </div>
@@ -231,14 +258,23 @@ const AdminSubscription = () => {
 
           <div className="border-t border-slate-100 dark:border-white/10 pt-6 mt-6 flex justify-end gap-3">
             <button onClick={cancelEdit} className="px-5 py-2 text-slate-600 dark:text-slate-400 font-medium hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl">Hủy</button>
-            <button onClick={handleSaveEdit} className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl flex items-center gap-2">
-              <Save size={18} /> Lưu gói cước
+            <button
+              onClick={handleSaveEdit}
+              disabled={saving}
+              className="px-5 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-medium rounded-xl flex items-center gap-2"
+            >
+              <Save size={18} /> {saving ? "Đang lưu..." : "Lưu gói cước"}
             </button>
           </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {plans.map((plan, index) => (
+          {loading && (
+            <div className="col-span-full py-12 text-center text-slate-500 dark:text-slate-400">
+              <p>Đang tải...</p>
+            </div>
+          )}
+          {!loading && plans.map((plan) => (
             <div key={plan.id} className="bg-white dark:bg-[#0F172A] rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden shadow-sm flex flex-col">
               <div className={`h-2 w-full bg-linear-to-r ${plan.accent}`}></div>
               <div className="p-6 flex-1">
@@ -248,37 +284,37 @@ const AdminSubscription = () => {
                       {plan.badge}
                     </span>
                     <h3 className="text-xl font-bold text-slate-800 dark:text-white">{plan.displayName}</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">ID: {plan.id} • Quyền: {plan.subscriptionPlan}</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">ID: {plan.planId} • Quyền: {plan.subscriptionPlan}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-bold text-slate-900 dark:text-white">{plan.amount.toLocaleString()}đ</p>
+                    <p className="text-2xl font-bold text-slate-900 dark:text-white">{(plan.amount || 0).toLocaleString()}đ</p>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">/ {plan.cycleLabel}</p>
                   </div>
                 </div>
 
                 <ul className="space-y-2 mb-6 text-sm text-slate-600 dark:text-slate-400 mt-6 min-h-25">
-                  {plan.features.slice(0, 3).map((f, i) => (
+                  {(plan.features || []).slice(0, 3).map((f, i) => (
                     <li key={i} className="flex items-start gap-2">
                       <span className="text-green-500 dark:text-emerald-400 mt-0.5">✓</span> {f}
                     </li>
                   ))}
-                  {plan.features.length > 3 && (
+                  {(plan.features || []).length > 3 && (
                     <li className="text-slate-400 dark:text-slate-500 text-xs italic">+ {plan.features.length - 3} tính năng khác...</li>
                   )}
                 </ul>
               </div>
 
               <div className="bg-slate-50 dark:bg-white/5 p-4 border-t border-slate-100 dark:border-white/10 flex gap-3">
-                <button onClick={() => handleEdit(index)} className="flex-1 flex justify-center items-center gap-2 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg text-slate-700 dark:text-slate-300 font-medium hover:border-blue-400 hover:text-blue-600 dark:hover:border-blue-500/30 dark:hover:text-blue-400 transition">
+                <button onClick={() => handleEdit(plan)} className="flex-1 flex justify-center items-center gap-2 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg text-slate-700 dark:text-slate-300 font-medium hover:border-blue-400 hover:text-blue-600 dark:hover:border-blue-500/30 dark:hover:text-blue-400 transition">
                   <Edit2 size={16} /> Chỉnh sửa
                 </button>
-                <button onClick={() => handleDelete(index)} className="p-2 border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 hover:border-red-200 dark:hover:border-red-500/30 transition">
+                <button onClick={() => handleDelete(plan)} className="p-2 border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 hover:border-red-200 dark:hover:border-red-500/30 transition">
                   <Trash2 size={20} />
                 </button>
               </div>
             </div>
           ))}
-          {plans.length === 0 && (
+          {!loading && plans.length === 0 && (
             <div className="col-span-full py-12 text-center text-slate-500 dark:text-slate-400 bg-white dark:bg-[#0F172A] rounded-2xl border border-dashed border-slate-300 dark:border-white/10">
               <p>Chưa có gói thanh toán nào.</p>
             </div>

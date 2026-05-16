@@ -32,5 +32,5 @@ public enum EmailNotificationType {
     public String getIcon() { return icon; }
     public boolean isCritical() { return critical; }
     public boolean isOptional() { return optional; }
-    public boolean getDefaultEnabled() { return true; }
+    public boolean getDefaultEnabled() { return critical; }
 }
