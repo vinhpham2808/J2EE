@@ -71,6 +71,11 @@ export default function FloatingQuickMenu({ visible, onClose, onSelectRoute }) {
               <Text style={styles.quickMenuIcon}>🏦</Text>
               <Text style={styles.quickMenuText}>Mục tiêu</Text>
             </Pressable>
+
+            <Pressable style={styles.quickMenuItem} onPress={() => onSelectRoute("Forecast")}>
+              <Text style={styles.quickMenuIcon}>🔮</Text>
+              <Text style={styles.quickMenuText}>Dự báo</Text>
+            </Pressable>
           </View>
         </Animated.View>
       </Animated.View>

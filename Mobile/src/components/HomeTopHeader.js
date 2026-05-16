@@ -13,7 +13,7 @@ export default function HomeTopHeader({ onMenuPress, onBellPress, unreadCount = 
         <Text style={styles.iconText}>☰</Text>
       </Pressable>
 
-      <Text style={styles.title}>Tổng quan tài chính</Text>
+      <Text style={styles.title}>Trang chủ</Text>
 
       <Pressable style={styles.iconButton} onPress={onBellPress}>
         <Text style={styles.iconText}>🔔</Text>

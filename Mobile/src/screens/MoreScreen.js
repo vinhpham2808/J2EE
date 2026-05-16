@@ -49,7 +49,6 @@ export default function MoreScreen() {
         onPress={() => navigation.navigate("Payment")}
       />
 
-     
     </ScrollView>
   );
 }

@@ -7,6 +7,7 @@ import { COLORS } from "../constants/colors";
 const APP_RESULT_PREFIX = "moneymanager://payment/";
 const WEB_SUCCESS_PATH = "/payment/success";
 const WEB_CANCEL_PATH = "/payment/cancel";
+const PAYOS_MERCHANT_HEADER_HEIGHT = 56;
 
 export default function PaymentCheckoutScreen() {
   const navigation = useNavigation();
@@ -22,9 +23,9 @@ export default function PaymentCheckoutScreen() {
 
   const title = useMemo(() => {
     if (planName) {
-      return `Thanh toán ${planName}`;
+      return `${planName}`;
     }
-    return "Thanh toán";
+    return;
   }, [planName]);
 
   const deriveResultFromUrl = (parsedUrl, rawUrl) => {
@@ -157,8 +158,10 @@ export default function PaymentCheckoutScreen() {
         </View>
       ) : null}
 
+      <View style={styles.checkoutFrame}>
       <WebView
         ref={webViewRef}
+        style={styles.checkoutWebView}
         source={{ uri: checkoutUrl }}
         originWhitelist={["*"]}
         javaScriptEnabled
@@ -177,6 +180,7 @@ export default function PaymentCheckoutScreen() {
           Alert.alert("Tải trang thất bại", "Không thể tải cổng thanh toán. Bạn vui lòng thử lại.");
         }}
       />
+      </View>
     </View>
   );
 }
@@ -237,6 +241,15 @@ const styles = StyleSheet.create({
   loadingText: {
     color: COLORS.TEXT,
     fontWeight: "600"
+  },
+  checkoutFrame: {
+    flex: 1,
+    overflow: "hidden",
+    backgroundColor: COLORS.CARD
+  },
+  checkoutWebView: {
+    flex: 1,
+    marginTop: -PAYOS_MERCHANT_HEADER_HEIGHT
   },
   fallbackContainer: {
     flex: 1,

@@ -21,10 +21,72 @@ import { COLORS } from "../constants/colors";
  *   language: string                  — Mã ngôn ngũ (VD: "vi-VN", "en-US")
  */
 
-// Fallback icon text khi không dùng được vector icons
-const MicIcon = ({ size = 24, color = COLORS.PRIMARY }) => (
-  <Text style={{ fontSize: size, color }}>🎤</Text>
-);
+// Stylized microphone icon — dark gray body with red accent bars
+const MicIcon = ({ size = 24, barColor = COLORS.PRIMARY }) => {
+  const scale = size / 48;
+  const micBodyColor = "#3D3D3D";
+
+  return (
+    <View style={{ alignItems: "center" }}>
+      {/* Mic head (rounded rectangle) */}
+      <View style={{
+        width: 14 * scale,
+        height: 18 * scale,
+        borderTopLeftRadius: 7 * scale,
+        borderTopRightRadius: 7 * scale,
+        borderBottomLeftRadius: 2 * scale,
+        borderBottomRightRadius: 2 * scale,
+        backgroundColor: micBodyColor,
+        justifyContent: "flex-end",
+        alignItems: "center",
+        paddingBottom: 2 * scale,
+        gap: 1.5 * scale,
+      }}>
+        {/* Three horizontal red bars on mic body */}
+        <View style={{ width: 8 * scale, height: 1.5 * scale, borderRadius: 0.75 * scale, backgroundColor: barColor }} />
+        <View style={{ width: 8 * scale, height: 1.5 * scale, borderRadius: 0.75 * scale, backgroundColor: barColor }} />
+        <View style={{ width: 8 * scale, height: 1.5 * scale, borderRadius: 0.75 * scale, backgroundColor: barColor }} />
+      </View>
+
+      {/* Stem */}
+      <View style={{
+        width: 2 * scale,
+        height: 4 * scale,
+        backgroundColor: micBodyColor,
+      }} />
+
+      {/* Stand base (horizontal bar) */}
+      <View style={{
+        width: 16 * scale,
+        height: 2.5 * scale,
+        borderRadius: 1.25 * scale,
+        backgroundColor: micBodyColor,
+      }} />
+      {/* Stand legs */}
+      <View style={{
+        flexDirection: "row",
+        justifyContent: "space-between",
+        width: 16 * scale,
+        marginTop: -0.5 * scale,
+      }}>
+        <View style={{
+          width: 2 * scale,
+          height: 3 * scale,
+          borderBottomLeftRadius: 1 * scale,
+          borderBottomRightRadius: 1 * scale,
+          backgroundColor: micBodyColor,
+        }} />
+        <View style={{
+          width: 2 * scale,
+          height: 3 * scale,
+          borderBottomLeftRadius: 1 * scale,
+          borderBottomRightRadius: 1 * scale,
+          backgroundColor: micBodyColor,
+        }} />
+      </View>
+    </View>
+  );
+};
 
 export default function VoiceInputButton({ onResult, language = "vi-VN" }) {
   const [modalVisible, setModalVisible] = useState(false);
@@ -144,7 +206,7 @@ export default function VoiceInputButton({ onResult, language = "vi-VN" }) {
         accessibilityLabel="Nhập liệu bằng giọng nói"
         accessibilityRole="button"
       >
-        <MicIcon size={22} color={COLORS.PRIMARY} />
+        <MicIcon size={24} barColor={COLORS.PRIMARY} />
       </Pressable>
 
       {/* Modal voice input */}
@@ -158,7 +220,10 @@ export default function VoiceInputButton({ onResult, language = "vi-VN" }) {
           <View style={styles.modalContent}>
             {/* Icon mic lớn */}
             <View style={[styles.micCircle, recognizing && styles.micCircleActive]}>
-              <MicIcon size={48} color={recognizing ? COLORS.WHITE : COLORS.PRIMARY} />
+              <MicIcon
+                size={48}
+                barColor={recognizing ? COLORS.WHITE : COLORS.PRIMARY}
+              />
             </View>
 
             {/* Trạng thái */}

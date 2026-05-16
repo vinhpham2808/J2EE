@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert, FlatList, Pressable, RefreshControl, StyleSheet, Text, TextInput, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import http from "../services/http";
+import { fetchCategoriesByType } from "../services/categoryService";
 import { API_ENDPOINTS } from "../constants/api";
 import { SUCCESS_ALERT_MESSAGES, SUCCESS_ALERT_TITLE } from "../constants/alertMessages";
 import { formatCurrencyInput, formatMoney, getApiErrorMessage, parseCurrencyInput } from "../utils/format";
@@ -132,13 +133,12 @@ export default function BudgetScreen() {
   }, [budgets]);
 
   const fetchData = useCallback(async () => {
-    const [budgetRes, categoryRes] = await Promise.all([
+    const [budgetRes, categoryData] = await Promise.all([
       http.get(API_ENDPOINTS.GET_BUDGETS),
-      http.get(API_ENDPOINTS.CATEGORY_BY_TYPE("expense"))
+      fetchCategoriesByType("expense")
     ]);
 
     const budgetData = Array.isArray(budgetRes.data) ? budgetRes.data : [];
-    const categoryData = Array.isArray(categoryRes.data) ? categoryRes.data : [];
 
     setBudgets(budgetData);
     setCategories(categoryData);

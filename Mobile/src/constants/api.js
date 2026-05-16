@@ -33,6 +33,8 @@ export const API_ENDPOINTS = {
 
   // Dashboard
   DASHBOARD_DATA: "/dashboard",
+  AI_INSIGHT: "/dashboard/ai-insight",
+  AI_INSIGHT_DETAILED: "/dashboard/ai-insight/detailed",
 
   // Gemini AI
   VOICE_PARSE: "/gemini/voice-parse",
@@ -69,6 +71,12 @@ export const API_ENDPOINTS = {
 
   // Filters
   APPLY_FILTERS: "/filter",
+
+  // Forecast (PREMIUM)
+  FORECAST_MONTHLY: (year, month) => `/forecast/monthly?year=${year}&month=${month}`,
+  FORECAST_ANOMALIES: "/forecast/anomalies",
+  FORECAST_CATEGORY_TREND: (categoryId, months = 6) => `/forecast/category-trend/${categoryId}?months=${months}`,
+  FORECAST_INSIGHTS: "/forecast/insights",
 
   // Payment & OTP
   REQUEST_PAYMENT_OTP: "/payments/otp/request",

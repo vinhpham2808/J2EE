@@ -10,6 +10,12 @@ import { API_ENDPOINTS } from "../constants/api";
 import { buildMonthlyFinanceSeries } from "../utils/financeStats";
 import { formatDate, formatMoney, getApiErrorMessage } from "../utils/format";
 import { COLORS } from "../constants/colors";
+import {
+  AiInsightButton,
+  AiInsightSheet,
+  AiInsightLockedModal,
+  useAiInsight,
+} from "../features/ai-insight";
 
 function SectionHeader({ title, onMore }) {
   return (
@@ -80,6 +86,18 @@ export default function DashboardScreen() {
   const [notificationVisible, setNotificationVisible] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+
+  // ── AI Insight ─────────────────────────────────────────────
+  const ai = useAiInsight();
+  const [aiLockVisible, setAiLockVisible] = useState(false);
+
+  const handleAiPress = () => {
+    if (ai.isPremium) {
+      ai.openSheet();
+    } else {
+      setAiLockVisible(true);
+    }
+  };
 
   const fetchDashboard = useCallback(async () => {
     const response = await http.get(API_ENDPOINTS.DASHBOARD_DATA);
@@ -158,7 +176,10 @@ export default function DashboardScreen() {
         <HomeBanner />
 
         {/* Finance Overview Section */}
-        <SectionHeader title="Tổng quan tài chính" />
+        <View style={styles.financeHeaderRow}>
+          <SectionHeader title="Tổng quan tài chính" />
+          <AiInsightButton onPress={handleAiPress} style={styles.aiButtonSpacing} />
+        </View>
         <FinanceOverviewChart
           totalBalance={dashboard?.totalBalance}
           totalIncome={dashboard?.totalIncome}
@@ -207,6 +228,28 @@ export default function DashboardScreen() {
         onClose={() => setNotificationVisible(false)}
         onUnreadCountChange={setUnreadCount}
       />
+
+      {/* ── AI Insight Sheet ──────────────────────────────── */}
+      <AiInsightSheet
+        visible={ai.visible}
+        onClose={ai.closeSheet}
+        insight={ai.insight}
+        loading={ai.loading}
+        error={ai.error}
+        isPremium={ai.isPremium}
+        detailedInsight={ai.detailedInsight}
+        detailedLoading={ai.detailedLoading}
+        detailedError={ai.detailedError}
+        showDetailed={ai.showDetailed}
+        onLoadDetailed={ai.loadDetailed}
+        onRetry={ai.retry}
+      />
+
+      {/* ── AI Insight Locked Modal ────────────────────────── */}
+      <AiInsightLockedModal
+        visible={aiLockVisible}
+        onClose={() => setAiLockVisible(false)}
+      />
     </>
   );
 }
@@ -220,6 +263,14 @@ const styles = StyleSheet.create({
     padding: 14,
     paddingBottom: 22,
     gap: 10
+  },
+  financeHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  aiButtonSpacing: {
+    marginLeft: 8,
   },
   sectionHeader: {
     flexDirection: "row",
