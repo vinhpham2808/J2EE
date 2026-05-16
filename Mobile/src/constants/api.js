@@ -31,6 +31,10 @@ export const API_ENDPOINTS = {
   MARK_NOTIFICATION_READ: (id) => `/notifications/${id}/read`,
   MARK_ALL_NOTIFICATIONS_READ: "/notifications/read-all",
 
+  // Email Preferences
+  GET_EMAIL_PREFERENCES: "/profile/email-preferences",
+  UPDATE_EMAIL_PREFERENCES: "/profile/email-preferences",
+
   // Dashboard
   DASHBOARD_DATA: "/dashboard",
 

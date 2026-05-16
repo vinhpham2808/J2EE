@@ -1,8 +1,11 @@
-﻿import React, { useContext } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import React, { useCallback, useContext, useState } from "react";
+import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { AuthContext } from "../components/AuthContext";
 import { COLORS } from "../constants/colors";
+import { API_ENDPOINTS } from "../constants/api";
+import http from "../services/http";
+import { getApiErrorMessage } from "../utils/format";
 
 function UserAvatar({ fullName }) {
   const initial = (fullName || "U").slice(0, 1).toUpperCase();
@@ -26,9 +29,66 @@ function MenuCard({ title, description, onPress }) {
   );
 }
 
+function MenuToggleCard({ title, description, value, onValueChange, disabled }) {
+  return (
+    <View style={styles.menuCard}>
+      <View style={styles.menuBody}>
+        <Text style={styles.menuTitle}>{title}</Text>
+        <Text style={styles.menuDescription}>{description}</Text>
+      </View>
+      <Switch
+        value={value}
+        onValueChange={onValueChange}
+        disabled={disabled}
+        trackColor={{ false: COLORS.CARD_BORDER, true: COLORS.PRIMARY }}
+        thumbColor={COLORS.WHITE}
+      />
+    </View>
+  );
+}
+
 export default function MoreScreen() {
   const navigation = useNavigation();
   const { user } = useContext(AuthContext);
+
+  const [preferences, setPreferences] = useState([]);
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const fetchPreferences = useCallback(async () => {
+    try {
+      const response = await http.get(API_ENDPOINTS.GET_EMAIL_PREFERENCES);
+      setPreferences(response.data || []);
+    } catch (error) {
+      console.error("Lỗi lấy cài đặt email:", error);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchPreferences();
+    }, [fetchPreferences])
+  );
+
+  const dailyReportPref = preferences.find(p => p.type === "DAILY_EXPENSE_REPORT");
+  const isDailyEnabled = dailyReportPref?.isEnabled ?? false;
+
+  const handleToggleDailyEmail = async (newValue) => {
+    if (!dailyReportPref) return;
+    setIsUpdating(true);
+    try {
+      const updatedPreferences = preferences.map(p => 
+        p.type === "DAILY_EXPENSE_REPORT" ? { ...p, isEnabled: newValue } : p
+      );
+      
+      setPreferences(updatedPreferences);
+      await http.put(API_ENDPOINTS.UPDATE_EMAIL_PREFERENCES, updatedPreferences);
+    } catch (error) {
+      setPreferences(preferences); // Revert on error
+      Alert.alert("Lỗi", getApiErrorMessage(error, "Không thể cập nhật cài đặt email."));
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -49,7 +109,17 @@ export default function MoreScreen() {
         onPress={() => navigation.navigate("Payment")}
       />
 
-     
+      <View style={styles.sectionHeaderRow}>
+        <Text style={styles.sectionTitle}>Thông báo</Text>
+      </View>
+
+      <MenuToggleCard
+        title="Nhắc nhở hằng ngày"
+        description="Nhận email nhắc nhở cập nhật thu chi vào lúc 22:00 mỗi ngày"
+        value={isDailyEnabled}
+        onValueChange={handleToggleDailyEmail}
+        disabled={isUpdating || !dailyReportPref}
+      />
     </ScrollView>
   );
 }
