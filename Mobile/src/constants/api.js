@@ -35,6 +35,10 @@ export const API_ENDPOINTS = {
   GET_EMAIL_PREFERENCES: "/profile/email-preferences",
   UPDATE_EMAIL_PREFERENCES: "/profile/email-preferences",
 
+  // Documents/Export
+  EXPORT_EXPENSE: "/documents/report/expense",
+  EXPORT_INCOME: "/documents/report/income",
+
   // Dashboard
   DASHBOARD_DATA: "/dashboard",
 
