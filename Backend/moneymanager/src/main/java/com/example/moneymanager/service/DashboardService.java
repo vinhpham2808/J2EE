@@ -27,6 +27,7 @@ public class DashboardService {
     private final SavingGoalService savingGoalService;
     private final BudgetService budgetService;
     private final GeminiService geminiService;
+    private final GptOssService gptOssService;
 
     public Map<String, Object> getDashboardData() {
         try {
@@ -146,7 +147,7 @@ public class DashboardService {
                 return Map.of("insight", "Chưa có dữ liệu để phân tích. Hãy thêm giao dịch đầu tiên!");
             }
 
-            AssistantChatResponseDTO aiResponse = geminiService.getDashboardInsight(currentData, userName);
+            AssistantChatResponseDTO aiResponse = gptOssService.getDashboardInsight(currentData, userName);
 
             if (aiResponse == null || aiResponse.getReply() == null) {
                 return Map.of("insight", "AI đang cập nhật, vui lòng thử lại sau");

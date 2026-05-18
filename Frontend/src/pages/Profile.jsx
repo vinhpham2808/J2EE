@@ -29,12 +29,23 @@ const Profile = () => {
     const [error, setError] = useState("");
     const [isSaving, setIsSaving] = useState(false);
     const [activeTab, setActiveTab] = useState("info");
+    const [aiUsage, setAiUsage] = useState(null);
 
     useEffect(() => {
         if (!user) return;
         setFullName(user.fullName || "");
         setEmail(user.email || "");
         setCurrentImageUrl(user.profileImageUrl || "");
+
+        const fetchAiUsage = async () => {
+            try {
+                const res = await axiosConfig.get(API_ENDPOINTS.GET_AI_USAGE);
+                setAiUsage(res.data);
+            } catch (err) {
+                console.error("Failed to fetch AI usage:", err);
+            }
+        };
+        fetchAiUsage();
     }, [user]);
 
     const persistToken = (token, nextEmail) => {
@@ -110,7 +121,7 @@ const Profile = () => {
                             <Sparkles size={18} />
                             Không gian cá nhân
                         </div>
-                        <div className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,1.7fr)_280px]">
+                        <div className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,1.5fr)_320px]">
                             <div className="flex flex-col gap-4 rounded-[24px] border border-white/10 bg-white/8 p-5 backdrop-blur-sm sm:flex-row sm:items-center">
                                 {currentImageUrl ? (
                                     <img
@@ -137,16 +148,94 @@ const Profile = () => {
                                     <p className="truncate text-sm text-white/70">{email || "Chưa có email"}</p>
                                 </div>
                             </div>
-                            <div className="rounded-[24px] border border-white/10 bg-white/5 px-5 py-4">
-                                <p className="text-xs uppercase tracking-[0.2em] text-white/45">Gói hiện tại</p>
-                                <p className="mt-2 flex items-center gap-2 text-base font-semibold">
-                                    <BadgeCheck size={16} className="text-emerald-300" />
-                                    {user?.subscriptionPlan || "FREE"}
-                                </p>
-                                {user?.subscriptionExpiresAt && (
-                                    <p className="mt-1 text-[10px] text-white/50">
-                                        Hết hạn: {new Date(user.subscriptionExpiresAt).toLocaleDateString('vi-VN')}
+                            <div className="flex flex-col gap-3 rounded-[24px] border border-white/10 bg-white/5 px-5 py-4">
+                                <div>
+                                    <p className="text-xs uppercase tracking-[0.2em] text-white/45">Gói hiện tại</p>
+                                    <p className="mt-1 flex items-center gap-2 text-base font-semibold">
+                                        <BadgeCheck size={16} className="text-emerald-300" />
+                                        {user?.subscriptionPlan || "FREE"}
                                     </p>
+                                    {user?.subscriptionExpiresAt && (
+                                        <p className="mt-1 text-[10px] text-white/50">
+                                            Hết hạn: {new Date(user.subscriptionExpiresAt).toLocaleDateString('vi-VN')}
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* AI Usage */}
+                                {aiUsage && (
+                                    <div className="mt-1 space-y-3 border-t border-white/10 pt-3">
+                                        <p className="text-[10px] uppercase tracking-wider text-white/45">Hạn mức AI (mỗi 5h)</p>
+                                        
+                                        {aiUsage.unlimited || aiUsage.isUnlimited ? (
+                                            <div className="space-y-3">
+                                                <div className="flex justify-between items-center text-[11px] mb-1.5">
+                                                    <span className="text-white/70">Chat AI</span>
+                                                    <span className="text-emerald-300 font-medium flex items-center gap-1">✨ Không giới hạn</span>
+                                                </div>
+                                                <div className="flex justify-between items-center text-[11px] mb-1.5">
+                                                    <span className="text-white/70">Agent Thực thi</span>
+                                                    <span className="text-emerald-300 font-medium flex items-center gap-1">✨ Không giới hạn</span>
+                                                </div>
+                                                <div className="flex justify-between items-center text-[11px] mb-1.5">
+                                                    <span className="text-white/70">Phân tích chuyên sâu</span>
+                                                    <span className="text-emerald-300 font-medium flex items-center gap-1">✨ Không giới hạn</span>
+                                                </div>
+                                                <div className="flex justify-between items-center text-[11px] mb-1.5">
+                                                    <span className="text-white/70">Dự báo tài chính</span>
+                                                    <span className="text-emerald-300 font-medium flex items-center gap-1">✨ Không giới hạn</span>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-3">
+                                                {/* Chat Limit */}
+                                                <div>
+                                                    <div className="flex justify-between text-[11px] mb-1.5">
+                                                        <span className="text-white/70">Chat AI</span>
+                                                        <span className="text-white font-medium">{aiUsage.chatUsed} / {aiUsage.chatLimit}</span>
+                                                    </div>
+                                                    <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                                                        <div 
+                                                            className={`h-full rounded-full transition-all duration-500 ${aiUsage.chatUsed >= aiUsage.chatLimit ? 'bg-red-400' : 'bg-violet-400'}`} 
+                                                            style={{ width: `${Math.min(100, (aiUsage.chatUsed / aiUsage.chatLimit) * 100)}%` }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                                
+                                                {/* Agent Limit */}
+                                                {aiUsage.agentLimit > 0 && (
+                                                <div>
+                                                    <div className="flex justify-between text-[11px] mb-1.5">
+                                                        <span className="text-white/70">Agent Thực thi</span>
+                                                        <span className="text-white font-medium">{aiUsage.agentUsed} / {aiUsage.agentLimit}</span>
+                                                    </div>
+                                                    <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                                                        <div 
+                                                            className={`h-full rounded-full transition-all duration-500 ${aiUsage.agentUsed >= aiUsage.agentLimit ? 'bg-red-400' : 'bg-emerald-400'}`} 
+                                                            style={{ width: `${Math.min(100, (aiUsage.agentUsed / aiUsage.agentLimit) * 100)}%` }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                                )}
+
+                                                {/* Other AI Limit */}
+                                                {aiUsage.otherAiLimit > 0 && (
+                                                <div>
+                                                    <div className="flex justify-between text-[11px] mb-1.5">
+                                                        <span className="text-white/70">Phân tích chuyên sâu</span>
+                                                        <span className="text-white font-medium">{aiUsage.otherAiUsed} / {aiUsage.otherAiLimit}</span>
+                                                    </div>
+                                                    <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                                                        <div 
+                                                            className={`h-full rounded-full transition-all duration-500 ${aiUsage.otherAiUsed >= aiUsage.otherAiLimit ? 'bg-red-400' : 'bg-amber-400'}`} 
+                                                            style={{ width: `${Math.min(100, (aiUsage.otherAiUsed / aiUsage.otherAiLimit) * 100)}%` }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
                                 )}
                             </div>
                         </div>

@@ -1,10 +1,13 @@
 package com.example.moneymanager.service;
 
+import com.example.moneymanager.config.GeminiKeyRotator;
 import com.example.moneymanager.config.GeminiProperties;
+import com.example.moneymanager.dto.AIChatMessageDTO;
 import com.example.moneymanager.dto.AssistantChatResponseDTO;
 import com.example.moneymanager.dto.ExpenseDTO;
 import com.example.moneymanager.dto.IncomeDTO;
 import com.example.moneymanager.dto.VoiceParseResponseDTO;
+import com.example.moneymanager.dto.SpendingTipsResponseDTO;
 import com.example.moneymanager.entity.ProfileEntity;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,8 +22,10 @@ import org.springframework.web.client.RestClient;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.Normalizer;
+import java.util.Arrays;
 import java.text.NumberFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -33,12 +38,13 @@ public class GeminiService {
 
     private final RestClient geminiRestClient;
     private final GeminiProperties geminiProperties;
+    private final GeminiKeyRotator geminiKeyRotator;
     private final ObjectMapper objectMapper;
     private final ProfileService profileService;
     private final IncomeService incomeService;
     private final ExpenseService expenseService;
 
-    // Helper method để chia an toàn
+    // Helper method Ä‘á»ƒ chia an toÃ n
     private BigDecimal safeDivide(BigDecimal numerator, BigDecimal denominator, int scale) {
         if (denominator == null || denominator.compareTo(BigDecimal.ZERO) == 0) {
             return BigDecimal.ZERO;
@@ -71,7 +77,7 @@ public class GeminiService {
         String outputText = extractOutputText(responseBody);
 
         if (outputText == null || outputText.isBlank()) {
-            throw new RuntimeException("Gemini không trả về nội dung hợp lệ.");
+            throw new RuntimeException("Gemini khÃ´ng tráº£ vá» ná»™i dung há»£p lá»‡.");
         }
 
         return AssistantChatResponseDTO.builder()
@@ -102,7 +108,7 @@ public class GeminiService {
         String outputText = extractOutputText(responseBody);
 
         if (outputText == null || outputText.isBlank()) {
-            throw new RuntimeException("Gemini không trả về nội dung hợp lệ.");
+            throw new RuntimeException("Gemini khÃ´ng tráº£ vá» ná»™i dung há»£p lá»‡.");
         }
 
         return AssistantChatResponseDTO.builder()
@@ -166,6 +172,51 @@ public class GeminiService {
         }
     }
 
+    public SpendingTipsResponseDTO getSpendingTips() {
+        List<ExpenseDTO> expenses = expenseService.getCurrentMonthExpensesForCurrentUser();
+
+        if (expenses.isEmpty()) {
+            return SpendingTipsResponseDTO.builder()
+                    .tips(List.of())
+                    .timestamp(LocalDateTime.now())
+                    .disclaimer("Chưa có đủ dữ liệu chi tiêu tháng này để đưa ra gợi ý.")
+                    .build();
+        }
+
+        Map<String, BigDecimal> categorySpending = expenses.stream()
+                .filter(e -> e.getCategoryName() != null && e.getAmount() != null)
+                .collect(Collectors.groupingBy(
+                        ExpenseDTO::getCategoryName,
+                        Collectors.reducing(BigDecimal.ZERO, ExpenseDTO::getAmount, BigDecimal::add)
+                ));
+
+        StringBuilder context = new StringBuilder("Chi tiêu tháng này theo danh mục:\n");
+        categorySpending.entrySet().stream()
+                .sorted(Map.Entry.<String, BigDecimal>comparingByValue().reversed())
+                .forEach(e -> context.append("- ").append(e.getKey()).append(": ")
+                        .append(formatCurrency(e.getValue())).append(" VND\n"));
+
+        String systemPrompt = "Bạn là chuyên gia tài chính cá nhân. Dựa vào dữ liệu chi tiêu, hãy đưa ra đúng 5 gợi ý thực tế để tiết kiệm. Mỗi gợi ý bắt đầu bằng dấu '-' trên một dòng riêng. Không dùng markdown, không giải thích thêm. Trả lời bằng tiếng Việt.";
+        String response = callGeminiWithPrompt(systemPrompt, context.toString(), 500);
+
+        List<String> tips = Arrays.stream(response.split("\n"))
+                .map(String::trim)
+                .filter(line -> line.startsWith("-"))
+                .map(line -> line.substring(1).trim())
+                .filter(line -> !line.isBlank())
+                .collect(Collectors.toList());
+
+        if (tips.isEmpty()) {
+            tips = List.of(response.trim());
+        }
+
+        return SpendingTipsResponseDTO.builder()
+                .tips(tips)
+                .timestamp(LocalDateTime.now())
+                .disclaimer("Gợi ý được tạo bởi AI, chỉ mang tính tham khảo.")
+                .build();
+    }
+
     // Dashboard insight - phiên bản ngắn gọn
     public AssistantChatResponseDTO getDashboardInsight(Map<String, Object> dashboardData, String fullName) {
         validateConfiguration();
@@ -203,10 +254,8 @@ public class GeminiService {
                 .build();
     }
 
-    // Dashboard insight CHI TIẾT - DỰ ĐOÁN TƯƠNG LAI
+    // Dashboard insight CHI TIáº¾T - Dá»° ÄOÃN TÆ¯Æ NG LAI
     public Map<String, Object> getDetailedDashboardInsight(Map<String, Object> dashboardData, String fullName) {
-        validateConfiguration();
-
         if (dashboardData == null) {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("error", "No dashboard data available");
@@ -214,7 +263,7 @@ public class GeminiService {
         }
 
         if (fullName == null || fullName.isBlank()) {
-            fullName = "bạn";
+            fullName = "báº¡n";
         }
 
         Map<String, Object> detailedInsight = new LinkedHashMap<>();
@@ -251,7 +300,36 @@ public class GeminiService {
         return detailedInsight;
     }
 
-    // Lấy dữ liệu các tháng gần đây
+    public String generateMultiTurn(String systemPrompt, List<AIChatMessageDTO> messages, int maxOutputTokens) {
+        validateConfiguration();
+        ObjectNode requestBody = objectMapper.createObjectNode();
+        requestBody.set("systemInstruction", buildSystemInstruction(systemPrompt));
+        ArrayNode contents = objectMapper.createArrayNode();
+        for (AIChatMessageDTO msg : messages) {
+            ObjectNode contentNode = objectMapper.createObjectNode();
+            String role = "assistant".equals(msg.getRole()) ? "model" : msg.getRole();
+            contentNode.put("role", role);
+            ArrayNode parts = objectMapper.createArrayNode();
+            ObjectNode part = objectMapper.createObjectNode();
+            part.put("text", msg.getContent());
+            parts.add(part);
+            contentNode.set("parts", parts);
+            contents.add(contentNode);
+        }
+        requestBody.set("contents", contents);
+        ObjectNode genConfig = objectMapper.createObjectNode();
+        genConfig.put("temperature", 0.4);
+        genConfig.put("maxOutputTokens", maxOutputTokens);
+        requestBody.set("generationConfig", genConfig);
+        JsonNode responseBody = executeGenerateContentRequest(requestBody);
+        String outputText = extractOutputText(responseBody);
+        if (outputText == null || outputText.isBlank()) {
+            throw new RuntimeException("Gemini kh\u00F4ng tr\u1EA3 v\u1EC1 n\u1ED9i dung h\u1EE3p l\u1EC7.");
+        }
+        return outputText.trim();
+    }
+
+    // Láº¥y dá»¯ liá»‡u cÃ¡c thÃ¡ng gáº§n Ä‘Ã¢y
     private List<MonthlyData> getMonthlyTrends(int months) {
         List<MonthlyData> trends = new ArrayList<>();
         LocalDate now = LocalDate.now();
@@ -288,13 +366,13 @@ public class GeminiService {
         return trends;
     }
 
-    // DỰ ĐOÁN TƯƠNG LAI - ĐÃ SỬA AN TOÀN
+    // Dá»° ÄOÃN TÆ¯Æ NG LAI - ÄÃƒ Sá»¬A AN TOÃ€N
     private ForecastResult predictFuture(List<MonthlyData> monthlyTrends,
                                          List<ExpenseDTO> currentExpenses,
                                          List<IncomeDTO> currentIncomes) {
         ForecastResult result = new ForecastResult();
 
-        // Giá trị mặc định
+        // GiÃ¡ trá»‹ máº·c Ä‘á»‹nh
         result.setPredictedNextMonthExpense(BigDecimal.ZERO);
         result.setPredictedNextMonthIncome(BigDecimal.ZERO);
         result.setPredictedNextMonthNetCashFlow(BigDecimal.ZERO);
@@ -312,7 +390,7 @@ public class GeminiService {
             return result;
         }
 
-        // Tính tỷ lệ tăng trưởng trung bình
+        // TÃ­nh tá»· lá»‡ tÄƒng trÆ°á»Ÿng trung bÃ¬nh
         BigDecimal avgExpenseGrowth = BigDecimal.ZERO;
         BigDecimal avgIncomeGrowth = BigDecimal.ZERO;
         int expenseCount = 0;
@@ -322,7 +400,7 @@ public class GeminiService {
             MonthlyData prev = monthlyTrends.get(i - 1);
             MonthlyData curr = monthlyTrends.get(i);
 
-            // Tính tăng trưởng chi tiêu an toàn
+            // TÃ­nh tÄƒng trÆ°á»Ÿng chi tiÃªu an toÃ n
             if (prev.getTotalExpense() != null && prev.getTotalExpense().compareTo(BigDecimal.ZERO) > 0) {
                 BigDecimal expenseGrowth = safeDivide(
                         curr.getTotalExpense().subtract(prev.getTotalExpense()),
@@ -333,7 +411,7 @@ public class GeminiService {
                 expenseCount++;
             }
 
-            // Tính tăng trưởng thu nhập an toàn
+            // TÃ­nh tÄƒng trÆ°á»Ÿng thu nháº­p an toÃ n
             if (prev.getTotalIncome() != null && prev.getTotalIncome().compareTo(BigDecimal.ZERO) > 0) {
                 BigDecimal incomeGrowth = safeDivide(
                         curr.getTotalIncome().subtract(prev.getTotalIncome()),
@@ -352,7 +430,7 @@ public class GeminiService {
             avgIncomeGrowth = avgIncomeGrowth.divide(BigDecimal.valueOf(incomeCount), 4, RoundingMode.HALF_UP);
         }
 
-        // Dự đoán cho tháng tiếp theo
+        // Dá»± Ä‘oÃ¡n cho thÃ¡ng tiáº¿p theo
         MonthlyData lastMonth = monthlyTrends.get(monthlyTrends.size() - 1);
         if (lastMonth.getTotalExpense() != null) {
             result.setPredictedNextMonthExpense(lastMonth.getTotalExpense().multiply(BigDecimal.ONE.add(avgExpenseGrowth)));
@@ -362,7 +440,7 @@ public class GeminiService {
         }
         result.setPredictedNextMonthNetCashFlow(result.getPredictedNextMonthIncome().subtract(result.getPredictedNextMonthExpense()));
 
-        // Dự đoán cuối tháng hiện tại
+        // Dá»± Ä‘oÃ¡n cuá»‘i thÃ¡ng hiá»‡n táº¡i
         int currentDay = LocalDate.now().getDayOfMonth();
         int daysInMonth = LocalDate.now().lengthOfMonth();
         int daysLeft = daysInMonth - currentDay;
@@ -392,14 +470,14 @@ public class GeminiService {
         }
         result.setProjectedEndBalance(currentTotalIncome.subtract(result.getProjectedEndExpense()));
 
-        // Dự đoán thời điểm cạn kiệt tiền
+        // Dá»± Ä‘oÃ¡n thá»i Ä‘iá»ƒm cáº¡n kiá»‡t tiá»n
         if (result.getProjectedEndExpense().compareTo(currentTotalIncome) > 0 && avgDailyExpense.compareTo(BigDecimal.ZERO) > 0) {
             BigDecimal daysToRunOut = safeDivide(currentTotalIncome, avgDailyExpense, 0);
             LocalDate runOutDay = LocalDate.now().plusDays(daysToRunOut.longValue());
             result.setRunOutDate(runOutDay.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
         }
 
-        // Đánh giá rủi ro
+        // ÄÃ¡nh giÃ¡ rá»§i ro
         if (currentTotalIncome.compareTo(BigDecimal.ZERO) > 0) {
             if (result.getProjectedEndExpense().compareTo(currentTotalIncome) > 0) {
                 result.setRiskLevel("CAO");
@@ -423,7 +501,7 @@ public class GeminiService {
         return result;
     }
 
-    // Phân tích chi tiêu theo danh mục - ĐÃ SỬA AN TOÀN
+    // PhÃ¢n tÃ­ch chi tiÃªu theo danh má»¥c - ÄÃƒ Sá»¬A AN TOÃ€N
     private List<Map<String, Object>> analyzeCategorySpending(List<ExpenseDTO> expenses, Map<String, Object> dashboardData) {
         if (expenses == null || expenses.isEmpty()) {
             return new ArrayList<>();
@@ -466,7 +544,7 @@ public class GeminiService {
                 .collect(Collectors.toList());
     }
 
-    // Phân tích xu hướng theo thời gian - ĐÃ SỬA AN TOÀN
+    // PhÃ¢n tÃ­ch xu hÆ°á»›ng theo thá»i gian - ÄÃƒ Sá»¬A AN TOÃ€N
     private TrendAnalysis analyzeTimeTrend(List<MonthlyData> monthlyTrends) {
         TrendAnalysis analysis = new TrendAnalysis();
 
@@ -506,7 +584,6 @@ public class GeminiService {
             }
         }
 
-        // Xu hướng chi tiêu
         if (!expenseChanges.isEmpty()) {
             BigDecimal avgExpenseChange = expenseChanges.stream()
                     .reduce(BigDecimal.ZERO, BigDecimal::add)
@@ -537,7 +614,6 @@ public class GeminiService {
             analysis.setExpenseTrendMessage("Chưa có đủ dữ liệu chi tiêu");
         }
 
-        // Xu hướng thu nhập
         if (!incomeChanges.isEmpty()) {
             BigDecimal avgIncomeChange = incomeChanges.stream()
                     .reduce(BigDecimal.ZERO, BigDecimal::add)
@@ -574,7 +650,7 @@ public class GeminiService {
         return analysis;
     }
 
-    // Tính các chỉ số tài chính - ĐÃ SỬA AN TOÀN
+    // TÃ­nh cÃ¡c chá»‰ sá»‘ tÃ i chÃ­nh - ÄÃƒ Sá»¬A AN TOÃ€N
     private FinancialRatios calculateFinancialRatios(Map<String, Object> dashboardData, List<MonthlyData> monthlyTrends) {
         FinancialRatios ratios = new FinancialRatios();
 
@@ -589,7 +665,6 @@ public class GeminiService {
             BigDecimal totalExpense = new BigDecimal(dashboardData.get("totalExpense").toString());
             BigDecimal totalBalance = new BigDecimal(dashboardData.get("totalBalance").toString());
 
-            // Tỷ lệ tiết kiệm
             if (totalIncome != null && totalIncome.compareTo(BigDecimal.ZERO) > 0) {
                 ratios.setSavingsRate(safeDivide(
                         totalIncome.subtract(totalExpense).multiply(BigDecimal.valueOf(100)),
@@ -598,12 +673,10 @@ public class GeminiService {
                 ));
             }
 
-            // Số tháng có thể sống
             if (totalExpense != null && totalExpense.compareTo(BigDecimal.ZERO) > 0) {
                 ratios.setMonthsOfSurvival(safeDivide(totalBalance, totalExpense, 1));
             }
 
-            // Đánh giá sức khỏe tài chính
             if (ratios.getSavingsRate().compareTo(BigDecimal.valueOf(20)) >= 0) {
                 ratios.setHealthScore("TỐT");
                 ratios.setHealthMessage("Bạn đang tiết kiệm rất tốt! Hãy duy trì.");
@@ -632,7 +705,7 @@ public class GeminiService {
 
         advice.append("🔮 DỰ ĐOÁN TƯƠNG LAI CHO ").append(userName.toUpperCase()).append(":\n\n");
 
-        advice.append("📊 DỰ BÁO THÁNG TỚI:\n");
+        advice.append("📊 DỰ BÁO THÁNG TớI:\n");
         advice.append(String.format("• Chi tiêu dự kiến: %s VND\n", formatCurrency(forecast.getPredictedNextMonthExpense())));
         advice.append(String.format("• Thu nhập dự kiến: %s VND\n", formatCurrency(forecast.getPredictedNextMonthIncome())));
         advice.append(String.format("• Dòng tiền ròng: %s VND\n", formatCurrency(forecast.getPredictedNextMonthNetCashFlow())));
@@ -647,31 +720,31 @@ public class GeminiService {
         advice.append(String.format("• Chi tiêu trung bình/ngày: %s VND\n", formatCurrency(forecast.getAvgDailyExpense())));
 
         if (forecast.getRunOutDate() != null) {
-            advice.append(String.format("🚨 CẢNH BÁO NGHIÊM TRỌNG: Dự đoán bạn sẽ hết tiền vào ngày %s!\n", forecast.getRunOutDate()));
+            advice.append(String.format("🚨 CẢNH BÁO NGHIÊM TRọNG: Dự đoán bạn sẽ hết tiền vào ngày %s!\n", forecast.getRunOutDate()));
             advice.append("→ HÀNH ĐỘNG NGAY: Cắt giảm chi tiêu không thiết yếu, tìm thêm nguồn thu nhập.\n");
         }
 
-        advice.append("\n📈 PHÂN TÍCH XU HƯỚNG:\n");
+        advice.append("\n📈 PHÂN TÍCH XU HƯớNG:\n");
         advice.append(String.format("• %s\n", trend.getExpenseTrendMessage()));
         advice.append(String.format("• %s\n", trend.getIncomeTrendMessage()));
 
-        advice.append("\n💪 CHỈ SỐ TÀI CHÍNH:\n");
+        advice.append("\n💪 CHỆ SỐ TÀI CHÍNH:\n");
         advice.append(String.format("• Tỷ lệ tiết kiệm: %.1f%% (%s)\n", ratios.getSavingsRate(), ratios.getHealthMessage()));
         advice.append(String.format("• Số tháng có thể sống nếu không có thu nhập: %.1f tháng\n", ratios.getMonthsOfSurvival()));
 
-        advice.append("\n🎯 KHUYẾN NGHỊ CỤ THỂ:\n");
+        advice.append("\n🎯 KHUYếN NGHị CỤ THỂ:\n");
         if ("CAO".equals(forecast.getRiskLevel())) {
             advice.append("1. CẮT GIẢM NGAY: Ăn ngoài, mua sắm không cần thiết, giải trí\n");
             advice.append("2. THEO DÕI SÁT: Cập nhật giao dịch hàng ngày\n");
-            advice.append("3. TĂNG THU NHẬP: Làm thêm, bán đồ không dùng\n");
+            advice.append("3. TĂNG THU NHẬ P: Làm thêm, bán đồ không dùng\n");
         } else if ("TRUNG_BÌNH".equals(forecast.getRiskLevel())) {
             advice.append("1. ĐẶT NGÂN SÁCH: Giới hạn chi tiêu cho từng danh mục\n");
             advice.append("2. TIẾT KIỆM 10%: Tự động trích 10% thu nhập vào tiết kiệm\n");
-            advice.append("3. RÀ SOÁT ĐỊNH KỲ: Kiểm tra chi tiêu mỗi tuần\n");
+            advice.append("3. RÀ SOÁT ĐịNH KỲ: Kiểm tra chi tiêu mỗi tuần\n");
         } else {
             advice.append("1. DUY TRÌ TỐT: Tiếp tục thói quen chi tiêu hiện tại\n");
-            advice.append("2. ĐẦU TƯ: Cân nhắc đầu tư số tiền dư để sinh lời\n");
-            advice.append("3. MỤC TIÊU LỚN: Đặt mục tiêu tiết kiệm dài hạn\n");
+            advice.append("2. ĐẦU TƯ: Cân nhắc đầu tư số tiền dư để sinh lẽi\n");
+            advice.append("3. MỤC TIÊU LớN: Đặt mục tiêu tiết kiệm dài hạn\n");
         }
 
         advice.append("\n⭐ ").append(getMotivationalMessage(forecast, ratios));
@@ -769,22 +842,23 @@ public class GeminiService {
     }
 
     private void validateConfiguration() {
-        if (geminiProperties.apiKey() == null || geminiProperties.apiKey().isBlank()) {
-            throw new RuntimeException("Gemini API key chưa được cấu hình.");
+        if (!geminiKeyRotator.hasKeys()) {
+            throw new RuntimeException("Gemini API key ch\u01B0a \u0111\u01B0\u1EE3c c\u1EA5u h\u00ECnh.");
         }
         if (geminiProperties.model() == null || geminiProperties.model().isBlank()) {
-            throw new RuntimeException("Gemini model chưa được cấu hình.");
+            throw new RuntimeException("Gemini model ch\u01B0a \u0111\u01B0\u1EE3c c\u1EA5u h\u00ECnh.");
         }
     }
 
     private JsonNode executeGenerateContentRequest(ObjectNode requestBody) {
         validateConfiguration();
         try {
+            String apiKey = geminiKeyRotator.nextKey();
             String requestJson = objectMapper.writeValueAsString(requestBody);
             String responseJson = geminiRestClient.post()
                     .uri(uriBuilder -> uriBuilder
                             .path("/v1beta/models/{model}:generateContent")
-                            .queryParam("key", geminiProperties.apiKey())
+                            .queryParam("key", apiKey)
                             .build(geminiProperties.model()))
                     .body(requestJson)
                     .retrieve()
@@ -812,17 +886,11 @@ public class GeminiService {
         ObjectNode requestBody = objectMapper.createObjectNode();
         requestBody.set("systemInstruction", buildSystemInstruction(
                 "Bạn là trợ lý tài chính cho ứng dụng Money Manager.\n" +
-                        "Người dùng: " + safeValue(profile.getFullName()) + ", email: " + safeValue(profile.getEmail()) + "\n" +
-                        buildFinancialContext()
+                        "Người dùng: " + safeValue(profile.getFullName()) + ", email: " + safeValue(profile.getEmail())
         ));
         requestBody.set("contents", buildUserContents(message));
         requestBody.set("generationConfig", buildGenerationConfig());
         return requestBody;
-    }
-
-    private String buildFinancialContext() {
-        // Giữ nguyên method này
-        return "";
     }
 
     private ObjectNode buildSystemInstruction(String text) {
@@ -877,7 +945,7 @@ public class GeminiService {
     }
 
     private String safeValue(String value) {
-        return value == null || value.isBlank() ? "Không có" : value;
+        return value == null || value.isBlank() ? "KhÃ´ng cÃ³" : value;
     }
 
     private boolean isSupportedQuestion(String message) {
@@ -896,7 +964,7 @@ public class GeminiService {
         return normalizedValue.replaceAll("\\s+", " ").trim();
     }
 
-    // Inner classes (ĐÃ SỬA VÀ THÊM @DATA LOMBOK)
+    // Inner classes (ÄÃƒ Sá»¬A VÃ€ THÃŠM @DATA LOMBOK)
     @Data
     public static class MonthlyData {
         private int year;

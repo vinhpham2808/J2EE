@@ -95,35 +95,23 @@ public class NotificationService {
     public List<NotificationDTO> getNotificationsForCurrentUser() {
         ProfileEntity profile = profileService.getCurrentProfile();
         List<NotificationEntity> notifications = notificationRepository.findByProfileIdOrProfileIsNullOrderByCreatedAtDesc(profile.getId());
-        
-        return notifications.stream().map(n -> {
-            boolean isRead = n.getIsRead();
-            if (n.getProfile() == null) {
-                // For broadcast, check the read table
-                isRead = notificationReadRepository.existsByNotificationIdAndProfileId(n.getId(), profile.getId());
-            }
-            return NotificationDTO.builder()
-                    .id(n.getId())
-                    .title(n.getTitle())
-                    .message(n.getMessage())
-                    .type(n.getType().name())
-                    .isRead(isRead)
-                    .createdAt(n.getCreatedAt())
-                    .build();
-        }).toList();
+
+        return notifications.stream().map(n -> NotificationDTO.builder()
+                .id(n.getId())
+                .title(n.getTitle())
+                .message(n.getMessage())
+                .type(n.getType().name())
+                .isRead(isRead(n, profile.getId()))
+                .createdAt(n.getCreatedAt())
+                .build()
+        ).toList();
     }
 
     @Transactional(readOnly = true)
     public long getUnreadCount() {
         ProfileEntity profile = profileService.getCurrentProfile();
         long personalUnread = notificationRepository.countUnreadByProfileId(profile.getId());
-        
-        // Count unread broadcasts
-        List<NotificationEntity> broadcasts = notificationRepository.findByProfileIsNullOrderByCreatedAtDesc();
-        long unreadBroadcasts = broadcasts.stream()
-                .filter(b -> !notificationReadRepository.existsByNotificationIdAndProfileId(b.getId(), profile.getId()))
-                .count();
-                
+        long unreadBroadcasts = notificationRepository.countUnreadBroadcastsForProfile(profile.getId());
         return personalUnread + unreadBroadcasts;
     }
 
@@ -132,18 +120,15 @@ public class NotificationService {
         ProfileEntity profile = profileService.getCurrentProfile();
         NotificationEntity notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông báo"));
-                
+
         if (notification.getProfile() == null) {
-            // It's a broadcast
-            if (!notificationReadRepository.existsByNotificationIdAndProfileId(notificationId, profile.getId())) {
-                NotificationReadEntity readEntity = NotificationReadEntity.builder()
+            if (!isRead(notification, profile.getId())) {
+                notificationReadRepository.save(NotificationReadEntity.builder()
                         .notification(notification)
                         .profile(profile)
-                        .build();
-                notificationReadRepository.save(readEntity);
+                        .build());
             }
         } else if (notification.getProfile().getId().equals(profile.getId())) {
-            // It's a personal notification
             notification.setIsRead(true);
             notificationRepository.save(notification);
         } else {
@@ -155,21 +140,26 @@ public class NotificationService {
     public void markAllAsRead() {
         ProfileEntity profile = profileService.getCurrentProfile();
         List<NotificationEntity> notifications = notificationRepository.findByProfileIdOrProfileIsNullOrderByCreatedAtDesc(profile.getId());
-        
+
         for (NotificationEntity n : notifications) {
+            if (isRead(n, profile.getId())) continue;
             if (n.getProfile() == null) {
-                if (!notificationReadRepository.existsByNotificationIdAndProfileId(n.getId(), profile.getId())) {
-                    NotificationReadEntity readEntity = NotificationReadEntity.builder()
-                            .notification(n)
-                            .profile(profile)
-                            .build();
-                    notificationReadRepository.save(readEntity);
-                }
-            } else if (!n.getIsRead()) {
+                notificationReadRepository.save(NotificationReadEntity.builder()
+                        .notification(n)
+                        .profile(profile)
+                        .build());
+            } else {
                 n.setIsRead(true);
                 notificationRepository.save(n);
             }
         }
+    }
+
+    private boolean isRead(NotificationEntity n, Long profileId) {
+        if (n.getProfile() == null) {
+            return notificationReadRepository.existsByNotificationIdAndProfileId(n.getId(), profileId);
+        }
+        return Boolean.TRUE.equals(n.getIsRead());
     }
 
     // --- Helper Methods to generate specific notifications ---

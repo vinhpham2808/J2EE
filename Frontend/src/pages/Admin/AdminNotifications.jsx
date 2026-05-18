@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import { usePageTitle } from "../../hooks/usePageTitle.js";
 
 const AdminNotifications = () => {
-  usePageTitle("Quản lý thông báo");
+  usePageTitle("Quản lý thông báo", "Money Manager Admin");
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);

@@ -1,12 +1,12 @@
 import { useEffect } from "react";
 
 /**
- * Custom hook để đặt tiêu đề trang với hậu tố "- BotDev"
- * @param {string} pageTitle - Tiêu đề trang (không bao gồm "- BotDev")
+ * @param {string} pageTitle - Tiêu đề trang
+ * @param {string} [suffix="Money Manager"] - Hậu tố của trang
  */
-export const usePageTitle = (pageTitle) => {
+export const usePageTitle = (pageTitle, suffix = "Money Manager") => {
   useEffect(() => {
-    const fullTitle = `${pageTitle} - BotDev`;
+    const fullTitle = `${pageTitle} - ${suffix}`;
     document.title = fullTitle;
 
     // Cleanup: restore to default title

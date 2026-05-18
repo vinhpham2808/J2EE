@@ -1,6 +1,7 @@
 package com.example.moneymanager.controller;
 
 import com.example.moneymanager.dto.ForecastDTOs.*;
+import com.example.moneymanager.service.AIRateLimitService;
 import com.example.moneymanager.service.ForecastService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import java.util.List;
 public class ForecastController {
 
     private final ForecastService forecastService;
+    private final AIRateLimitService aiRateLimitService;
 
     @GetMapping("/monthly")
     public ResponseEntity<MonthlyForecastDTO> getMonthlyForecast(
@@ -36,6 +38,7 @@ public class ForecastController {
 
     @PostMapping("/insights")
     public ResponseEntity<ForecastInsightDTO> getInsights(@RequestBody MonthlyForecastDTO forecastDTO) {
+        aiRateLimitService.checkLimit("OTHER_AI");
         return ResponseEntity.ok(forecastService.getGeminiInsights(forecastDTO));
     }
 }

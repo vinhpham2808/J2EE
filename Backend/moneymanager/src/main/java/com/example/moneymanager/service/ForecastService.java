@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 public class ForecastService {
 
     private final ExpenseRepository expenseRepository;
-    private final GeminiService geminiService;
+    private final GptOssService gptOssService;
     private final SubscriptionService subscriptionService;
     private final ProfileService profileService;
 
@@ -223,7 +223,7 @@ public class ForecastService {
         
         prompt.append("Dựa vào thông tin trên, hãy viết một đoạn phân tích ngắn gọn, bằng tiếng Việt, thân thiện và đưa ra lời khuyên thực tế để tiết kiệm chi phí trong tháng này. Trả lời tối đa 100 chữ.");
 
-        String insight = geminiService.chat(prompt.toString()).getReply();
+        String insight = gptOssService.chat(prompt.toString()).getReply();
 
         return ForecastInsightDTO.builder()
                 .narrative(insight)

@@ -8,9 +8,7 @@ const Header = () => {
       bg-white/80 dark:bg-[#0F172A]/90 backdrop-blur-xl">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <Link to="/home" className="flex items-center gap-2.5" aria-label="Go to home page">
-          <div className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center">
-            <Zap size={14} className="text-white" fill="white" />
-          </div>
+          <img src="/favicon.svg" alt="Money Manager Logo" className="w-7 h-7" />
           <span className="text-base font-bold text-slate-900 dark:text-white tracking-tight">
             Money<span className="text-amber-500">Manager</span>
           </span>

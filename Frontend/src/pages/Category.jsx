@@ -40,9 +40,9 @@ const Category = () => {
 
   const handleAddCategory = async (category) => {
     const { name, type, icon } = category;
-    if (!name.trim()) { toast.error("Category Name is required"); return; }
+    if (!name.trim()) { toast.error("Vui lòng nhập tên danh mục."); return; }
     const isDuplicate = categoryData.some((c) => c.name.toLowerCase() === name.trim().toLowerCase());
-    if (isDuplicate) { toast.error("Category Name already exists"); return; }
+    if (isDuplicate) { toast.error("Tên danh mục đã tồn tại."); return; }
     try {
       const response = await axiosConfig.post(API_ENDPOINTS.ADD_CATEGORY, { name, type, icon });
       if (response.status === 201) {
@@ -51,7 +51,7 @@ const Category = () => {
         fetchCategoryDetails();
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to add category.");
+      toast.error(error.response?.data?.message || "Không thể thêm danh mục.");
     }
   };
 
@@ -62,8 +62,8 @@ const Category = () => {
 
   const handleUpdateCategory = async (updatedCategory) => {
     const { id, name, type, icon } = updatedCategory;
-    if (!name.trim()) { toast.error("Category Name is required"); return; }
-    if (!id) { toast.error("Category ID is missing for update"); return; }
+    if (!name.trim()) { toast.error("Vui lòng nhập tên danh mục."); return; }
+    if (!id) { toast.error("Thiếu ID danh mục để cập nhật."); return; }
     try {
       await axiosConfig.put(API_ENDPOINTS.UPDATE_CATEGORY(id), { name, type, icon });
       setOpenEditCategoryModal(false);
@@ -71,7 +71,7 @@ const Category = () => {
       toast.success("Cập nhật danh mục thành công");
       fetchCategoryDetails();
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to update category.");
+      toast.error(error.response?.data?.message || "Không thể cập nhật danh mục.");
     }
   };
 

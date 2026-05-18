@@ -52,14 +52,14 @@ public class MailTemplateService {
             + "<div style=\"display:inline-block;background:#f0f0ff;border:2px dashed #667eea;border-radius:16px;padding:24px 52px;text-align:center;\">"
             + "<div style=\"font-size:11px;font-weight:700;letter-spacing:3px;color:#7c3aed;text-transform:uppercase;margin-bottom:10px;\">M&#195;&#195; X&#193;C TH&#7920;C</div>"
             + "<div style=\"font-size:44px;font-weight:800;letter-spacing:12px;color:#667eea;font-family:'Courier New',Courier,monospace;\">" + escapeOtp(otpCode) + "</div>"
-            + "<div style=\"font-size:12px;color:#9ca3af;margin-top:10px;\">Hi&#7879;u l&#7921;c trong <strong style=\"color:#dc2626;\">210 gi&#226;y</strong></div>"
+            + "<div style=\"font-size:12px;color:#9ca3af;margin-top:10px;\">Hi&#7879;u l&#7921;c trong <strong style=\"color:#dc2626;\">200 gi&#226;y</strong></div>"
             + "</div>"
             + "</td></tr></table>"
 
             // Warning box
             + "<div style=\"background:#fffbeb;border-left:4px solid #f59e0b;border-radius:8px;padding:14px 18px;margin-bottom:24px;\">"
             + "<p style=\"margin:0;font-size:13px;color:#92400e;line-height:1.7;\"><strong>&#9888;&#65039; L&#432;u &#253; b&#7843;o m&#7853;t:</strong><br>"
-            + "&#8226; M&#227; OTP ch&#7881; c&#243; hi&#7879;u l&#7921;c trong <strong>210 gi&#226;y</strong><br>"
+            + "&#8226; M&#227; OTP ch&#7881; c&#243; hi&#7879;u l&#7921;c trong <strong>200 gi&#226;y</strong><br>"
             + "&#8226; Kh&#244;ng chia s&#7867; m&#227; n&#224;y v&#7899;i b&#7845;t k&#7923; ai<br>"
             + "&#8226; Money Manager s&#7869; kh&#244;ng bao gi&#7901; h&#7887;i m&#227; OTP qua &#273;i&#7879;n tho&#7841;i</p>"
             + "</div>"
@@ -84,13 +84,13 @@ public class MailTemplateService {
             + "<div style=\"display:inline-block;background:#fff0f0;border:2px dashed #ef4444;border-radius:16px;padding:24px 52px;text-align:center;\">"
             + "<div style=\"font-size:11px;font-weight:700;letter-spacing:3px;color:#dc2626;text-transform:uppercase;margin-bottom:10px;\">M&#195;&#195; &#272;&#7840;T L&#7840;I M&#7840;T KH&#7842;U</div>"
             + "<div style=\"font-size:44px;font-weight:800;letter-spacing:12px;color:#ef4444;font-family:'Courier New',Courier,monospace;\">" + escapeOtp(otpCode) + "</div>"
-            + "<div style=\"font-size:12px;color:#9ca3af;margin-top:10px;\">Hi&#7879;u l&#7921;c trong <strong style=\"color:#dc2626;\">210 gi&#226;y</strong></div>"
+            + "<div style=\"font-size:12px;color:#9ca3af;margin-top:10px;\">Hi&#7879;u l&#7921;c trong <strong style=\"color:#dc2626;\">200 gi&#226;y</strong></div>"
             + "</div>"
             + "</td></tr></table>"
 
             + "<div style=\"background:#fffbeb;border-left:4px solid #f59e0b;border-radius:8px;padding:14px 18px;margin-bottom:24px;\">"
             + "<p style=\"margin:0;font-size:13px;color:#92400e;line-height:1.7;\"><strong>&#9888;&#65039; L&#432;u &#253; b&#7843;o m&#7853;t:</strong><br>"
-            + "&#8226; M&#227; OTP ch&#7881; c&#243; hi&#7879;u l&#7921;c trong <strong>210 gi&#226;y</strong><br>"
+            + "&#8226; M&#227; OTP ch&#7881; c&#243; hi&#7879;u l&#7921;c trong <strong>200 gi&#226;y</strong><br>"
             + "&#8226; Kh&#244;ng chia s&#7867; m&#227; n&#224;y v&#7899;i b&#7845;t k&#7923; ai<br>"
             + "&#8226; Money Manager s&#7869; kh&#244;ng bao gi&#7901; h&#7887;i m&#227; OTP qua &#273;i&#7879;n tho&#7841;i</p>"
             + "</div>"
@@ -140,7 +140,7 @@ public class MailTemplateService {
         return wrapInTemplate("Cảnh báo ngân sách – " + categoryName, content);
     }
 
-    // ─── Report Email ─────────────────────────────────────────────────
+    // ─── Report Email (S3 presigned link) ────────────────────────────
 
     public String buildReportEmail(String fullName, int month, int year, String reportType, String s3Link) {
         String name = fullName != null && !fullName.isBlank() ? escape(fullName) : "b&#7841;n";
@@ -150,12 +150,12 @@ public class MailTemplateService {
             "<h2 style=\"margin:0 0 6px;font-size:22px;font-weight:700;color:#1a1a2e;\">&#128202; B&#225;o c&#225;o " + reportLabel + "</h2>"
             + "<p style=\"margin:0 0 20px;font-size:15px;color:#6b7280;\">Xin ch&#224;o <strong style=\"color:#374151;\">" + name + "</strong>,</p>"
             + "<p style=\"margin:0 0 24px;font-size:15px;color:#6b7280;line-height:1.7;\">"
-            + "B&#225;o c&#225;o <strong>" + reportLabel + "</strong> th&#225;ng <strong>" + month + "/" + year + "</strong> c&#7911;a b&#7841;n &#273;&#227; &#273;&#432;&#7907;c t&#7841;o th&#224;nh c&#244;ng. H&#227;y nh&#7845;n n&#250;t b&#234;n d&#432;&#7899;i &#273;&#7875; t&#7843;i v&#7873; ngay!"
+            + "B&#225;o c&#225;o <strong>" + reportLabel + "</strong> th&#225;ng <strong>" + month + "/" + year + "</strong> c&#7911;a b&#7841;n &#273;&#227; &#273;&#432;&#7907;c t&#7841;o th&#224;nh c&#244;ng."
             + "</p>"
 
             + "<div style=\"background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:18px 20px;margin-bottom:28px;\">"
             + "<div style=\"font-size:14px;color:#15803d;\">&#9989; <strong>B&#225;o c&#225;o &#273;&#227; s&#7861;n s&#224;ng &#273;&#7875; t&#7843;i v&#7873;</strong></div>"
-            + "<div style=\"font-size:13px;color:#16a34a;margin-top:5px;\">K&#7923; b&#225;o c&#225;o: Th&#225;ng " + month + "/" + year + " &#8226; &#272;&#432;&#7907;c t&#7841;o t&#7921; &#273;&#7897;ng b&#7903;i h&#7879; th&#7889;ng</div>"
+            + "<div style=\"font-size:13px;color:#16a34a;margin-top:5px;\">K&#7923; b&#225;o c&#225;o: Th&#225;ng " + month + "/" + year + "</div>"
             + "</div>"
 
             + "<table role=\"presentation\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"margin:0 auto 28px;\">"
@@ -163,7 +163,7 @@ public class MailTemplateService {
             + "<a href=\"" + s3Link + "\" style=\"display:inline-block;padding:14px 32px;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:10px;\">&#128229; T&#7843;i B&#225;o C&#225;o Excel</a>"
             + "</td></tr></table>"
 
-            + "<p style=\"margin:0;font-size:12px;color:#9ca3af;text-align:center;\">&#9200; Li&#234;n k&#7871;t t&#7843;i v&#7873; c&#243; hi&#7879;u l&#7921;c trong <strong>1 gi&#7901;</strong> k&#7875; t&#7915; th&#7901;i &#273;i&#7875;m g&#7917;i email n&#224;y.</p>";
+            + "<p style=\"margin:0;font-size:12px;color:#9ca3af;text-align:center;\">&#9200; Li&#234;n k&#7871;t t&#7843;i v&#7873; c&#243; hi&#7879;u l&#7921;c trong <strong>1 gi&#7901;</strong> t&#7915; th&#7901;i &#273;i&#7875;m g&#7917;i email n&#224;y.</p>";
 
         return wrapInTemplate("Báo cáo " + (reportType.contains("income") ? "thu nhập" : "chi tiêu") + " tháng " + month + "/" + year, content);
     }

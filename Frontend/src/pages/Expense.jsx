@@ -117,7 +117,21 @@ const Expense = () => {
         throw new Error("Không lấy được link tải báo cáo");
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Lỗi khi tạo báo cáo Excel.");
+      if (error.response?.status === 429) {
+        // Blob is used, so we need to parse the JSON error
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const data = JSON.parse(reader.result);
+            toast.error(data.message || "Bạn thao tác quá nhanh.");
+          } catch (e) {
+            toast.error("Bạn đã bị giới hạn tính năng này.");
+          }
+        };
+        reader.readAsText(error.response.data);
+      } else {
+        toast.error(error.response?.data?.message || "Lỗi khi tải báo cáo Excel.");
+      }
     }
   };
 

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import http from "../services/http";
+import { fetchCategoriesByType } from "../services/categoryService";
 import { API_ENDPOINTS } from "../constants/api";
 import { SUCCESS_ALERT_MESSAGES, SUCCESS_ALERT_TITLE } from "../constants/alertMessages";
 import { formatCurrencyInput, getApiErrorMessage, parseCurrencyInput, todayIso } from "../utils/format";
@@ -9,10 +10,12 @@ import { PickDateField } from "../utils/pickDate";
 import { COLORS } from "../constants/colors";
 
 export default function AddIncomeScreen() {
+  const navigation = useNavigation();
   const route = useRoute();
   const initialData = route.params?.initialData;
 
   const [categories, setCategories] = useState([]);
+  const [categoryLoading, setCategoryLoading] = useState(true);
   const [name, setName] = useState(initialData?.name || "");
   const [amount, setAmount] = useState(initialData?.amount ? formatCurrencyInput(String(initialData?.amount)) : "");
   const [date, setDate] = useState(initialData?.date || todayIso());
@@ -21,15 +24,17 @@ export default function AddIncomeScreen() {
 
   useEffect(() => {
     const fetchCategories = async () => {
+      setCategoryLoading(true);
       try {
-        const response = await http.get(API_ENDPOINTS.CATEGORY_BY_TYPE("income"));
-        const data = Array.isArray(response.data) ? response.data : [];
+        const data = await fetchCategoriesByType("income");
         setCategories(data);
         if (data.length > 0) {
           setCategoryId(String(data[0].id));
         }
       } catch (error) {
         Alert.alert("Lỗi", getApiErrorMessage(error, "Không tải được danh mục"));
+      } finally {
+        setCategoryLoading(false);
       }
     };
 
@@ -118,7 +123,13 @@ export default function AddIncomeScreen() {
 
       <Text style={styles.label}>Danh mục</Text>
       <View style={styles.categoryContainer}>
-        {categories.map((category) => {
+        {categoryLoading ? (
+          <Text style={styles.categoryStateText}>Đang tải danh mục...</Text>
+        ) : categories.length === 0 ? (
+          <Text style={styles.categoryStateText}>
+            Chưa có danh mục thu nhập. Hãy tạo danh mục ở tab Danh mục.
+          </Text>
+        ) : categories.map((category) => {
           const active = String(category.id) === String(categoryId);
           return (
             <Pressable
@@ -185,6 +196,13 @@ const styles = StyleSheet.create({
   categoryTextActive: {
     color: COLORS.PRIMARY,
     fontWeight: "700"
+  },
+  categoryStateText: {
+    width: "100%",
+    color: COLORS.TEXT_SECONDARY,
+    fontSize: 13,
+    lineHeight: 20,
+    marginBottom: 8
   },
   saveButton: {
     backgroundColor: COLORS.PRIMARY,

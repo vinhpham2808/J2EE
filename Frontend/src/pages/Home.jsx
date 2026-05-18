@@ -4,7 +4,7 @@ import InfoCard from "../components/InfoCard.jsx";
 import {
   Coins, PiggyBank, Target, Wallet, WalletCards, Sparkles,
   ChevronDown, ChevronUp, TrendingUp, AlertTriangle, PieChart,
-  Settings2,
+  Settings2, Lightbulb,
 } from "lucide-react";
 import { addThousandsSeparator } from "../util/util.js";
 import { useNavigate } from "react-router-dom";
@@ -367,83 +367,174 @@ const Home = () => {
         </button>
       </div>
 
-      {/* AI Assistant Banner — ghim cố định */}
+      {/* AI Assistant Banner — thiết kế mới rõ ràng & trực quan */}
       {widgetConfig.ai_assistant?.visible !== false && (
-        <section className="relative overflow-hidden rounded-2xl p-6 lg:p-8 mb-6
-          bg-linear-to-br from-violet-900 via-slate-900 to-[#0F172A]
-          border border-violet-500/20">
-          <div className="absolute inset-0 opacity-20"
-            style={{ backgroundImage: "radial-gradient(circle at 20% 80%, #8B5CF6 0%, transparent 50%), radial-gradient(circle at 80% 20%, #F59E0B 0%, transparent 50%)" }} />
-
-          <div className="relative z-10">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 cursor-pointer" onClick={toggleDetailedInsight}>
-              <div className="max-w-3xl">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="bg-white/10 backdrop-blur-md p-2 rounded-xl border border-white/10">
-                    <Sparkles className={`w-5 h-5 ${aiLoading ? "animate-spin text-amber-400" : "text-amber-400"}`} />
-                  </div>
-                  <h2 className="text-white text-xl font-bold">Trợ lý AI Tiền Trí</h2>
+        <section className="relative overflow-hidden rounded-3xl mb-6
+          bg-white dark:bg-white/[0.03]
+          border border-slate-200 dark:border-white/10
+          shadow-sm dark:shadow-none">
+          
+          {/* Header strip */}
+          <div className="relative overflow-hidden
+            bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600
+            dark:from-violet-800 dark:via-purple-800 dark:to-indigo-800
+            px-6 py-4">
+            <div className="absolute inset-0 opacity-20"
+              style={{ backgroundImage: "radial-gradient(circle at 10% 90%, #F59E0B 0%, transparent 40%), radial-gradient(circle at 90% 10%, #A78BFA 0%, transparent 40%)" }} />
+            <div className="relative z-10 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm">
+                  <Sparkles className={`w-5 h-5 ${aiLoading ? "animate-spin" : ""} text-amber-300`} />
                 </div>
-                {aiLoading ? (
-                  <p className="text-white/60 leading-relaxed animate-pulse">Đang phân tích thói quen chi tiêu của bạn...</p>
-                ) : (
-                  <p className="text-white/90 leading-relaxed line-clamp-2">
-                    {aiInsight || "Hãy thêm vài giao dịch để AI có thể đưa ra nhận xét cho bạn!"}
-                  </p>
-                )}
+                <div>
+                  <h2 className="text-lg font-bold text-white">Nova Money - Trợ lý AI</h2>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="inline-flex items-center gap-1 text-xs text-white/70">
+                      <span className={`inline-block w-1.5 h-1.5 rounded-full ${aiLoading ? "bg-amber-400 animate-pulse" : "bg-emerald-400"}`} />
+                      {aiLoading ? "Đang phân tích..." : "Sẵn sàng"}
+                    </span>
+                  </div>
+                </div>
               </div>
-              <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold
-                bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-all whitespace-nowrap">
-                {showDetailedInsight ? "Thu gọn" : "Phân tích chi tiết"}
-                {showDetailedInsight ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              <button
+                onClick={toggleDetailedInsight}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold
+                  bg-white/15 border border-white/20 text-white hover:bg-white/25
+                  transition-all whitespace-nowrap active:scale-95"
+              >
+                {showDetailedInsight ? (
+                  <>
+                    <ChevronUp size={16} />
+                    Thu gọn
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown size={16} />
+                    Phân tích chi tiết
+                  </>
+                )}
               </button>
             </div>
+          </div>
 
-            <div className={`transition-all duration-300 overflow-hidden ${showDetailedInsight ? "max-h-500 opacity-100 mt-6" : "max-h-0 opacity-0 mt-0"}`}>
-              <div className="border-t border-white/10 pt-6">
+          {/* Insight content */}
+          <div className="p-6">
+            {aiLoading ? (
+              <div className="space-y-3 animate-pulse">
+                <div className="h-4 bg-slate-200 dark:bg-white/10 rounded-full w-3/4" />
+                <div className="h-4 bg-slate-200 dark:bg-white/10 rounded-full w-1/2" />
+                <div className="h-4 bg-slate-200 dark:bg-white/10 rounded-full w-5/6" />
+              </div>
+            ) : (
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 flex-shrink-0">
+                  <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-500/10 flex items-center justify-center">
+                    <Lightbulb size={16} className="text-amber-600 dark:text-amber-400" />
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Nhận định của AI</p>
+                  <p className="text-slate-800 dark:text-slate-200 leading-relaxed">
+                    {aiInsight || "Hãy thêm vài giao dịch để AI có thể đưa ra nhận xét cho bạn!"}
+                  </p>
+                  <p className="mt-2 text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1">
+                    <span>⚠️</span> Nova Money là AI có thể trả lời sai sót, vui lòng kiểm tra lại thông tin.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Detailed insight expandable */}
+            <div className={`transition-all duration-500 ease-in-out overflow-hidden ${
+              showDetailedInsight ? "max-h-[800px] opacity-100 mt-6" : "max-h-0 opacity-0 mt-0"
+            }`}>
+              <div className="border-t border-slate-200 dark:border-white/10 pt-6">
                 {detailedLoading ? (
-                  <div className="flex flex-col items-center justify-center py-8">
-                    <div className="w-8 h-8 rounded-full border-2 border-white/30 border-t-white animate-spin mb-4" />
-                    <p className="text-white/60 text-sm">Đang trích xuất dữ liệu tài chính sâu hơn...</p>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-center py-6">
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="w-10 h-10 rounded-full border-[3px] border-violet-200 dark:border-violet-500/30 border-t-violet-600 dark:border-t-violet-400 animate-spin" />
+                        <p className="text-sm text-slate-500 dark:text-slate-400">Nova Money đang phân tích chuyên sâu dữ liệu của bạn, vui lòng chờ nhé...</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] p-5 animate-pulse">
+                        <div className="h-4 bg-slate-200 dark:bg-white/10 rounded-full w-1/3 mb-4" />
+                        <div className="h-3 bg-slate-200 dark:bg-white/10 rounded-full w-1/4 mb-3" />
+                        <div className="h-3 bg-slate-200 dark:bg-white/10 rounded-full w-3/4 mb-2" />
+                        <div className="h-3 bg-slate-200 dark:bg-white/10 rounded-full w-2/3" />
+                      </div>
+                      <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] p-5 animate-pulse md:col-span-2">
+                        <div className="h-4 bg-slate-200 dark:bg-white/10 rounded-full w-1/4 mb-4" />
+                        <div className="h-3 bg-slate-200 dark:bg-white/10 rounded-full w-full mb-2" />
+                        <div className="h-3 bg-slate-200 dark:bg-white/10 rounded-full w-5/6 mb-2" />
+                        <div className="h-3 bg-slate-200 dark:bg-white/10 rounded-full w-4/6" />
+                      </div>
+                    </div>
                   </div>
                 ) : detailedInsight ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {detailedInsight.forecast && (
-                      <div className="bg-black/20 backdrop-blur-xl rounded-2xl p-5 border border-white/10">
-                        <div className="flex items-center gap-2 mb-3">
-                          <TrendingUp size={18} className="text-emerald-400" />
-                          <h4 className="font-semibold text-white">Dự báo dòng tiền</h4>
-                        </div>
-                        <div className={`px-3 py-1 rounded-full inline-flex text-xs font-bold uppercase tracking-wide mb-3 ${getRiskColor(detailedInsight.forecast.riskLevel)}`}>
-                          Rủi ro: {detailedInsight.forecast.riskLevel === "CAO" ? "Cao" : detailedInsight.forecast.riskLevel === "TRUNG_BÌNH" ? "Trung bình" : "Thấp"}
-                        </div>
-                        <p className="text-white/70 text-sm mb-4">{detailedInsight.forecast.riskMessage}</p>
-                        <div className="grid grid-cols-2 gap-3 border-t border-white/10 pt-3">
-                          <div>
-                            <p className="text-white/40 text-xs mb-1">Thu nhập dự kiến</p>
-                            <p className="text-emerald-400 font-semibold text-sm">{formatCurrency(detailedInsight.forecast.predictedNextMonthIncome)}</p>
+                      <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] p-5 hover:border-violet-300 dark:hover:border-violet-500/30 transition-colors">
+                        <div className="flex items-center gap-2.5 mb-4">
+                          <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-500/10 flex items-center justify-center">
+                            <TrendingUp size={18} className="text-emerald-600 dark:text-emerald-400" />
                           </div>
                           <div>
-                            <p className="text-white/40 text-xs mb-1">Chi tiêu dự kiến</p>
-                            <p className="text-red-400 font-semibold text-sm">{formatCurrency(detailedInsight.forecast.predictedNextMonthExpense)}</p>
+                            <h4 className="font-semibold text-slate-800 dark:text-white text-sm">Dự báo dòng tiền</h4>
+                            <p className="text-xs text-slate-400">Tháng tiếp theo</p>
+                          </div>
+                        </div>
+                        <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold mb-4 ${
+                          detailedInsight.forecast.riskLevel === "CAO"
+                            ? "bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/20"
+                            : detailedInsight.forecast.riskLevel === "TRUNG_BÌNH"
+                              ? "bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20"
+                              : "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20"
+                        }`}>
+                          <AlertTriangle size={12} />
+                          {detailedInsight.forecast.riskLevel === "CAO" ? "Rủi ro cao" : detailedInsight.forecast.riskLevel === "TRUNG_BÌNH" ? "Rủi ro trung bình" : "Rủi ro thấp"}
+                        </div>
+                        <p className="text-sm text-slate-600 dark:text-slate-300 mb-4 leading-relaxed">{detailedInsight.forecast.riskMessage}</p>
+                        <div className="grid grid-cols-2 gap-3 pt-4 border-t border-slate-200 dark:border-white/10">
+                          <div className="bg-white dark:bg-white/[0.03] rounded-xl p-3 border border-slate-200 dark:border-white/5">
+                            <p className="text-xs text-slate-400 mb-1">Thu nhập dự kiến</p>
+                            <p className="text-emerald-600 dark:text-emerald-400 font-bold text-sm">{formatCurrency(detailedInsight.forecast.predictedNextMonthIncome)}</p>
+                          </div>
+                          <div className="bg-white dark:bg-white/[0.03] rounded-xl p-3 border border-slate-200 dark:border-white/5">
+                            <p className="text-xs text-slate-400 mb-1">Chi tiêu dự kiến</p>
+                            <p className="text-red-500 font-bold text-sm">{formatCurrency(detailedInsight.forecast.predictedNextMonthExpense)}</p>
                           </div>
                         </div>
                       </div>
                     )}
                     {detailedInsight.detailedAdvice && (
-                      <div className="bg-black/20 backdrop-blur-xl rounded-2xl p-5 border border-white/10 md:col-span-2">
-                        <div className="flex items-center gap-2 mb-3">
-                          <Sparkles size={18} className="text-violet-400" />
-                          <h4 className="font-semibold text-white">Lời khuyên chiến lược</h4>
+                      <div className={`rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] p-5 hover:border-violet-300 dark:hover:border-violet-500/30 transition-colors ${detailedInsight.forecast ? "" : "md:col-span-2"}`}>
+                        <div className="flex items-center gap-2.5 mb-4">
+                          <div className="w-9 h-9 rounded-xl bg-violet-100 dark:bg-violet-500/10 flex items-center justify-center">
+                            <Sparkles size={18} className="text-violet-600 dark:text-violet-400" />
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-slate-800 dark:text-white text-sm">Lời khuyên chiến lược</h4>
+                            <p className="text-xs text-slate-400">Từ phân tích AI</p>
+                          </div>
                         </div>
-                        <p className="text-white/80 text-sm leading-relaxed italic border-l-2 border-violet-400 pl-4">
-                          "{detailedInsight.detailedAdvice}"
-                        </p>
+                        <div className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed border-l-[3px] border-violet-400 pl-4 max-h-64 overflow-y-auto whitespace-pre-wrap">
+                          {detailedInsight.detailedAdvice}
+                        </div>
                       </div>
                     )}
+                    <p className="col-span-full mt-1 text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1">
+                      <span>⚠️</span> Nova Money là AI có thể trả lời sai sót, vui lòng kiểm tra lại thông tin.
+                    </p>
                   </div>
                 ) : (
-                  <p className="text-white/50 text-center py-4 text-sm">Không có dữ liệu phân tích chi tiết khả dụng.</p>
+                  <div className="text-center py-8">
+                    <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center mx-auto mb-3">
+                      <Sparkles size={20} className="text-slate-300 dark:text-slate-500" />
+                    </div>
+                    <p className="text-sm text-slate-400">Chưa có phân tích chi tiết cho thời điểm này</p>
+                  </div>
                 )}
               </div>
             </div>

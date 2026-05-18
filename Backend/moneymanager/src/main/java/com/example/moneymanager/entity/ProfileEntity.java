@@ -73,8 +73,5 @@ public class ProfileEntity {
         if (this.autoRenew == null) {
             autoRenew = false;
         }
-        if (this.role == null) {
-            this.role = RoleEntity.builder().id(2L).name("user").build();
-        }
     }
 }

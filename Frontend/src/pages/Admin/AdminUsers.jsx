@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
-import { Search, UserCircle2, Shield, ShieldOff, Trash2, Edit2, X, Check, LoaderCircle, ChevronDown, RefreshCw } from "lucide-react";
+import { Search, UserCircle2, Shield, ShieldOff, Trash2, Edit2, X, Check, LoaderCircle, ChevronDown, RefreshCw, RotateCcw } from "lucide-react";
 import axiosConfig from "../../util/axiosConfig.jsx";
 import { API_ENDPOINTS } from "../../util/apiEndpoints.js";
 import toast from "react-hot-toast";
+import { usePageTitle } from "../../hooks/usePageTitle.js";
 
 const PLANS = ["ALL", "FREE", "BASIC", "PREMIUM"];
 const STATUS_OPTS = ["ALL", "active", "inactive"];
@@ -102,8 +103,8 @@ const EditModal = ({ user, onClose, onSaved }) => {
                 onChange={(e) => setRole(e.target.value)}
                 className="w-full appearance-none rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0F172A] px-3 py-2.5 text-sm text-slate-900 dark:text-white focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 pr-8"
               >
-                <option value="user">User</option>
-                <option value="admin">Admin</option>
+                <option value="user">Người dùng</option>
+                <option value="admin">Quản trị viên</option>
               </select>
               <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             </div>
@@ -144,6 +145,7 @@ const EditModal = ({ user, onClose, onSaved }) => {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 const AdminUsers = () => {
+  usePageTitle("Quản lý người dùng", "Money Manager Admin");
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -151,6 +153,7 @@ const AdminUsers = () => {
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [editingUser, setEditingUser] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+  const [resettingAiId, setResettingAiId] = useState(null);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -187,6 +190,18 @@ const AdminUsers = () => {
   const handleSaved = (updated) => {
     setUsers(prev => prev.map(u => u.id === updated.id ? updated : u));
     setEditingUser(null);
+  };
+
+  const handleResetAI = async (id) => {
+    setResettingAiId(id);
+    try {
+      await axiosConfig.post(API_ENDPOINTS.ADMIN_RESET_AI_LIMITS(id));
+      toast.success("Đã reset hạn mức AI thành công.");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Reset thất bại.");
+    } finally {
+      setResettingAiId(null);
+    }
   };
 
   return (
@@ -276,8 +291,8 @@ const AdminUsers = () => {
                         {user.profileImageUrl
                           ? <img src={user.profileImageUrl} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
                           : <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center shrink-0">
-                              <UserCircle2 size={18} className="text-slate-400" />
-                            </div>}
+                            <UserCircle2 size={18} className="text-slate-400" />
+                          </div>}
                         <div className="min-w-0">
                           <p className="font-medium text-slate-900 dark:text-white truncate">{user.fullName || "—"}</p>
                           <p className="text-xs text-slate-400 truncate">{user.email}</p>
@@ -316,6 +331,16 @@ const AdminUsers = () => {
                     {/* Actions */}
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={() => handleResetAI(user.id)}
+                          disabled={resettingAiId === user.id}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-violet-600 dark:hover:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-500/10 transition-colors disabled:opacity-50"
+                          title="Reset hạn mức AI"
+                        >
+                          {resettingAiId === user.id
+                            ? <LoaderCircle size={15} className="animate-spin" />
+                            : <RotateCcw size={15} />}
+                        </button>
                         <button
                           onClick={() => setEditingUser(user)}
                           className="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-colors"

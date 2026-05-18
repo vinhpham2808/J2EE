@@ -54,7 +54,6 @@ const ForgotPassword = () => {
     try {
       await axiosConfig.post(API_ENDPOINTS.FORGOT_PASSWORD, { email });
       setStep(STEPS.OTP);
-      setCountdown(180);
     } catch (err) {
       const retryAfter = err.response?.data?.retryAfterSeconds;
       if (retryAfter) {

@@ -58,7 +58,7 @@ public class EmailNotificationPreferenceService {
     public boolean isNotificationEnabled(Long profileId, EmailNotificationType type) {
         return repository.findByProfileIdAndType(profileId, type)
             .map(pref -> Boolean.TRUE.equals(pref.getIsEnabled()))
-            .orElse(true);
+            .orElse(type.isCritical());
     }
 
     @Transactional

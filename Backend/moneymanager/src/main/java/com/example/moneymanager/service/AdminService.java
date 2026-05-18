@@ -2,6 +2,7 @@ package com.example.moneymanager.service;
 
 import com.example.moneymanager.dto.*;
 import com.example.moneymanager.entity.*;
+import com.example.moneymanager.exception.ForbiddenException;
 import com.example.moneymanager.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -278,7 +279,7 @@ public class AdminService {
         ProfileEntity currentProfile = profileService.getCurrentProfile();
         String roleName = currentProfile.getRole() != null ? currentProfile.getRole().getName() : "";
         if (!"admin".equalsIgnoreCase(roleName)) {
-            throw new RuntimeException("Forbidden: admin access required");
+            throw new ForbiddenException("Bạn không có quyền truy cập chức năng này.");
         }
     }
 }

@@ -28,7 +28,7 @@ public class SpendingTipsService {
 
     private final ProfileService profileService;
     private final ExpenseService expenseService;
-    private final GeminiService geminiService;
+    private final GptOssService gptOssService;
     private final SpendingTipsRepository repository;
 
     public SpendingTipsResponseDTO generateSmartTips() {
@@ -50,7 +50,7 @@ public class SpendingTipsService {
         }
 
         String prompt = buildGeminiPrompt(profile, expenseData);
-        String tipsContent = geminiService.callGeminiWithPrompt(
+        String tipsContent = gptOssService.callWithPrompt(
                 prompt,
                 "Phân tích chi tiêu và đưa ra gợi ý tiết kiệm cụ thể cho tôi.",
                 1024

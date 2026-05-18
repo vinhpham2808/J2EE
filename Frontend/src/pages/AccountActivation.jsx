@@ -22,13 +22,6 @@ const AccountActivation = () => {
   const [isResending, setIsResending] = useState(false);
   const [countdown, setCountdown] = useState(0);
 
-  // Start 180s cooldown only when arriving from Signup (OTP was just sent by register)
-  useEffect(() => {
-    if (location.state?.email) {
-      setCountdown(180);
-    }
-  }, [location.state?.email]);
-
   // Countdown ticker
   useEffect(() => {
     if (countdown <= 0) return;
@@ -114,13 +107,9 @@ const AccountActivation = () => {
 
           {/* Left info */}
           <section className="space-y-5">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center">
-                <Zap size={15} className="text-white" fill="white" />
-              </div>
-              <span className="font-bold text-slate-900 dark:text-white text-lg">
-                Money<span className="text-amber-500">Manager</span>
-              </span>
+            <div className="flex items-center justify-center gap-2 mb-3 lg:justify-start">
+              <img src="/favicon.svg" alt="Money Manager Logo" className="w-8 h-8" />
+              <span className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Money<span className="text-amber-500">Manager</span></span>
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white leading-snug">
               Xác thực email để kích hoạt tài khoản.

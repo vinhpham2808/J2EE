@@ -22,7 +22,7 @@ COPY --from=build /app/target/*.jar app.jar
 # -XX:+UseSerialGC = Sinh garbage collector for small heap
 # -Xmx350m = Max heap 350MB (để lại 150MB cho system)
 # -XX:CICompilerCount=2 = Reduce compiler threads
-ENV JAVA_OPTS="-XX:TieredStopAtLevel=1 -XX:+UseSerialGC -Xmx350m -XX:CICompilerCount=2"
+ENV JAVA_OPTS="-XX:TieredStopAtLevel=1 -XX:+UseSerialGC -Xmx350m -XX:CICompilerCount=2 -Dfile.encoding=UTF-8"
 
 EXPOSE 8080
 CMD ["sh", "-c", "java $JAVA_OPTS -noverify -jar app.jar"]

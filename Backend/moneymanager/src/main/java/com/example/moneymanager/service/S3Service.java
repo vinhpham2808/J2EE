@@ -37,7 +37,11 @@ public class S3Service {
 
     public String uploadBytes(byte[] data, String filename, String contentType, String username) {
         String safeUsername = username != null ? username.replaceAll("[^a-zA-Z0-9@.-]", "_") : "anonymous";
-        String key = "userData/" + safeUsername + "/" + UUID.randomUUID() + "_" + filename;
+        String extension = "";
+        if (filename != null && filename.contains(".")) {
+            extension = filename.substring(filename.lastIndexOf(".")).toLowerCase().replaceAll("[^a-zA-Z0-9.]", "");
+        }
+        String key = "userData/" + safeUsername + "/" + UUID.randomUUID() + extension;
 
         PutObjectRequest request = PutObjectRequest.builder()
                 .bucket(bucketName)

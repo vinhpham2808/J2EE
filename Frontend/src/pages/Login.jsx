@@ -203,9 +203,7 @@ const Login = () => {
               style={{ backgroundImage: "radial-gradient(circle at 30% 70%, #F59E0B33 0%, transparent 60%), radial-gradient(circle at 80% 20%, #8B5CF633 0%, transparent 50%)" }} />
             <div className="relative">
               <div className="flex items-center gap-2 mb-10">
-                <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center">
-                  <Zap size={16} className="text-white" fill="white" />
-                </div>
+                <img src="/favicon.svg" alt="Money Manager Logo" className="w-8 h-8" />
                 <span className="text-white font-bold text-lg">Money<span className="text-amber-400">Manager</span></span>
               </div>
               <h2 className="text-3xl font-bold text-white leading-snug mb-4">

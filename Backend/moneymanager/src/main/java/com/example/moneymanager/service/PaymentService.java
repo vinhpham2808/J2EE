@@ -4,8 +4,10 @@ import com.example.moneymanager.dto.CreatePaymentRequestDTO;
 import com.example.moneymanager.dto.CreatePaymentResponseDTO;
 import com.example.moneymanager.entity.PaymentEntity;
 import com.example.moneymanager.entity.ProfileEntity;
+import com.example.moneymanager.exception.PaymentException;
 import com.example.moneymanager.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,7 @@ import vn.payos.model.webhooks.WebhookData;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PaymentService {
     private static final String STATUS_PENDING = "PENDING";
     private static final String STATUS_PROCESSING = "PROCESSING";
@@ -80,7 +83,8 @@ public class PaymentService {
             paymentEntity = paymentRepository.save(paymentEntity);
             return toDTO(paymentEntity);
         } catch (Exception e) {
-            throw new RuntimeException("Không thể tạo liên kết thanh toán PayOS: " + e.getMessage(), e);
+            log.error("PayOS create payment error for order {}: {}", orderCode, e.getMessage(), e);
+            throw new PaymentException("Không thể tạo liên kết thanh toán. Vui lòng thử lại sau.", e);
         }
     }
 
@@ -101,7 +105,8 @@ public class PaymentService {
             paymentEntity = paymentRepository.save(paymentEntity);
             return toDTO(paymentEntity);
         } catch (Exception e) {
-            throw new RuntimeException("Không thể đồng bộ trạng thái thanh toán: " + e.getMessage(), e);
+            log.error("PayOS sync payment status error for order {}: {}", orderCode, e.getMessage(), e);
+            throw new PaymentException("Không thể đồng bộ trạng thái thanh toán. Vui lòng thử lại sau.", e);
         }
     }
 
@@ -133,7 +138,8 @@ public class PaymentService {
 
             paymentRepository.save(paymentEntity);
         } catch (Exception e) {
-            throw new RuntimeException("Không thể xử lý webhook PayOS: " + e.getMessage(), e);
+            log.error("PayOS webhook processing error: {}", e.getMessage(), e);
+            throw new PaymentException("Không thể xử lý webhook thanh toán.", e);
         }
     }
 
@@ -150,7 +156,8 @@ public class PaymentService {
         try {
             return payOS.webhooks().confirm(webhookUrl);
         } catch (Exception e) {
-            throw new RuntimeException("Không thể xác nhận webhook PayOS: " + e.getMessage(), e);
+            log.error("PayOS webhook confirm error: {}", e.getMessage(), e);
+            throw new PaymentException("Không thể xác nhận webhook. Vui lòng thử lại sau.", e);
         }
     }
 
@@ -199,7 +206,7 @@ public class PaymentService {
             activateSubscriptionIfPaid(paymentEntity, wasPaidBefore);
             paymentRepository.save(paymentEntity);
         } catch (Exception e) {
-            System.err.println("Không thể tự động đồng bộ giao dịch " + paymentEntity.getOrderCode() + ": " + e.getMessage());
+            log.warn("Auto-sync failed for order {}: {}", paymentEntity.getOrderCode(), e.getMessage());
         }
     }
 
@@ -224,7 +231,7 @@ public class PaymentService {
                             java.time.LocalDate.now()
                     );
                 } catch (Exception e) {
-                    System.err.println("Không thể sinh hóa đơn cho order " + paymentEntity.getOrderCode() + ": " + e.getMessage());
+                    log.warn("Invoice generation failed for order {}: {}", paymentEntity.getOrderCode(), e.getMessage());
                 }
             }
         }

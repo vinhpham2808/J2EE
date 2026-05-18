@@ -31,6 +31,7 @@ import PaymentCheckoutScreen from "../screens/PaymentCheckoutScreen";
 import PaymentResultScreen from "../screens/PaymentResultScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import EditProfileScreen from "../screens/EditProfileScreen";
+import ForecastScreen from "../screens/ForecastScreen";
 import OnboardingScreen, { ONBOARDING_KEY } from "../screens/OnboardingScreen";
 
 const Stack = createNativeStackNavigator();
@@ -154,6 +155,7 @@ function AppStack() {
       <Stack.Screen name="PaymentResult" component={PaymentResultScreen} options={{ title: "Kết quả thanh toán" }} />
       <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: "Hồ sơ" }} />
       <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ title: "Chỉnh sửa hồ sơ" }} />
+      <Stack.Screen name="Forecast" component={ForecastScreen} options={{ title: "Dự báo & Bất thường" }} />
     </Stack.Navigator>
   );
 }

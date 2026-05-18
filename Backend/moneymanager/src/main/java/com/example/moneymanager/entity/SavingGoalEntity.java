@@ -17,7 +17,9 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "tbl_saving_goals")
+@Table(name = "tbl_saving_goals", indexes = {
+    @Index(name = "idx_saving_goal_profile_status", columnList = "profile_id, status")
+})
 public class SavingGoalEntity {
 
     @Id
