@@ -111,6 +111,7 @@ export const API_ENDPOINTS = {
     // Document generation (Lambda)
     GENERATE_INVOICE: "/documents/invoice",
     GENERATE_EXPENSE_REPORT: "/documents/report/expense",
+    GENERATE_INCOME_REPORT: "/documents/report/income",
 
     // Image upload
     UPLOAD_IMAGE: "/files/upload",

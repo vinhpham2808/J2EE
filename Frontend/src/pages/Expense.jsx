@@ -106,16 +106,16 @@ const Expense = () => {
   const handleDownloadExpenseDetails = async () => {
     if (exportLocked) { toast.error(exportUpgradeMessage); return; }
     try {
-      const response = await axiosConfig.get(API_ENDPOINTS.EXPENSE_EXCEL_DOWNLOAD, { responseType: "blob" });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", "expense_details.xlsx");
-      document.body.appendChild(link);
-      link.click();
-      link.parentNode.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      toast.success("Đã tải báo cáo Excel về máy!");
+      const now = new Date();
+      const payload = { month: now.getMonth() + 1, year: now.getFullYear() };
+      const response = await axiosConfig.post(API_ENDPOINTS.GENERATE_EXPENSE_REPORT, payload);
+      
+      if (response.data && response.data.presignedUrl) {
+        window.open(response.data.presignedUrl, "_blank");
+        toast.success("Đã mở link tải báo cáo Excel!");
+      } else {
+        throw new Error("Không lấy được link tải báo cáo");
+      }
     } catch (error) {
       if (error.response?.status === 429) {
         // Blob is used, so we need to parse the JSON error

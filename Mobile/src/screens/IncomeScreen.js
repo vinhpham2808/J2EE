@@ -8,6 +8,7 @@ import { formatDate, formatMoney, getApiErrorMessage } from "../utils/format";
 import IncomeExpenseChart from "../components/IncomeExpenseChart";
 import { COLORS } from "../constants/colors";
 import VoiceInputButton from "../components/VoiceInputButton";
+import { downloadAndShareFile } from "../utils/fileDownload";
 
 const FILTER_TYPES = {
   current: "current",
@@ -45,6 +46,7 @@ export default function IncomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [filterType, setFilterType] = useState(FILTER_TYPES.current);
   const [selectedMonth, setSelectedMonth] = useState("");
+  const [isExporting, setIsExporting] = useState(false);
 
   const totalIncome = useMemo(() => {
     return incomes.reduce((sum, item) => sum + Number(item?.amount || 0), 0);
@@ -130,6 +132,30 @@ export default function IncomeScreen() {
     }
   };
 
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const now = new Date();
+      let payload = { month: now.getMonth() + 1, year: now.getFullYear() };
+      
+      if (filterType === FILTER_TYPES.specific && selectedMonth) {
+        const [year, month] = selectedMonth.split("-");
+        payload = { month: Number(month), year: Number(year) };
+      }
+
+      const res = await http.post(API_ENDPOINTS.EXPORT_INCOME, payload);
+      if (res.data && res.data.presignedUrl) {
+        await downloadAndShareFile(res.data.presignedUrl, `income_report_${payload.month}_${payload.year}.xlsx`);
+      } else {
+        throw new Error("Không lấy được link tải file");
+      }
+    } catch (error) {
+      Alert.alert("Lỗi xuất file", getApiErrorMessage(error, "Không thể xuất báo cáo"));
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.filterCard}>
@@ -185,6 +211,13 @@ export default function IncomeScreen() {
           </Pressable>
           <VoiceInputButton onResult={handleVoiceResult} />
         </View>
+        <Pressable 
+          style={[styles.exportButton, isExporting && { opacity: 0.7 }]} 
+          onPress={handleExport}
+          disabled={isExporting}
+        >
+          <Text style={styles.exportText}>{isExporting ? "⏳ Đang tạo báo cáo..." : "📥 Tải báo cáo tháng này"}</Text>
+        </Pressable>
       </View>
 
       <FlatList
@@ -329,6 +362,20 @@ const styles = StyleSheet.create({
     color: COLORS.WHITE,
     fontWeight: "800",
     fontSize: 15
+  },
+  exportButton: {
+    backgroundColor: COLORS.BG,
+    borderRadius: 12,
+    paddingVertical: 10,
+    alignItems: "center",
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: COLORS.PRIMARY_LIGHT
+  },
+  exportText: {
+    color: COLORS.PRIMARY,
+    fontWeight: "700",
+    fontSize: 14
   },
   listContent: {
     paddingBottom: 24

@@ -281,7 +281,7 @@ public class NotificationService {
 
     // --- Scheduled Email Jobs ---
 
-    @Scheduled(cron = "0 0 22 * * *", zone = "IST")
+    @Scheduled(cron = "0 0 22 * * *", zone = "Asia/Ho_Chi_Minh")
     public void sendDailyIncomeExpenseReminder() {
         log.info("Job started: sendDailyIncomeExpenseReminder()");
         List<ProfileEntity> profiles = profileRepository.findAll();

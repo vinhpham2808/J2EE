@@ -82,6 +82,31 @@ public class DocumentService {
     }
 
     /**
+     * Sinh báo cáo thu nhập Excel.
+     *
+     * @param email    Email khách hàng
+     * @param month    Tháng báo cáo
+     * @param year     Năm báo cáo
+     * @param incomes  Danh sách thu nhập (mỗi item là Map chứa name, amount, date, category)
+     * @return Map chứa s3Key và presignedUrl
+     */
+    public Map<String, String> generateIncomeExcelReport(
+            String email,
+            int month,
+            int year,
+            List<Map<String, Object>> incomes
+    ) {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("type", "income_report");
+        payload.put("email", email);
+        payload.put("month", month);
+        payload.put("year", year);
+        payload.put("incomes", incomes);
+
+        return invokeLambda(payload);
+    }
+
+    /**
      * Gọi AWS Lambda function "generate-and-store-document".
      * Lambda sẽ sinh file (PDF/Excel), upload lên S3, và trả về s3Key + presignedUrl.
      *
