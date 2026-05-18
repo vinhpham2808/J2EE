@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+
 import java.time.LocalDate;
 import java.util.Map;
 
@@ -101,7 +102,7 @@ public class DocumentController {
                 map.put("name", dto.getName());
                 map.put("date", dto.getDate().toString());
                 map.put("amount", dto.getAmount());
-                map.put("category", dto.getCategoryName());
+                map.put("category", dto.getCategoryName()); // Thay đổi từ categoryName thành category để khớp với Lambda
                 return map;
             }).collect(java.util.stream.Collectors.toList());
 

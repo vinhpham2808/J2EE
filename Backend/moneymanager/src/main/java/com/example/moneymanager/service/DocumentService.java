@@ -105,6 +105,7 @@ public class DocumentService {
 
         return invokeLambda(payload);
     }
+
     /**
      * Gọi AWS Lambda function "generate-and-store-document".
      * Lambda sẽ sinh file (PDF/Excel), upload lên S3, và trả về s3Key + presignedUrl.

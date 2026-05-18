@@ -20,6 +20,7 @@ export const API_ENDPOINTS = {
     GET_USER_INFO: "/profile",
     UPDATE_PROFILE: "/profile",
     UPDATE_AUTO_RENEW: "/profile/subscription/auto-renew",
+    GET_AI_USAGE: "/profile/ai-usage",
 
     // Payment endpoints
     CREATE_PAYMENT: "/payments/payos/create",
@@ -63,6 +64,10 @@ export const API_ENDPOINTS = {
     // AI assistant endpoints
     GEMINI_CHAT: "/gemini/chat",
     GEMINI_SPENDING_TIPS: "/gemini/spending-tips",
+    AI_CHAT: "/ai/chat",
+    AI_PARSE_INTENT: "/ai/parse-intent",
+    AI_CONFIRM_ACTION: "/ai/confirm-action",
+    AI_PAGE_CONTEXT: (page) => `/ai/page-context?page=${page}`,
 
     // Monthly Report endpoints
     MONTHLY_REPORT_CURRENT: "/reports/monthly",
@@ -79,6 +84,14 @@ export const API_ENDPOINTS = {
     ADMIN_USER_DETAIL: (id) => `/admin/users/${id}`,
     ADMIN_USER_UPDATE: (id) => `/admin/users/${id}`,
     ADMIN_USER_DELETE: (id) => `/admin/users/${id}`,
+    ADMIN_RESET_AI_LIMITS: (id) => `/admin/users/${id}/reset-ai-limits`,
+    ADMIN_RESET_ALL_AI_LIMITS: "/admin/reset-ai-limits/all",
+
+    // Subscription plan config endpoints
+    GET_SUBSCRIPTION_PLANS: "/subscription-plans",
+    ADMIN_CREATE_SUBSCRIPTION_PLAN: "/admin/subscription-plans",
+    ADMIN_UPDATE_SUBSCRIPTION_PLAN: (id) => `/admin/subscription-plans/${id}`,
+    ADMIN_DELETE_SUBSCRIPTION_PLAN: (id) => `/admin/subscription-plans/${id}`,
 
     // Notification endpoints
     GET_NOTIFICATIONS: "/notifications",
@@ -98,6 +111,7 @@ export const API_ENDPOINTS = {
     // Document generation (Lambda)
     GENERATE_INVOICE: "/documents/invoice",
     GENERATE_EXPENSE_REPORT: "/documents/report/expense",
+    GENERATE_INCOME_REPORT: "/documents/report/income",
 
     // Image upload
     UPLOAD_IMAGE: "/files/upload",

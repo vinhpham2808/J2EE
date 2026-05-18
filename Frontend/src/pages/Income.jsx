@@ -63,7 +63,7 @@ const Income = () => {
     if (!amount || isNaN(amount) || Number(amount) <= 0) { toast.error("Số tiền phải lớn hơn 0"); return; }
     if (!date) { toast.error("Vui lòng chọn ngày"); return; }
     const today = new Date().toISOString().split("T")[0];
-    if (date > today) { toast.error("Date cannot be in the future"); return; }
+    if (date > today) { toast.error("Ngày không được chọn ở tương lai."); return; }
     if (!categoryId) { toast.error("Vui lòng chọn danh mục"); return; }
     try {
       const response = await axiosConfig.post(API_ENDPOINTS.ADD_INCOME, { name, amount: Number(amount), date, icon, categoryId });
@@ -92,18 +92,24 @@ const Income = () => {
   const handleDownloadIncomeDetails = async () => {
     if (exportLocked) { toast.error(exportUpgradeMessage); return; }
     try {
-      const response = await axiosConfig.get(API_ENDPOINTS.INCOME_EXCEL_DOWNLOAD, { responseType: "blob" });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", "income_details.xlsx");
-      document.body.appendChild(link);
-      link.click();
-      link.parentNode.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      toast.success("Tải xuống thành công");
+      const now = new Date();
+      let payload = { month: now.getMonth() + 1, year: now.getFullYear() };
+      
+      if (filterType === "specific" && selectedMonth) {
+        const [year, month] = selectedMonth.split("-");
+        payload = { month: Number(month), year: Number(year) };
+      }
+
+      const response = await axiosConfig.post(API_ENDPOINTS.GENERATE_INCOME_REPORT, payload);
+      
+      if (response.data && response.data.presignedUrl) {
+        window.open(response.data.presignedUrl, "_blank");
+        toast.success("Đã mở link tải báo cáo Excel!");
+      } else {
+        throw new Error("Không lấy được link tải báo cáo");
+      }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to download income");
+      toast.error(error.response?.data?.message || "Lỗi khi tạo báo cáo Excel.");
     }
   };
 
@@ -113,7 +119,7 @@ const Income = () => {
       const response = await axiosConfig.get(API_ENDPOINTS.EMAIL_INCOME);
       if (response.status === 200) toast.success("Gửi email chi tiết thu nhập thành công");
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to email income");
+      toast.error(error.response?.data?.message || "Lỗi khi gửi email báo cáo.");
     }
   };
 
