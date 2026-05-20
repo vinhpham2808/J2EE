@@ -76,10 +76,10 @@ export default function MoreScreen() {
     if (!dailyReportPref) return;
     setIsUpdating(true);
     try {
-      const updatedPreferences = preferences.map(p => 
+      const updatedPreferences = preferences.map(p =>
         p.type === "DAILY_EXPENSE_REPORT" ? { ...p, isEnabled: newValue } : p
       );
-      
+
       setPreferences(updatedPreferences);
       await http.put(API_ENDPOINTS.UPDATE_EMAIL_PREFERENCES, updatedPreferences);
     } catch (error) {
@@ -107,6 +107,22 @@ export default function MoreScreen() {
         title="Thanh toán"
         description="Nâng cấp gói và kiểm tra trạng thái giao dịch"
         onPress={() => navigation.navigate("Payment")}
+      />
+
+      <View style={styles.sectionHeaderRow}>
+        <Text style={styles.sectionTitle}>AI & Phân tích chuyên sâu</Text>
+      </View>
+
+      <MenuCard
+        title="Trò chuyện AI"
+        description="Hỏi Gemini AI về quản lý chi tiêu và tiết kiệm"
+        onPress={() => navigation.navigate("Chat")}
+      />
+
+      <MenuCard
+        title="Báo cáo tài chính tháng"
+        description="Xem điểm đánh giá tài chính và cơ cấu thu chi chi tiết"
+        onPress={() => navigation.navigate("Reports")}
       />
 
       <View style={styles.sectionHeaderRow}>

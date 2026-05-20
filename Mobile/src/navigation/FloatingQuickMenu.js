@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { Animated, Easing, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../constants/colors";
 
@@ -75,6 +75,16 @@ export default function FloatingQuickMenu({ visible, onClose, onSelectRoute }) {
             <Pressable style={styles.quickMenuItem} onPress={() => onSelectRoute("Forecast")}>
               <Text style={styles.quickMenuIcon}>🔮</Text>
               <Text style={styles.quickMenuText}>Dự báo</Text>
+            </Pressable>
+
+            <Pressable style={styles.quickMenuItem} onPress={() => onSelectRoute("Reports")}>
+              <Text style={styles.quickMenuIcon}>📊</Text>
+              <Text style={styles.quickMenuText}>Báo cáo</Text>
+            </Pressable>
+
+            <Pressable style={styles.quickMenuItem} onPress={() => onSelectRoute("Chat")}>
+              <Text style={styles.quickMenuIcon}>🤖</Text>
+              <Text style={styles.quickMenuText}>AI Chat</Text>
             </Pressable>
           </View>
         </Animated.View>

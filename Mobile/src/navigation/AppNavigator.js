@@ -32,6 +32,8 @@ import PaymentResultScreen from "../screens/PaymentResultScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import EditProfileScreen from "../screens/EditProfileScreen";
 import ForecastScreen from "../screens/ForecastScreen";
+import ChatScreen from "../screens/ChatScreen";
+import ReportsScreen from "../screens/ReportsScreen";
 import OnboardingScreen, { ONBOARDING_KEY } from "../screens/OnboardingScreen";
 
 const Stack = createNativeStackNavigator();
@@ -156,6 +158,8 @@ function AppStack() {
       <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: "Hồ sơ" }} />
       <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ title: "Chỉnh sửa hồ sơ" }} />
       <Stack.Screen name="Forecast" component={ForecastScreen} options={{ title: "Dự báo & Bất thường" }} />
+      <Stack.Screen name="Chat" component={ChatScreen} options={{ title: "Gemini AI Chat" }} />
+      <Stack.Screen name="Reports" component={ReportsScreen} options={{ title: "Báo cáo tháng" }} />
     </Stack.Navigator>
   );
 }

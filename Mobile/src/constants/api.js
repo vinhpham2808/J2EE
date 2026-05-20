@@ -46,6 +46,12 @@ export const API_ENDPOINTS = {
 
   // Gemini AI
   VOICE_PARSE: "/gemini/voice-parse",
+  GEMINI_CHAT: "/gemini/chat",
+  AI_CHAT: "/ai/chat",
+
+  // Reports
+  MONTHLY_REPORT: "/reports/monthly",
+  MONTHLY_REPORT_BY_MONTH: (year, month) => `/reports/monthly/${year}/${month}`,
 
   // Categories
   GET_ALL_CATEGORIES: "/categories",
