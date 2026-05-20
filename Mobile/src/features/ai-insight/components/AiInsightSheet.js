@@ -48,6 +48,7 @@ export default function AiInsightSheet({
     <Modal
       visible={visible}
       transparent
+      statusBarTranslucent
       animationType="slide"
       onRequestClose={onClose}
     >
@@ -56,7 +57,7 @@ export default function AiInsightSheet({
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
 
         {/* Sheet */}
-        <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+        <View style={[styles.sheet, { paddingBottom: Math.max(insets?.bottom || 0, 16) }]}>
           {/* Handle bar */}
           <View style={styles.handleBar} />
 
@@ -274,6 +275,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     maxHeight: "85%",
+    width: "100%",
   },
   handleBar: {
     width: 36,
@@ -337,9 +339,8 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 
-  // Body
   body: {
-    flex: 1,
+    flexShrink: 1,
   },
   bodyContent: {
     padding: 16,

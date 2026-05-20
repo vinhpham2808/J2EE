@@ -18,11 +18,20 @@ import { COLORS } from "../../../constants/colors";
 export default function AiInsightButton({ onPress, style }) {
   const { user } = useContext(AuthContext);
   const plan = String(user?.subscriptionPlan || "FREE").toUpperCase();
-  const isPremium = plan === "PREMIUM";
+  const isPremium = plan === "PREMIUM" || plan === "BASIC";
+
+  const handlePress = () => {
+    console.log("[AiInsightButton] Clicked! User plan:", plan, "isPremium:", isPremium);
+    if (onPress) {
+      onPress();
+    } else {
+      console.warn("[AiInsightButton] onPress is not provided!");
+    }
+  };
 
   return (
     <Pressable
-      onPress={onPress}
+      onPress={handlePress}
       style={({ pressed }) => [
         styles.button,
         style,

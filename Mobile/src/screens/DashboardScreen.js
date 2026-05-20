@@ -92,12 +92,10 @@ export default function DashboardScreen() {
   const [aiLockVisible, setAiLockVisible] = useState(false);
 
   const handleAiPress = () => {
-    if (ai.isPremium) {
-      ai.openSheet();
-    } else {
-      setAiLockVisible(true);
-    }
+    console.log("[DashboardScreen] handleAiPress clicked! Calling ai.openSheet(). Hook visible state:", ai.visible);
+    ai.openSheet();
   };
+
 
   const fetchDashboard = useCallback(async () => {
     const response = await http.get(API_ENDPOINTS.DASHBOARD_DATA);
@@ -177,7 +175,7 @@ export default function DashboardScreen() {
 
         {/* Finance Overview Section */}
         <View style={styles.financeHeaderRow}>
-          <SectionHeader title="Tổng quan tài chính" />
+          <Text style={styles.sectionTitle}>Tổng quan tài chính</Text>
           <AiInsightButton onPress={handleAiPress} style={styles.aiButtonSpacing} />
         </View>
         <FinanceOverviewChart

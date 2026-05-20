@@ -1,4 +1,5 @@
 import { useCallback, useContext, useState } from "react";
+import { Alert } from "react-native";
 import { AuthContext } from "../../../components/AuthContext";
 import { fetchAiInsight, fetchDetailedAiInsight } from "../services/aiInsightApi";
 
@@ -26,10 +27,11 @@ export function useAiInsight() {
 
   // ── Permission ──────────────────────────────────────────
   const subscriptionPlan = String(user?.subscriptionPlan || "FREE").toUpperCase();
-  const isPremium = subscriptionPlan === "PREMIUM";
+  const isPremium = subscriptionPlan === "PREMIUM" || subscriptionPlan === "BASIC";
 
   // ── Open sheet ───────────────────────────────────────────
   const openSheet = useCallback(async () => {
+    console.log("[useAiInsight] openSheet callback triggered! Current visible state:", visible, "insight exists:", !!insight);
     setVisible(true);
     setError(null);
     setShowDetailed(false);
@@ -37,11 +39,16 @@ export function useAiInsight() {
     setDetailedError(null);
 
     // If already have data, just show the sheet
-    if (insight) return;
+    if (insight) {
+      console.log("[useAiInsight] insight already cached, not fetching again.");
+      return;
+    }
 
+    console.log("[useAiInsight] No cached insight. Fetching basic insight...");
     setLoading(true);
     try {
       const data = await fetchAiInsight();
+      console.log("[useAiInsight] API Success! Data returned:", data);
       if (data?.error) {
         setInsight(data);
         setError(data.insight || data.message || "Không thể tải phân tích AI.");
@@ -52,12 +59,16 @@ export function useAiInsight() {
         setError("Chưa có dữ liệu để phân tích. Hãy thêm giao dịch đầu tiên!");
       }
     } catch (err) {
+      console.error("[useAiInsight] API Error details:", err?.response || err);
       const msg =
+        err?.response?.data?.insight ||
+        err?.response?.data?.error ||
         err?.response?.data?.message ||
         err?.message ||
         "Hệ thống AI đang bảo trì, bạn quay lại sau nhé.";
       setError(msg);
     } finally {
+      console.log("[useAiInsight] openSheet API fetch finished. Setting loading to false.");
       setLoading(false);
     }
   }, [insight]);
@@ -94,7 +105,10 @@ export function useAiInsight() {
         setDetailedError("Bạn cần nâng cấp lên gói Premium để xem phân tích chi tiết.");
       } else {
         setDetailedError(
-          err?.response?.data?.message || err?.message || "Không thể tải phân tích chi tiết."
+          err?.response?.data?.message ||
+          err?.response?.data?.error ||
+          err?.message ||
+          "Không thể tải phân tích chi tiết."
         );
       }
     } finally {
@@ -119,7 +133,13 @@ export function useAiInsight() {
         setError("Chưa có dữ liệu để phân tích.");
       }
     } catch (err) {
-      setError(err?.response?.data?.message || err?.message || "Lỗi kết nối.");
+      setError(
+        err?.response?.data?.insight ||
+        err?.response?.data?.error ||
+        err?.response?.data?.message ||
+        err?.message ||
+        "Lỗi kết nối."
+      );
     } finally {
       setLoading(false);
     }
