@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { NavigationContainer, useNavigation } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Text } from "react-native";
+import { Text, Pressable, StyleSheet } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AuthContext } from "../components/AuthContext";
 import LoadingScreen from "../components/LoadingScreen";
@@ -58,14 +58,40 @@ function EmptyScreen() {
   return null;
 }
 
+function PillTabButton({ children, onPress, accessibilityState }) {
+  const focused = accessibilityState?.selected;
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.pillButton,
+        (focused || pressed) && styles.pillButtonActive,
+      ]}
+      unstable_pressDelay={0}
+    >
+      {children}
+    </Pressable>
+  );
+}
+
 function MainTabs() {
   const navigation = useNavigation();
   const [isQuickMenuVisible, setIsQuickMenuVisible] = useState(false);
 
   const openExtraScreen = (routeName) => {
     setIsQuickMenuVisible(false);
-    navigation.navigate(routeName);
+    // Map Speed Dial keys to screen names
+    const routeMap = {
+      Income: "Income",
+      Budget: "Budget",
+      Forecast: "Forecast",
+      AddExpense: "AddExpense",
+      Chat: "Chat",
+    };
+    navigation.navigate(routeMap[routeName] || routeName);
   };
+
+  const pillTabBarButton = (props) => <PillTabButton {...props} />;
 
   return (
     <>
@@ -75,26 +101,42 @@ function MainTabs() {
           tabBarActiveTintColor: COLORS.TAB_ACTIVE,
           tabBarInactiveTintColor: COLORS.TAB_INACTIVE,
           tabBarLabelStyle: {
-            fontSize: 11,
+            fontSize: 10,
             fontWeight: "600",
-            marginBottom: 4
+            marginBottom: 4,
           },
           tabBarStyle: {
-            height: 66,
+            height: 70,
             backgroundColor: COLORS.TAB_BG,
-            borderTopColor: COLORS.TAB_BORDER
+            borderTopWidth: 1,
+            borderTopColor: COLORS.TAB_BORDER,
+            borderLeftWidth: 1,
+            borderLeftColor: COLORS.TAB_BORDER,
+            borderRightWidth: 1,
+            borderRightColor: COLORS.TAB_BORDER,
+            borderRadius: 20,
+            marginHorizontal: 16,
+            marginBottom: 8,
+            paddingBottom: 6,
+            position: "absolute",
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.06,
+            shadowRadius: 8,
+            elevation: 3,
           },
           tabBarItemStyle: {
-            flex: 1
-          }
+            flex: 1,
+          },
         }}
       >
         <Tab.Screen
           name="Home"
           component={DashboardScreen}
           options={{
-            tabBarLabel: "Trang chủ",
-            tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 17, marginTop: 4 }}>🏠</Text>
+            tabBarLabel: "Home",
+            tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 17, marginTop: 4 }}>🏠</Text>,
+            tabBarButton: pillTabBarButton,
           }}
         />
 
@@ -102,8 +144,9 @@ function MainTabs() {
           name="CategoryTab"
           component={CategoryScreen}
           options={{
-            tabBarLabel: "Danh mục",
-            tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 17, marginTop: 4 }}>📂</Text>
+            tabBarLabel: "Categories",
+            tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 17, marginTop: 4 }}>📂</Text>,
+            tabBarButton: pillTabBarButton,
           }}
         />
 
@@ -113,7 +156,12 @@ function MainTabs() {
           options={{
             tabBarLabel: "",
             tabBarIcon: () => null,
-            tabBarButton: () => <FloatingTabButton onPress={() => setIsQuickMenuVisible(true)} />
+            tabBarButton: () => (
+              <FloatingTabButton
+                isOpen={isQuickMenuVisible}
+                onPress={() => setIsQuickMenuVisible((prev) => !prev)}
+              />
+            ),
           }}
         />
 
@@ -121,8 +169,9 @@ function MainTabs() {
           name="ExpenseTab"
           component={ExpenseScreen}
           options={{
-            tabBarLabel: "Chi tiêu",
-            tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 17, marginTop: 4 }}>💸</Text>
+            tabBarLabel: "Expenses",
+            tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 17, marginTop: 4 }}>💸</Text>,
+            tabBarButton: pillTabBarButton,
           }}
         />
 
@@ -130,8 +179,9 @@ function MainTabs() {
           name="SettingTab"
           component={MoreScreen}
           options={{
-            tabBarLabel: "Hồ sơ",
-            tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 17, marginTop: 4 }}>👤</Text>
+            tabBarLabel: "Profile",
+            tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 17, marginTop: 4 }}>👤</Text>,
+            tabBarButton: pillTabBarButton,
           }}
         />
       </Tab.Navigator>
@@ -294,3 +344,20 @@ export default function AppNavigator() {
     </NavigationContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  pillButton: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    marginHorizontal: 2,
+    marginVertical: 6,
+    borderRadius: 999,
+    paddingHorizontal: 5,
+    backgroundColor: "transparent",
+  },
+  pillButtonActive: {
+    backgroundColor: COLORS.TAB_ACTIVE_BG,
+    borderColor: "transparent",
+  },
+});

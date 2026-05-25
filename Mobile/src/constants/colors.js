@@ -31,10 +31,12 @@ export const COLORS = {
   TEXT_MUTED: '#B8A6AC',
 
   // ─── Tab Bar ────────────────────────────────────────────
-  TAB_BG: '#1A0F14',
-  TAB_ACTIVE: '#E8597A',
-  TAB_INACTIVE: '#8B7B80',
-  TAB_BORDER: '#3D2430',
+  TAB_BG: '#F7F6F6',
+  TAB_ACTIVE: '#9C6B4E',
+  TAB_ACTIVE_BG: '#F2F1F1',
+  TAB_INACTIVE: '#B8A6AC',
+  TAB_BORDER: 'rgba(255, 255, 255, 0.8)',
+  TAB_SHADOW: 'rgba(0, 0, 0, 0.06)',
 
   // ─── Status Colors ──────────────────────────────────────
   INCOME: '#2A9D8F',
