@@ -1,5 +1,3 @@
-// 🎨 Piggy Bank App — Rose Gold / Warm Pink Color Palette
-// Inspired by: https://dribbble.com/shots/20337752-Piggy-Bank-App-UI-Free-Figma-File
 
 export const COLORS = {
   // ─── Primary — Rose Gold / Pink ──────────────────────────

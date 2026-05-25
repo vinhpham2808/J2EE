@@ -6,6 +6,7 @@ import { API_ENDPOINTS } from "../constants/api";
 import { getApiErrorMessage } from "../utils/format";
 import { COLORS } from "../constants/colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import ScreenHeader from "../components/ScreenHeader";
 
 function meetsRequirements(password) {
   return {
@@ -97,23 +98,13 @@ export default function CreatePasswordScreen() {
         <View style={styles.bgGlowTop} />
         <View style={styles.bgGlowBottom} />
 
-      {/* Top bar with back + menu */}
-      <View style={styles.topBar}>
-        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backArrow}>←</Text>
-        </Pressable>
-        <Pressable style={styles.menuButton}>
-          <Text style={styles.menuDots}>⋯</Text>
-        </Pressable>
-      </View>
+      <ScreenHeader title="Tạo mật khẩu" theme="dark" />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>Tạo mật khẩu</Text>
-
         {/* Password input */}
         <View style={styles.inputGroup}>
           <Text style={styles.inputLabel}>Mật khẩu (bắt buộc)</Text>
@@ -199,49 +190,11 @@ const styles = StyleSheet.create({
     borderRadius: 160,
     backgroundColor: COLORS.PRIMARY_GLOW
   },
-  topBar: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 8
-  },
-  backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  backArrow: {
-    color: COLORS.DARK_TEXT,
-    fontSize: 22,
-    fontWeight: "600"
-  },
-  menuButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  menuDots: {
-    color: COLORS.DARK_TEXT,
-    fontSize: 22,
-    fontWeight: "700"
-  },
   scrollContent: {
     flexGrow: 1,
     justifyContent: "center",
     paddingHorizontal: 28,
     paddingBottom: 20
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: "700",
-    color: COLORS.DARK_TEXT,
-    marginBottom: 28,
-    textAlign: "center"
   },
   inputGroup: {
     marginBottom: 18

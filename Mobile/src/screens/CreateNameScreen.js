@@ -3,6 +3,7 @@ import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput,
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { COLORS } from "../constants/colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import ScreenHeader from "../components/ScreenHeader";
 
 export default function SetupProfileScreen() {
   const navigation = useNavigation();
@@ -30,18 +31,9 @@ export default function SetupProfileScreen() {
         <View style={styles.bgGlowTop} />
         <View style={styles.bgGlowBottom} />
 
-        <View style={styles.topBar}>
-          <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Text style={styles.backArrow}>←</Text>
-          </Pressable>
-          <Pressable style={styles.menuButton}>
-            <Text style={styles.menuDots}>⋯</Text>
-          </Pressable>
-        </View>
+        <ScreenHeader title="Nhập tên của bạn" theme="dark" />
 
         <View style={styles.body}>
-          <Text style={styles.title}>Nhập tên của bạn</Text>
-
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Họ và tên (bắt buộc)</Text>
             <View style={[styles.inputWrap, isFocused && styles.inputWrapFocused]}>
@@ -102,49 +94,11 @@ const styles = StyleSheet.create({
     borderRadius: 160,
     backgroundColor: COLORS.PRIMARY_GLOW
   },
-  topBar: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 8
-  },
-  backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  backArrow: {
-    color: COLORS.DARK_TEXT,
-    fontSize: 22,
-    fontWeight: "600"
-  },
-  menuButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  menuDots: {
-    color: COLORS.DARK_TEXT,
-    fontSize: 22,
-    fontWeight: "700"
-  },
   body: {
     flex: 1,
     justifyContent: "center",
     paddingHorizontal: 28,
     paddingBottom: 60
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: "700",
-    color: COLORS.DARK_TEXT,
-    marginBottom: 32,
-    textAlign: "center"
   },
   inputGroup: {
     marginBottom: 24

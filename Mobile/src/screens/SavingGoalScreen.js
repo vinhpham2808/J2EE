@@ -8,6 +8,7 @@ import { formatCurrencyInput, formatDate, formatMoney, getApiErrorMessage, parse
 import { PickDateField } from "../utils/pickDate";
 import { COLORS } from "../constants/colors";
 import ShowMoreButton, { useVisibleItems } from "../components/ShowMoreButton";
+import ScreenHeader from "../components/ScreenHeader";
 
 function getGoalVisual(goal) {
   const progressPercent = Number(goal?.progressPercent || 0);
@@ -408,6 +409,8 @@ export default function SavingGoalScreen() {
 
   return (
     <View style={styles.container}>
+      <ScreenHeader title="Mục tiêu tiết kiệm" theme="light" />
+
       <View style={styles.overviewCard}>
         {/* Top badge */}
         <View style={styles.overviewBadgeRow}>

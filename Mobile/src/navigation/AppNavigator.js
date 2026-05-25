@@ -163,7 +163,7 @@ function AppStack() {
       <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: "Hồ sơ" }} />
       <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ title: "Chỉnh sửa hồ sơ" }} />
       <Stack.Screen name="Forecast" component={ForecastScreen} options={{ title: "Dự báo & Bất thường" }} />
-      <Stack.Screen name="Chat" component={ChatScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Chat" component={ChatScreen} options={{ title: "AI Chat" }} />
       <Stack.Screen name="Reports" component={ReportsScreen} options={{ title: "Báo cáo tháng" }} />
       <Stack.Screen name="Jars" component={JarScreen} options={{ title: "Hũ chi tiêu" }} />
       <Stack.Screen name="JarDetail" component={JarDetailScreen} options={({ route }) => ({ title: route.params?.name || "Chi tiết hũ" })} />

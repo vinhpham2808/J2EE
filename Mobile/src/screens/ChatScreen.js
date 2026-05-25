@@ -16,7 +16,6 @@ import { AuthContext } from "../components/AuthContext";
 import { parseIntentResponse, isCrudIntent, isActionIntent, INTENT_ICONS } from "../utils/aiIntentParser";
 import http from "../services/http";
 import { API_ENDPOINTS } from "../constants/api";
-import ChatHeader from "../components/chatbotUI/ChatHeader";
 import ModeSegmentedControl from "../components/chatbotUI/ModeSegmentedControl";
 import ModelSelectorPill from "../components/chatbotUI/ModelSelectorPill";
 import MessageBubble from "../components/chatbotUI/MessageBubble";
@@ -444,8 +443,6 @@ export default function ChatScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ChatHeader onOpenSettings={openSettings} />
-
       <ModeSegmentedControl
         activeMode={activeMode}
         isFreePlan={isFreePlan}
