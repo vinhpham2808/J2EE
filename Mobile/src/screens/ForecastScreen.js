@@ -1,7 +1,6 @@
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Dimensions,
   Modal,
   Pressable,
@@ -15,7 +14,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { AuthContext } from "../components/AuthContext";
 import { COLORS } from "../constants/colors";
 import { formatMoney, formatDate } from "../utils/format";
-import { getAiForecastDraft, clearAiForecastDraft } from "../features/ai-insight/services/forecastDraftCache";
+import { getAiForecastDraft } from "../features/ai-insight/services/forecastDraftCache";
 import {
   fetchMonthlyForecast,
   fetchAnomalies,
@@ -480,27 +479,6 @@ export default function ForecastScreen() {
     setIsMonthPickerVisible(false);
   }, []);
 
-  const handleReloadPress = useCallback(() => {
-    Alert.alert(
-      "Dọn dẹp dữ liệu dự báo & bất thường",
-      "Bạn có chắc muốn dọn dẹp toàn bộ dữ liệu dự báo & bất thường? Dữ liệu sau khi xóa sẽ không thể khôi phục.",
-      [
-        { text: "Hủy", style: "cancel" },
-        {
-          text: "Dọn dẹp",
-          style: "destructive",
-          onPress: () => {
-            clearAiForecastDraft(selectedYear, selectedMonth);
-            setMonthlyForecast(null);
-            setAnomalies([]);
-            setCategoryTrend(null);
-            setInsights(null);
-          },
-        },
-      ]
-    );
-  }, [selectedMonth, selectedYear]);
-
   // ── Paywall ────────────────────────────────────────────────
   if (!isPremium) {
     return <ForecastPaywall />;
@@ -517,20 +495,6 @@ export default function ForecastScreen() {
         {/* Header with month/year selector */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>🔮 Dự báo chi tiêu</Text>
-          <Pressable
-            style={({ pressed }) => [
-              styles.reloadButton,
-              pressed && styles.reloadButtonPressed,
-              isLoading && styles.reloadButtonDisabled,
-            ]}
-            onPress={handleReloadPress}
-            disabled={isLoading}
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel="Tai lai du lieu du bao"
-          >
-            <Text style={styles.reloadIcon}>{"\u27F3"}</Text>
-          </Pressable>
         </View>
 
         <View style={styles.monthPickerRow}>
@@ -773,30 +737,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "800",
     color: COLORS.TEXT,
-  },
-  reloadButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "transparent",
-  },
-  reloadButtonPressed: {
-    opacity: 0.7,
-    transform: [{ scale: 0.96 }],
-  },
-  reloadButtonDisabled: {
-    opacity: 0.45,
-  },
-  reloadIcon: {
-    color: COLORS.PRIMARY,
-    fontSize: 24,
-    fontWeight: "800",
-    lineHeight: 24,
-    includeFontPadding: false,
-    textAlign: "center",
-    textAlignVertical: "center",
   },
   monthPickerRow: {
     alignItems: "center",
