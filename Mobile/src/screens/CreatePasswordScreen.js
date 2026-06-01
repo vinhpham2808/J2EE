@@ -6,7 +6,6 @@ import { API_ENDPOINTS } from "../constants/api";
 import { getApiErrorMessage } from "../utils/format";
 import { COLORS } from "../constants/colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import ScreenHeader from "../components/ScreenHeader";
 
 function meetsRequirements(password) {
   return {
@@ -97,8 +96,6 @@ export default function CreatePasswordScreen() {
       <View style={[styles.screen, { paddingTop: insets.top }]}>
         <View style={styles.bgGlowTop} />
         <View style={styles.bgGlowBottom} />
-
-      <ScreenHeader title="Tạo mật khẩu" theme="dark" />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}

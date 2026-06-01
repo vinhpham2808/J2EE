@@ -10,6 +10,7 @@ import { tokenStorage } from "../storage/tokenStorage";
 import { getApiErrorMessage } from "../utils/format";
 import uploadProfileImage from "../utils/uploadProfileImage";
 import { COLORS } from "../constants/colors";
+import ScreenHeader from "../components/ScreenHeader";
 
 function validateEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || "").trim());
@@ -133,6 +134,7 @@ export default function EditProfileScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: insets.top + 16 }]}>
+      <ScreenHeader title="Chỉnh sửa hồ sơ" theme="light" />
       <View style={styles.card}>
         <Text style={styles.title}>Chỉnh sửa hồ sơ</Text>
         <Text style={styles.subtitle}>Cập nhật thông tin cá nhân và mật khẩu theo nhu cầu của bạn.</Text>

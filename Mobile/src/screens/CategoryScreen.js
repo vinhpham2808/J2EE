@@ -6,6 +6,7 @@ import { API_ENDPOINTS } from "../constants/api";
 import { SUCCESS_ALERT_MESSAGES, SUCCESS_ALERT_TITLE } from "../constants/alertMessages";
 import { getApiErrorMessage } from "../utils/format";
 import { COLORS } from "../constants/colors";
+import ScreenHeader from "../components/ScreenHeader";
 import { CategoryVectorIcon, getFirstCategoryIcon, getIconColor, getIconLabel } from "../utils/VectorIcons";
 import IconPickerBottomSheet from "../components/IconPickerBottomSheet";
 import ShowMoreButton, { useVisibleItems } from "../components/ShowMoreButton";
@@ -351,6 +352,7 @@ export default function CategoryScreen() {
 
   return (
     <View style={styles.container}>
+      <ScreenHeader title="Danh mục" theme="light" />
       <View style={styles.formCard}>
         <Text style={styles.formTitle}>Thêm danh mục</Text>
         <Text style={styles.formSubtitle}>Tạo nhóm giao dịch rõ ràng để theo dõi chi tiêu tốt hơn.</Text>

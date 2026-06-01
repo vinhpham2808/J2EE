@@ -5,6 +5,7 @@ import Svg, { Path, G, Text as SvgText } from "react-native-svg";
 import http from "../services/http";
 import { API_ENDPOINTS } from "../constants/api";
 import { COLORS } from "../constants/colors";
+import ScreenHeader from "../components/ScreenHeader";
 import { getApiErrorMessage, formatDate } from "../utils/format";
 import { CategoryVectorIcon, getIconColor } from "../utils/VectorIcons";
 
@@ -238,6 +239,7 @@ export default function JarDetailScreen() {
 
   return (
     <View style={styles.container}>
+      <ScreenHeader title={selectedJar?.name || "Chi tiết hũ"} theme="light" />
       <FlatList
         data={jarExpenses}
         keyExtractor={(item) => String(item.id)}

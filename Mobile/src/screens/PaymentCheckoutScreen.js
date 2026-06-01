@@ -3,6 +3,7 @@ import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, Text, View } 
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { WebView } from "react-native-webview";
 import { COLORS } from "../constants/colors";
+import ScreenHeader from "../components/ScreenHeader";
 
 const APP_RESULT_PREFIX = "moneymanager://payment/";
 const WEB_SUCCESS_PATH = "/payment/success";
@@ -139,6 +140,7 @@ export default function PaymentCheckoutScreen() {
 
   return (
     <View style={styles.container}>
+      <ScreenHeader title="Cổng thanh toán" theme="light" />
       <View style={styles.header}>
         <View style={styles.headerTextWrap}>
           <Text style={styles.headerTitle}>{title}</Text>

@@ -5,6 +5,7 @@ import http from "../services/http";
 import { API_ENDPOINTS } from "../constants/api";
 import { PAYMENT_PLANS } from "../constants/paymentPlans";
 import { formatMoney, getApiErrorMessage } from "../utils/format";
+import ScreenHeader from "../components/ScreenHeader";
 
 export default function PaymentScreen() {
   const navigation = useNavigation();
@@ -47,6 +48,7 @@ export default function PaymentScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <ScreenHeader title="Thanh toán" theme="light" />
       <Text style={styles.title}>Nâng cấp gói dịch vụ</Text>
       <Text style={styles.subtitle}>
         Cổng thanh toán sẽ được nhúng ngay trong app. Sau khi thanh toán xong, ứng dụng sẽ chuyển thẳng đến màn hình kết quả.

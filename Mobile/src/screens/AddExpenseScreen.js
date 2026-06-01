@@ -20,6 +20,7 @@ import { SUCCESS_ALERT_MESSAGES, SUCCESS_ALERT_TITLE } from "../constants/alertM
 import { formatCurrencyInput, getApiErrorMessage, parseCurrencyInput, todayIso } from "../utils/format";
 import { PickDateField } from "../utils/pickDate";
 import { COLORS } from "../constants/colors";
+import ScreenHeader from "../components/ScreenHeader";
 import ExpenseNoteField from "../components/ExpenseNoteField";
 import CategoryGridSelector from "../components/CategoryGridSelector";
 import { parseNote, suggestCategory } from "../utils/smartNoteParser";
@@ -342,6 +343,7 @@ export default function AddExpenseScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <ScreenHeader title="Thêm chi tiêu" theme="light" />
 
       {/* ── Receipt Import Banner ── */}
       <Pressable

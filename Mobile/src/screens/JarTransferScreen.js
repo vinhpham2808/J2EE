@@ -4,6 +4,7 @@ import { useNavigation } from "@react-navigation/native";
 import http from "../services/http";
 import { API_ENDPOINTS } from "../constants/api";
 import { COLORS } from "../constants/colors";
+import ScreenHeader from "../components/ScreenHeader";
 import { formatCurrencyInput, getApiErrorMessage, parseCurrencyInput, formatMoney } from "../utils/format";
 
 export default function JarTransferScreen() {
@@ -128,6 +129,7 @@ export default function JarTransferScreen() {
 
   return (
     <View style={styles.container}>
+      <ScreenHeader title="Chuyển tiền" theme="light" />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.descText}>
           Chuyển số dư linh hoạt giữa các hũ chi tiêu để cân đối hạn mức và nguồn vốn chi tiêu của bạn.

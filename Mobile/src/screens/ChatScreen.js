@@ -11,11 +11,9 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { COLORS } from "../constants/colors";
 import ModeSegmentedControl from "../components/chatbotUI/ModeSegmentedControl";
-import ModelSelectorPill from "../components/chatbotUI/ModelSelectorPill";
 import MessageBubble from "../components/chatbotUI/MessageBubble";
 import QuickPromptChips from "../components/chatbotUI/QuickPromptChips";
 import ChatInputBar from "../components/chatbotUI/ChatInputBar";
-import ChatHeader from "../components/chatbotUI/ChatHeader";
 import useChatMessages from "../components/chatbotUI/useChatMessages";
 import useModelConfig from "../components/chatbotUI/useModelConfig";
 import useVoiceInput from "../components/chatbotUI/useVoiceInput";
@@ -29,13 +27,10 @@ export default function ChatScreen() {
     activeProvider,
     activeModel,
     activeModelLabel,
-    modelOptions,
-    modelValue,
     modelLabel,
     inputPlaceholder,
     isFreePlan,
-    handleModeSwitch,
-    handleModelChange
+    handleModeSwitch
   } = useModelConfig();
 
   const {
@@ -96,16 +91,6 @@ export default function ChatScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <ChatHeader>
-        <ModelSelectorPill
-          label={modelLabel}
-          value={modelValue}
-          options={modelOptions}
-          title={activeMode === "chat" ? "MODEL CHAT" : "MODEL AGENT"}
-          onSelect={handleModelChange}
-        />
-      </ChatHeader>
-
       <ModeSegmentedControl
         activeMode={activeMode}
         isFreePlan={isFreePlan}

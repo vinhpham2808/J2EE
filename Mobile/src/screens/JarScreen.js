@@ -5,6 +5,7 @@ import Svg, { Path, G, Text as SvgText, Defs, LinearGradient, Stop } from "react
 import http from "../services/http";
 import { API_ENDPOINTS } from "../constants/api";
 import { COLORS } from "../constants/colors";
+import ScreenHeader from "../components/ScreenHeader";
 import { AuthContext } from "../components/AuthContext";
 import { getApiErrorMessage } from "../utils/format";
 
@@ -199,6 +200,7 @@ export default function JarScreen() {
 
   return (
     <View style={styles.container}>
+      <ScreenHeader title="Hũ chi tiêu" theme="light" />
       <FlatList
         data={jars}
         keyExtractor={(item) => String(item.id)}

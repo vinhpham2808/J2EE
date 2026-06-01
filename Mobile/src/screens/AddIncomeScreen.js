@@ -8,6 +8,7 @@ import { SUCCESS_ALERT_MESSAGES, SUCCESS_ALERT_TITLE } from "../constants/alertM
 import { formatCurrencyInput, getApiErrorMessage, parseCurrencyInput, todayIso, formatMoney } from "../utils/format";
 import { PickDateField } from "../utils/pickDate";
 import { COLORS } from "../constants/colors";
+import ScreenHeader from "../components/ScreenHeader";
 import CategoryGridSelector from "../components/CategoryGridSelector";
 
 export default function AddIncomeScreen() {
@@ -201,6 +202,7 @@ export default function AddIncomeScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <ScreenHeader title="Thêm thu nhập" theme="light" />
       <Text style={styles.label}>Tên khoản thu</Text>
       <TextInput style={styles.input} value={name} onChangeText={setName} placeholder="Ví dụ: Lương tháng" />
 

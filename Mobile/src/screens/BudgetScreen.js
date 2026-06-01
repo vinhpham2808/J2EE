@@ -7,6 +7,7 @@ import { API_ENDPOINTS } from "../constants/api";
 import { SUCCESS_ALERT_MESSAGES, SUCCESS_ALERT_TITLE } from "../constants/alertMessages";
 import { formatCurrencyInput, formatMoney, getApiErrorMessage, parseCurrencyInput } from "../utils/format";
 import { COLORS } from "../constants/colors";
+import ScreenHeader from "../components/ScreenHeader";
 import { CategoryVectorIcon, getIconColor } from "../utils/VectorIcons";
 
 function getBudgetVisual(progressRatio) {
@@ -250,6 +251,7 @@ export default function BudgetScreen() {
 
   return (
     <View style={styles.container}>
+      <ScreenHeader title="Ngân sách" theme="light" />
       <View style={styles.overviewCard}>
         <Text style={styles.overviewTitle}>Ngân sách tháng</Text>
         <Text style={styles.overviewLimit}>Hạn mức: {formatMoney(summary.totalLimit)}</Text>

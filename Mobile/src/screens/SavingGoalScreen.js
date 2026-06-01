@@ -410,7 +410,6 @@ export default function SavingGoalScreen() {
   return (
     <View style={styles.container}>
       <ScreenHeader title="Mục tiêu tiết kiệm" theme="light" />
-
       <View style={styles.overviewCard}>
         {/* Top badge */}
         <View style={styles.overviewBadgeRow}>

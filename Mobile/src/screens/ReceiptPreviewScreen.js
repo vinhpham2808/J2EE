@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { COLORS } from "../constants/colors";
+import ScreenHeader from "../components/ScreenHeader";
 import { formatCurrencyInput, formatDate, formatMoney, getApiErrorMessage, parseCurrencyInput, todayIso } from "../utils/format";
 import { fetchCategoriesByType } from "../services/categoryService";
 import { confirmReceiptImport } from "../services/receiptImportService";
@@ -360,6 +361,7 @@ export default function ReceiptPreviewScreen() {
 
   return (
     <View style={styles.container}>
+      <ScreenHeader title="Xem trước hóa đơn" theme="light" />
       {/* Header Summary */}
       <View style={styles.summaryCard}>
         <Text style={styles.summaryTitle}>

@@ -14,6 +14,7 @@ import { BarChart, LineChart } from "react-native-chart-kit";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { AuthContext } from "../components/AuthContext";
 import { COLORS } from "../constants/colors";
+import ScreenHeader from "../components/ScreenHeader";
 import { formatMoney, formatDate } from "../utils/format";
 import { getAiForecastDraft } from "../ai-insight/services/forecastDraftCache";
 import {
@@ -493,10 +494,8 @@ export default function ForecastScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header with month/year selector */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>🔮 Dự báo chi tiêu</Text>
-        </View>
+        <ScreenHeader title="Dự báo & Bất thường" theme="light" />
+        
 
         <View style={styles.monthPickerRow}>
           <Pressable
@@ -727,18 +726,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
 
-  // Header
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: COLORS.TEXT,
-  },
+
   monthPickerRow: {
     alignItems: "center",
     marginBottom: 16,

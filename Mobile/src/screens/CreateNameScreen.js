@@ -3,7 +3,6 @@ import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput,
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { COLORS } from "../constants/colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import ScreenHeader from "../components/ScreenHeader";
 
 export default function SetupProfileScreen() {
   const navigation = useNavigation();
@@ -30,8 +29,6 @@ export default function SetupProfileScreen() {
       <View style={{ flex: 1, paddingTop: insets.top }}>
         <View style={styles.bgGlowTop} />
         <View style={styles.bgGlowBottom} />
-
-        <ScreenHeader title="Nhập tên của bạn" theme="dark" />
 
         <View style={styles.body}>
           <View style={styles.inputGroup}>

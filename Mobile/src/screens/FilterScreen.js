@@ -5,6 +5,7 @@ import { API_ENDPOINTS } from "../constants/api";
 import { formatDate, formatMoney, getApiErrorMessage, todayIso } from "../utils/format";
 import { PickDateField } from "../utils/pickDate";
 import { COLORS } from "../constants/colors";
+import ScreenHeader from "../components/ScreenHeader";
 
 function TransactionItem({ item, type }) {
   return (
@@ -59,6 +60,7 @@ export default function FilterScreen() {
 
   return (
     <View style={styles.container}>
+      <ScreenHeader title="Lọc giao dịch" theme="light" />
       <View style={styles.formCard}>
         <Text style={styles.formTitle}>Lọc giao dịch nâng cao</Text>
 

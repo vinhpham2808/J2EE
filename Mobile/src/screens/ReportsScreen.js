@@ -9,6 +9,7 @@ import {
   FlatList
 } from "react-native";
 import { COLORS } from "../constants/colors";
+import ScreenHeader from "../components/ScreenHeader";
 import { formatMoney } from "../utils/format";
 import { fetchCurrentMonthReport, fetchReportByMonth } from "../services/reportService";
 
@@ -109,6 +110,7 @@ export default function ReportsScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScreenHeader title="Báo cáo tháng" theme="light" />
       {/* Month Navigation */}
       <View style={styles.header}>
         <Pressable onPress={goToPrevMonth} style={styles.arrowButton}>

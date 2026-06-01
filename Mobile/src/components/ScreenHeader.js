@@ -1,120 +1,134 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../constants/colors";
 
 /**
- * ScreenHeader – Reusable header component for all screens.
+ * Reusable card-style header for app screens.
  *
  * @param {object} props
- * @param {string} props.title          – Title text displayed in the header.
+ * @param {string} props.title
  * @param {'light'|'dark'|'chat'} [props.theme='light']
- *                                      – Color theme: 'light' (main app), 'dark' (auth), 'chat' (chatbot).
- * @param {()=>void} [props.onBack]     – Custom back handler. Defaults to navigation.goBack().
- * @param {boolean} [props.showBack=true] – Whether to show the back arrow.
- * @param {React.ReactNode} [props.rightElement] – Optional element rendered on the right side.
+ * @param {React.ReactNode} [props.rightElement]
  */
 export default function ScreenHeader({
   title,
   theme = "light",
-  onBack,
-  showBack = true,
   rightElement,
 }) {
-  const navigation = useNavigation();
-
   const colors = THEME_COLORS[theme] || THEME_COLORS.light;
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.bg }]}>
-      {/* ── Left: back arrow ── */}
-      <View style={styles.leftSlot}>
-        {showBack ? (
-          <Pressable
-            style={[styles.backBtn, { backgroundColor: colors.btnBg }]}
-            onPress={onBack || (() => navigation.goBack())}
-            android_ripple={colors.ripple ? { color: colors.ripple, borderless: true, radius: 22 } : null}
-          >
-            <Text style={[styles.backArrow, { color: colors.icon }]}>←</Text>
-          </Pressable>
-        ) : (
-          <View style={styles.placeholder} />
-        )}
-      </View>
-
-      {/* ── Center: title ── */}
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.card,
+          borderLeftColor: colors.accent,
+          shadowColor: colors.shadow,
+        },
+      ]}
+    >
       <Text style={[styles.title, { color: colors.title }]} numberOfLines={1}>
         {title}
       </Text>
 
-      {/* ── Right: custom element ── */}
-      <View style={styles.rightSlot}>
-        {rightElement || <View style={styles.placeholder} />}
-      </View>
+      {rightElement ? (
+        <View style={styles.rightSlot}>
+          {rightElement}
+        </View>
+      ) : (
+        <HeaderAccent color={colors.accent} />
+      )}
     </View>
   );
 }
 
-// ─── Theme definitions ──────────────────────────────────────
+function HeaderAccent({ color }) {
+  return (
+    <View
+      style={styles.accentWrap}
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+    >
+      <View style={[styles.accentDot, styles.accentDotTop, { backgroundColor: color }]} />
+      <View style={[styles.accentDot, styles.accentDotRight, { backgroundColor: color }]} />
+      <View style={[styles.accentDot, styles.accentDotBottom, { backgroundColor: color }]} />
+      <View style={[styles.accentDot, styles.accentDotLeft, { backgroundColor: color }]} />
+    </View>
+  );
+}
+
 const THEME_COLORS = {
   light: {
-    bg: COLORS.TRANSPARENT,
+    card: COLORS.CARD,
     title: COLORS.TEXT,
-    icon: COLORS.PRIMARY,
-    btnBg: COLORS.ROSE_MIST,
+    accent: COLORS.PRIMARY,
+    shadow: COLORS.BLACK,
   },
   dark: {
-    bg: COLORS.TRANSPARENT,
+    card: COLORS.DARK_CARD_SOLID,
     title: COLORS.DARK_TEXT,
-    icon: COLORS.DARK_TEXT,
-    btnBg: COLORS.TRANSPARENT,
+    accent: COLORS.PRIMARY_LIGHT,
+    shadow: COLORS.BLACK,
   },
   chat: {
-    bg: COLORS.TRANSPARENT,
+    card: COLORS.CHAT_BUBBLE,
     title: COLORS.CHAT_TEXT,
-    icon: COLORS.CHAT_PURPLE,
-    btnBg: COLORS.TRANSPARENT,
-    ripple: COLORS.CHAT_PURPLE_LIGHT,
+    accent: COLORS.CHAT_PINK,
+    shadow: COLORS.CHAT_PURPLE,
   },
 };
 
-// ─── Styles ─────────────────────────────────────────────────
 const styles = StyleSheet.create({
   container: {
-    minHeight: 56,
-    paddingHorizontal: 8,
+    minHeight: 42,
+    borderRadius: 6,
+    borderLeftWidth: 1.5,
+    paddingHorizontal: 18,
     flexDirection: "row",
     alignItems: "center",
-  },
-  leftSlot: {
-    width: 52,
-    alignItems: "flex-start",
-    justifyContent: "center",
-  },
-  rightSlot: {
-    width: 52,
-    alignItems: "flex-end",
-    justifyContent: "center",
-  },
-  backBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  backArrow: {
-    fontSize: 22,
-    fontWeight: "600",
+    marginBottom: 14,
+    shadowOpacity: 0.14,
+    shadowRadius: 7,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 4,
   },
   title: {
     flex: 1,
     fontSize: 20,
     fontWeight: "800",
-    textAlign: "center",
+    textAlign: "left",
   },
-  placeholder: {
-    width: 44,
-    height: 44,
+  rightSlot: {
+    flexShrink: 0,
+    marginLeft: 12,
+  },
+  accentWrap: {
+    width: 18,
+    height: 18,
+    marginLeft: 12,
+    position: "relative",
+  },
+  accentDot: {
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    position: "absolute",
+  },
+  accentDotTop: {
+    top: 3,
+    left: 8,
+  },
+  accentDotRight: {
+    top: 8,
+    right: 3,
+  },
+  accentDotBottom: {
+    bottom: 3,
+    left: 8,
+  },
+  accentDotLeft: {
+    top: 8,
+    left: 3,
   },
 });

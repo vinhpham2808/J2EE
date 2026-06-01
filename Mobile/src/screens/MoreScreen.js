@@ -4,6 +4,7 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AuthContext } from "../components/AuthContext";
 import { COLORS } from "../constants/colors";
+import ScreenHeader from "../components/ScreenHeader";
 import { API_ENDPOINTS } from "../constants/api";
 import http from "../services/http";
 import { getApiErrorMessage } from "../utils/format";
@@ -113,6 +114,7 @@ export default function MoreScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: insets.top + 16 }]} showsVerticalScrollIndicator={false}>
+      <ScreenHeader title="Tiện ích khác" theme="light" />
       
       {/* Top Application Bar */}
       <View style={styles.topAppBar}>

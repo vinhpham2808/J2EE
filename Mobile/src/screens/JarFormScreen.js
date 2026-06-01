@@ -4,6 +4,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import http from "../services/http";
 import { API_ENDPOINTS } from "../constants/api";
 import { COLORS } from "../constants/colors";
+import ScreenHeader from "../components/ScreenHeader";
 import { getApiErrorMessage } from "../utils/format";
 
 const JAR_COLORS = [
@@ -104,6 +105,7 @@ export default function JarFormScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <ScreenHeader title={isEditing ? "Chỉnh sửa hũ" : "Thiết lập hũ"} theme="light" />
       <Text style={styles.label}>Tên hũ chi tiêu</Text>
       <TextInput
         style={[styles.input, isParentWallet && styles.disabledInput]}

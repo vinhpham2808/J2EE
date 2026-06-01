@@ -7,6 +7,7 @@ import { SUCCESS_ALERT_MESSAGES, SUCCESS_ALERT_TITLE } from "../constants/alertM
 import { formatDate, formatMoney, getApiErrorMessage } from "../utils/format";
 import IncomeExpenseChart from "../components/IncomeExpenseChart";
 import { COLORS } from "../constants/colors";
+import ScreenHeader from "../components/ScreenHeader";
 import VoiceInputButton from "../components/VoiceInputButton";
 import { downloadAndShareFile } from "../utils/fileDownload";
 
@@ -146,6 +147,7 @@ export default function IncomeScreen() {
 
   return (
     <View style={styles.container}>
+      <ScreenHeader title="Thu nhập" theme="light" />
       <View style={styles.filterCard}>
         <Text style={styles.filterTitle}>Khung thời gian</Text>
         <View style={styles.filterRow}>

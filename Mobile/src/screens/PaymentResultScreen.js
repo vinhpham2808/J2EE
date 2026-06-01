@@ -6,6 +6,7 @@ import { API_ENDPOINTS } from "../constants/api";
 import http from "../services/http";
 import { formatMoney, getApiErrorMessage } from "../utils/format";
 import { COLORS } from "../constants/colors";
+import ScreenHeader from "../components/ScreenHeader";
 
 const PAYMENT_STATUS_LABELS = {
   PAID: "Đã thanh toán thành công",
@@ -78,6 +79,7 @@ export default function PaymentResultScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <ScreenHeader title="Kết quả thanh toán" theme="light" />
       <View style={styles.statusCard}>
         <Text style={styles.sectionTitle}>Trạng thái hiện tại</Text>
         <Text style={[styles.statusValue, displayStatus === "PAID" ? styles.statusPaid : styles.statusNormal]}>
