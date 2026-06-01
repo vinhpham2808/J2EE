@@ -3,7 +3,7 @@
  *
  * Usage in DashboardScreen.js:
  *
- *   import { AiInsightButton, AiInsightSheet, AiInsightLockedModal, useAiInsight } from "../features/ai-insight";
+ *   import { AiInsightButton, AiInsightSheet, AiInsightLockedModal, useAiInsight } from "../ai-insight";
  *
  *   const ai = useAiInsight();
  *

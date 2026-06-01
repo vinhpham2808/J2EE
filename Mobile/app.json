@@ -18,6 +18,7 @@
     ],
     "android": {
       "package": "com.money.manager.mobile",
+      "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/applogo.png",
         "backgroundColor": "#ffffff"
@@ -57,7 +58,8 @@
             "com.google.android.googlequicksearchbox"
           ]
         }
-      ]
+      ],
+      "expo-font"
     ],
     "extra": {
       "eas": {

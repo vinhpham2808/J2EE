@@ -15,7 +15,7 @@ import {
   AiInsightSheet,
   AiInsightLockedModal,
   useAiInsight,
-} from "../features/ai-insight";
+} from "../ai-insight";
 import ShowMoreButton, { useVisibleItems } from "../components/ShowMoreButton";
 
 function SectionHeader({ title, onMore, moreLabel = "Xem thêm" }) {

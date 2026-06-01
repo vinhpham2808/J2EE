@@ -22,8 +22,9 @@ COMMANDCODE.md
 .github/agents/
 .github/skills/
 
-# RTK / Antigravity agent rules (local only)
 .agents/
+!.agents/skills/ 
+.milens/
 
 
 # === Environment files (ALL levels — never commit secrets) ===
@@ -45,6 +46,7 @@ Backend/moneymanager/.project
 Backend/moneymanager/.settings/
 *.class
 *.jar
+!**/gradle/wrapper/gradle-wrapper.jar
 *.war
 *.ear
 *.log

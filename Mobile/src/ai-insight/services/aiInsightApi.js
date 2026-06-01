@@ -1,5 +1,5 @@
-import http from "../../../services/http";
-import { API_ENDPOINTS } from "../../../constants/api";
+import http from "../../services/http";
+import { API_ENDPOINTS } from "../../constants/api";
 
 /**
  * Fetch basic AI insight summary for the current month.

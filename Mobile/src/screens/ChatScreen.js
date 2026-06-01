@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useContext } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   StyleSheet,
   Text,
@@ -7,422 +7,82 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  Alert
+  SafeAreaView
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { COLORS } from "../constants/colors";
-import { sendAiChat, parseAiIntent, confirmAiAction, undoAiAction } from "../services/aiService";
-import { AuthContext } from "../components/AuthContext";
-import { parseIntentResponse, isCrudIntent, isActionIntent, INTENT_ICONS } from "../utils/aiIntentParser";
-import http from "../services/http";
-import { API_ENDPOINTS } from "../constants/api";
 import ModeSegmentedControl from "../components/chatbotUI/ModeSegmentedControl";
 import ModelSelectorPill from "../components/chatbotUI/ModelSelectorPill";
 import MessageBubble from "../components/chatbotUI/MessageBubble";
 import QuickPromptChips from "../components/chatbotUI/QuickPromptChips";
 import ChatInputBar from "../components/chatbotUI/ChatInputBar";
-import ChatHeader from "../components/chatbotUI/ChatHeader";
-
-// ─── Helpers ───────────────────────────────────────────────
-
-const getCurrentTimeLabel = () =>
-  new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+import useChatMessages from "../components/chatbotUI/useChatMessages";
+import useModelConfig from "../components/chatbotUI/useModelConfig";
+import useVoiceInput from "../components/chatbotUI/useVoiceInput";
 
 export default function ChatScreen() {
-  const { user } = useContext(AuthContext);
-  const insets = useSafeAreaInsets();
+  const {
+    activeMode,
+    activeProvider,
+    activeModel,
+    activeModelLabel,
+    modelOptions,
+    modelValue,
+    modelLabel,
+    inputPlaceholder,
+    isFreePlan,
+    handleModeSwitch,
+    handleModelChange
+  } = useModelConfig();
 
-  // Subscription status checking
-  const isFreePlan = !user?.subscriptionPlan || user?.subscriptionPlan === "FREE";
-  const isBasicPlan = user?.subscriptionPlan === "BASIC";
-  const isPremiumPlan = user?.subscriptionPlan === "PREMIUM";
+  const {
+    messages,
+    loading,
+    chatBusy,
+    hasUserStartedChat,
+    isProcessingCrud,
+    flatListRef,
+    sendMessage,
+    handleConfirmAction,
+    handleCancelConfirmation,
+    handleUndo
+  } = useChatMessages({ activeMode, activeProvider, activeModel, activeModelLabel });
 
-  // Mode and Provider state
-  const [activeMode, setActiveMode] = useState("chat"); // "chat" | "agent"
-  const [chatModel, setChatModel] = useState("gptoss"); // "gptoss"
-  const [agentModel, setAgentModel] = useState("gemini"); // "gemini"
+  const handleVoiceResult = useCallback((transcript) => {
+    setInputText((prev) => {
+      const trimmed = transcript.trim();
+      return prev ? `${prev} ${trimmed}` : trimmed;
+    });
+  }, []);
 
-  const [messages, setMessages] = useState([
-    {
-      id: "welcome",
-      text: "Xin chào! Tôi là Nova Money - Trợ lý AI của Money Manager. Tôi có thể trò chuyện, tư vấn tài chính, hoặc tự động thao tác dữ liệu giúp bạn ở chế độ Agent.",
-      sender: "bot",
-      time: getCurrentTimeLabel()
-    }
-  ]);
+  const {
+    isRecording,
+    handleMicPress
+  } = useVoiceInput({ language: "vi-VN", onResult: handleVoiceResult });
+
   const [inputText, setInputText] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [isProcessingCrud, setIsProcessingCrud] = useState(false);
-  const [pendingIntent, setPendingIntent] = useState(null);
-  const flatListRef = useRef(null);
 
   useEffect(() => {
-    if (!isPremiumPlan) {
-      setActiveMode("chat"); // Free/Basic default to chat
-    }
-  }, [user?.subscriptionPlan]);
-
-  const getActiveParams = () => {
-    const activeProvider = activeMode === "agent"
-      ? (agentModel === "ninerouter" ? "ninerouter" : "gemini")
-      : (chatModel === "ninerouter" ? "ninerouter" : "gptoss");
-      
-    const activeModel = activeMode === "agent"
-      ? (agentModel === "ninerouter" ? "gemma4-31B" : "gemini-3.1-flash-lite")
-      : (chatModel === "ninerouter" ? "project-demo" : "gpt-oss-120b");
-
-    const activeModelLabel = activeMode === "agent"
-      ? (agentModel === "ninerouter" ? "Nova Lite" : "Gemini 3.1 Flash")
-      : (chatModel === "ninerouter" ? "Nova Lite" : "GPT-OSS 120B");
-
-    return { activeProvider, activeModel, activeModelLabel };
-  };
-
-  const buildHistory = (msgs) => {
-    return msgs
-      .filter((m) => m.id !== "welcome" && !m.isSystem && !m.isIntent && !m.isConfirmation)
-      .slice(-20)
-      .map((m) => ({
-        role: m.sender === "user" ? "user" : "assistant",
-        content: m.text
-      }));
-  };
-
-  const sendMessage = async (textToSend) => {
-    const trimmedText = textToSend.trim();
-    if (!trimmedText || loading) return;
-
-    if (pendingIntent) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `system-warn-${Date.now()}`,
-          text: "⚠️ Vui lòng xác nhận hoặc hủy thao tác hiện tại trước khi gửi lệnh mới.",
-          sender: "bot",
-          isSystem: true,
-          time: getCurrentTimeLabel()
-        }
-      ]);
-      return;
-    }
-
-    const { activeProvider, activeModel, activeModelLabel } = getActiveParams();
-
-    const userMessage = {
-      id: String(Date.now()),
-      text: trimmedText,
-      sender: "user",
-      time: getCurrentTimeLabel()
-    };
-
-    const updatedMessages = [...messages, userMessage];
-    setMessages(updatedMessages);
-    setInputText("");
-    setLoading(true);
-
-    try {
-      const history = buildHistory(updatedMessages);
-
-      if (activeMode === "chat") {
-        const response = await sendAiChat(history, activeProvider, activeModel);
-        const botMessage = {
-          id: String(Date.now() + 1),
-          text: response?.reply || "Tôi đã nhận câu hỏi nhưng hiện chưa tạo được câu trả lời phù hợp.",
-          sender: "bot",
-          modelLabel: activeModelLabel,
-          time: getCurrentTimeLabel()
-        };
-        setMessages((prev) => [...prev, botMessage]);
-      } else {
-        // Agent Mode: Parse intent first
-        const intentResponse = await parseAiIntent(
-          trimmedText,
-          "dashboard", // Context page on mobile
-          history,
-          activeProvider,
-          activeModel
-        );
-
-        const parsed = parseIntentResponse(intentResponse);
-
-        if (isCrudIntent(parsed.intent) || isActionIntent(parsed.intent)) {
-          setPendingIntent(parsed);
-          const intentMessage = {
-            id: String(Date.now() + 1),
-            sender: "bot",
-            isIntent: true,
-            intent: parsed.intent,
-            extractedFields: parsed.extractedFields,
-            suggestedValues: parsed.suggestedValues,
-            confirmationPrompt: parsed.confirmationPrompt,
-            time: getCurrentTimeLabel()
-          };
-          setMessages((prev) => [...prev, intentMessage]);
-        } else if (parsed.intent === "ANSWER_QUESTION") {
-          const botMessage = {
-            id: String(Date.now() + 1),
-            text: parsed.answer || intentResponse?.reply || "Tôi đã nhận câu hỏi nhưng chưa tạo được câu trả lời phù hợp.",
-            sender: "bot",
-            modelLabel: activeModelLabel,
-            time: getCurrentTimeLabel()
-          };
-          setMessages((prev) => [...prev, botMessage]);
-        } else if (parsed.intent === "INVALID_REQUEST") {
-          const botMessage = {
-            id: String(Date.now() + 1),
-            text: parsed.validationErrors?.[0] || "Yêu cầu không hợp lệ hoặc ngoài phạm vi hỗ trợ.",
-            sender: "bot",
-            isError: true,
-            time: getCurrentTimeLabel()
-          };
-          setMessages((prev) => [...prev, botMessage]);
-        } else {
-          // Fallback to chat API
-          const response = await sendAiChat(history, activeProvider, activeModel);
-          const botMessage = {
-            id: String(Date.now() + 1),
-            text: response?.reply || "Tôi đã nhận câu hỏi nhưng hiện chưa tạo được câu trả lời phù hợp.",
-            sender: "bot",
-            modelLabel: activeModelLabel,
-            time: getCurrentTimeLabel()
-          };
-          setMessages((prev) => [...prev, botMessage]);
-        }
-      }
-    } catch (error) {
-      const errorMsg = error.response?.data?.message || "Không thể xử lý yêu cầu. Vui lòng thử lại sau.";
-      const errorMessage = {
-        id: String(Date.now() + 1),
-        text: errorMsg,
-        sender: "bot",
-        isError: true,
-        time: getCurrentTimeLabel()
-      };
-      setMessages((prev) => [...prev, errorMessage]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const executeExportAction = async (intent) => {
-    if (intent === "EXPORT_EXCEL_INCOME" || intent === "EXPORT_EXCEL_EXPENSE") {
-      const endpoint = intent === "EXPORT_EXCEL_INCOME"
-        ? API_ENDPOINTS.INCOME_EXCEL_DOWNLOAD
-        : API_ENDPOINTS.EXPENSE_EXCEL_DOWNLOAD;
-      
-      // On mobile, trigger get excel report API
-      await http.get(endpoint);
-      return intent === "EXPORT_EXCEL_INCOME"
-        ? "📥 Đã chuẩn bị báo cáo Excel thu nhập tháng này!"
-        : "📥 Đã chuẩn bị báo cáo Excel chi tiêu tháng này!";
-    }
-    if (intent === "EMAIL_INCOME_REPORT" || intent === "EMAIL_EXPENSE_REPORT") {
-      const endpoint = intent === "EMAIL_INCOME_REPORT"
-        ? API_ENDPOINTS.EMAIL_INCOME
-        : API_ENDPOINTS.EMAIL_EXPENSE;
-      await http.get(endpoint);
-      return intent === "EMAIL_INCOME_REPORT"
-        ? "📧 Đã gửi báo cáo thu nhập tháng này đến email của bạn!"
-        : "📧 Đã gửi báo cáo chi tiêu tháng này đến email của bạn!";
-    }
-    throw new Error("Không xác định được hành động.");
-  };
-
-  const handleConfirmAction = async (intent, confirmedData) => {
-    setIsProcessingCrud(true);
-    try {
-      let resultContent;
-      let undoData = null;
-
-      if (isActionIntent(intent)) {
-        resultContent = await executeExportAction(intent);
-      } else {
-        const data = await confirmAiAction(intent, confirmedData);
-        const intentIcon = INTENT_ICONS[intent] || "✅";
-        resultContent = `${intentIcon} ${data.message || "Thao tác thành công!"}`;
-        if (data.undoable && data.operationId) {
-          undoData = data;
-        }
-      }
-
-      setMessages((prev) => prev.map((m) => m.isIntent ? { ...m, isConfirmation: true } : m));
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `result-${Date.now()}`,
-          text: resultContent,
-          sender: "bot",
-          isSystem: true,
-          time: getCurrentTimeLabel()
-        }
-      ]);
-
-      if (undoData) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `undo-${Date.now()}`,
-            sender: "bot",
-            isUndoAction: true,
-            operationId: undoData.operationId,
-            text: "Bạn có thể hoàn tác thao tác này trong vòng vài phút.",
-            time: getCurrentTimeLabel()
-          }
-        ]);
-      }
-    } catch (error) {
-      const errorMsg = error.response?.data?.message || "Không thể thực hiện thao tác.";
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `result-error-${Date.now()}`,
-          text: `❌ Lỗi: ${errorMsg}`,
-          sender: "bot",
-          isError: true,
-          time: getCurrentTimeLabel()
-        }
-      ]);
-    } finally {
-      setIsProcessingCrud(false);
-      setPendingIntent(null);
-    }
-  };
-
-  const handleCancelConfirmation = () => {
-    setPendingIntent(null);
-    setMessages((prev) => prev.map((m) => m.isIntent ? { ...m, isConfirmation: true } : m));
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: `cancel-${Date.now()}`,
-        text: "Đã hủy thao tác.",
-        sender: "bot",
-        isSystem: true,
-        time: getCurrentTimeLabel()
-      }
-    ]);
-  };
-
-  const handleUndo = async (operationId) => {
-    try {
-      await undoAiAction(operationId);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `undo-result-${Date.now()}`,
-          text: "↩️ Đã hoàn tác thao tác thành công.",
-          sender: "bot",
-          isSystem: true,
-          time: getCurrentTimeLabel()
-        }
-      ]);
-    } catch (e) {
-      Alert.alert("Lỗi hoàn tác", "Không thể hoàn tác. Có thể đã quá thời gian cho phép.");
-    }
-  };
-
-  const handleModeSwitch = (mode) => {
-    if (mode === activeMode) return;
-
-    if (mode === "agent" && isFreePlan) {
-      Alert.alert(
-        "Yêu cầu gói BASIC trở lên",
-        "Tính năng Agent của Nova Money (Tạo/sửa/xóa dữ liệu tự động) chỉ khả dụng cho gói BASIC trở lên. Vui lòng nâng cấp gói để sử dụng.",
-        [{ text: "Đóng", style: "cancel" }]
-      );
-      return;
-    }
-
-    setActiveMode(mode);
-  };
-
-  const handleModelChange = (model) => {
-    if (activeMode === "chat") {
-      if (model === chatModel) return;
-      if (!isPremiumPlan && model !== "ninerouter") return;
-
-      setChatModel(model);
-    } else {
-      if (model === agentModel) return;
-      if (!isPremiumPlan && model !== "ninerouter") return;
-
-      setAgentModel(model);
-    }
-  };
-
-  useEffect(() => {
-    // Scroll to bottom
     setTimeout(() => {
       flatListRef.current?.scrollToEnd({ animated: true });
     }, 100);
-  }, [messages, loading]);
+  }, [messages, chatBusy]);
 
-  // ─── Derived helpers ────────────────────────────────────
+  const handleInputChange = useCallback((text) => {
+    if (chatBusy) return;
+    setInputText(text);
+  }, [chatBusy]);
 
-  const getModelLabel = () => getActiveParams().activeModelLabel;
+  const handleSend = useCallback(() => {
+    if (!inputText.trim()) return;
+    sendMessage(inputText);
+    setInputText("");
+  }, [inputText, sendMessage]);
 
-  const getModelValue = () => (activeMode === "chat" ? chatModel : agentModel);
-
-  const getModelSelectorTitle = () => (activeMode === "chat" ? "MODEL CHAT" : "MODEL AGENT");
-
-  const getModelOptions = () => {
-    if (activeMode === "chat") {
-      return [
-        {
-          label: "Nova Lite",
-          value: "ninerouter",
-          icon: "✦",
-          description: "Nhanh · tiết kiệm",
-        },
-        {
-          label: "GPT-OSS 120B",
-          value: "gptoss",
-          icon: "✧",
-          description: "Mạnh · phân tích sâu",
-          disabled: !isPremiumPlan,
-          badge: !isPremiumPlan ? "PREMIUM" : null,
-        },
-      ];
-    }
-
-    return [
-      {
-        label: "Gemini 3.1 Flash",
-        value: "gemini",
-        icon: "🤖",
-        description: "Nhanh · thông minh · tiết kiệm",
-        disabled: !isPremiumPlan,
-        badge: !isPremiumPlan ? "PREMIUM" : null,
-      },
-      {
-        label: "Nova Lite",
-        value: "ninerouter",
-        icon: "✦",
-        description: "Nhanh · tiết kiệm",
-      },
-    ];
-  };
-
-  const getInputPlaceholder = () => {
-    if (activeMode === "agent") {
-      return "Tạo/sửa/xóa dữ liệu, xuất excel...";
-    }
-    return "Trò chuyện, hỏi đáp tài chính...";
-  };
-
-  const hasUserStartedChat = messages.some((m) => m.sender === "user");
-
-  const handleQuickPrompt = (prompt) => {
+  const handleQuickPrompt = useCallback((prompt) => {
     sendMessage(prompt.text);
-  };
+  }, [sendMessage]);
 
-  const openSettings = () => {
-    Alert.alert("Cài đặt", "Tính năng cài đặt chat đang được phát triển.", [
-      { text: "Đóng", style: "cancel" },
-    ]);
-  };
-
-  const renderMessage = ({ item }) => (
+  const renderMessage = useCallback(({ item }) => (
     <MessageBubble
       message={item}
       onConfirm={handleConfirmAction}
@@ -430,28 +90,22 @@ export default function ChatScreen() {
       onUndo={handleUndo}
       isProcessing={isProcessingCrud}
     />
-  );
-
-  // ─── Render ─────────────────────────────────────────────
+  ), [handleConfirmAction, handleCancelConfirmation, handleUndo, isProcessingCrud]);
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      {/* Header with Model Selector in top-right */}
-      <ChatHeader>
-        <ModelSelectorPill
-          label={getModelLabel()}
-          value={getModelValue()}
-          options={getModelOptions()}
-          title={getModelSelectorTitle()}
-          onSelect={handleModelChange}
-        />
-      </ChatHeader>
-
-      {/* Mode switcher tabs */}
+    <SafeAreaView style={styles.container}>
       <ModeSegmentedControl
         activeMode={activeMode}
         isFreePlan={isFreePlan}
         onChangeMode={handleModeSwitch}
+      />
+
+      <ModelSelectorPill
+        label={modelLabel}
+        value={modelValue}
+        options={modelOptions}
+        title={activeMode === "chat" ? "MODEL CHAT" : "MODEL AGENT"}
+        onSelect={handleModelChange}
       />
 
       <KeyboardAvoidingView
@@ -468,61 +122,62 @@ export default function ChatScreen() {
           ListFooterComponent={
             loading ? (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator color={COLORS.PRIMARY} size="small" />
+                <ActivityIndicator color={COLORS.CHAT_PURPLE} size="small" />
                 <Text style={styles.loadingText}>
-                  {getModelLabel()} đang suy nghĩ...
+                  {modelLabel} đang suy nghĩ...
                 </Text>
               </View>
             ) : null
           }
         />
 
-        {!hasUserStartedChat && !loading && (
+        {!hasUserStartedChat && !chatBusy && (
           <QuickPromptChips onSelect={handleQuickPrompt} />
         )}
 
         <ChatInputBar
           value={inputText}
-          onChangeText={setInputText}
-          onSend={() => sendMessage(inputText)}
-          placeholder={getInputPlaceholder()}
+          onChangeText={handleInputChange}
+          onSend={handleSend}
+          placeholder={inputPlaceholder}
           loading={loading}
+          disabled={chatBusy}
+          onMicPress={handleMicPress}
+          isRecording={isRecording}
         />
       </KeyboardAvoidingView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.BG
+    backgroundColor: COLORS.CHAT_BG,
   },
   keyboardView: {
-    flex: 1
+    flex: 1,
   },
   listContent: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 24
+    paddingHorizontal: 24,
+    paddingTop: 28,
+    paddingBottom: 20,
   },
   loadingContainer: {
     flexDirection: "row",
     alignItems: "center",
     alignSelf: "flex-start",
-    backgroundColor: COLORS.CARD,
+    backgroundColor: COLORS.CHAT_BUBBLE,
     borderWidth: 1,
-    borderColor: COLORS.CARD_BORDER,
-    borderRadius: 18,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    borderColor: COLORS.CHAT_BORDER,
+    borderRadius: 22,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     gap: 8,
-    marginTop: 8,
-    marginLeft: 14
+    marginTop: 6,
   },
   loadingText: {
-    color: COLORS.TEXT_SECONDARY,
+    color: COLORS.CHAT_MUTED,
     fontSize: 12,
-    fontWeight: "500"
-  }
+  },
 });

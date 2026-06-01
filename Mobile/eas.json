@@ -5,15 +5,26 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "http://192.168.2.7:8080/api/v1.0",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "701235381529-glfajhd2so3m67epoqh91jsqb4t48kg1.apps.googleusercontent.com"
+      }
     },
     "preview": {
       "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "http://192.168.2.7:8080/api/v1.0",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "701235381529-glfajhd2so3m67epoqh91jsqb4t48kg1.apps.googleusercontent.com"
+      },
       "android": {
         "buildType": "apk"
       }
     },
     "production": {
+      "env": {
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "701235381529-glfajhd2so3m67epoqh91jsqb4t48kg1.apps.googleusercontent.com"
+      },
       "android": {
         "buildType": "app-bundle"
       }

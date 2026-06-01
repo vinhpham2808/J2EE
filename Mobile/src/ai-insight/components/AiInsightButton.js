@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { AuthContext } from "../../../components/AuthContext";
-import { COLORS } from "../../../constants/colors";
+import { AuthContext } from "../../components/AuthContext";
+import { COLORS } from "../../constants/colors";
 
 /**
  * Small AI Insight icon button placed next to section headers.

@@ -1,5 +1,5 @@
 import { useCallback, useContext, useMemo, useState } from "react";
-import { AuthContext } from "../../../components/AuthContext";
+import { AuthContext } from "../../components/AuthContext";
 import { fetchAiForecast } from "../services/aiInsightApi";
 import { saveAiForecastDraft } from "../services/forecastDraftCache";
 

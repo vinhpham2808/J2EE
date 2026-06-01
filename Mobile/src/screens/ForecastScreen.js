@@ -15,7 +15,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { AuthContext } from "../components/AuthContext";
 import { COLORS } from "../constants/colors";
 import { formatMoney, formatDate } from "../utils/format";
-import { getAiForecastDraft } from "../features/ai-insight/services/forecastDraftCache";
+import { getAiForecastDraft } from "../ai-insight/services/forecastDraftCache";
 import {
   fetchMonthlyForecast,
   fetchAnomalies,

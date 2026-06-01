@@ -2,13 +2,13 @@ import React, { useMemo } from "react";
 import {
   ActivityIndicator,
   Modal,
-  Pressable,
+  Pressable, 
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
-import { COLORS } from "../../../constants/colors";
+import { COLORS } from "../../constants/colors";
 
 export default function AiInsightSheet({
   visible,

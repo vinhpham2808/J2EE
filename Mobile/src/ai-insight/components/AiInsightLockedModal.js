@@ -1,7 +1,7 @@
 import React from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { COLORS } from "../../../constants/colors";
+import { COLORS } from "../../constants/colors";
 
 /**
  * Modal hiển thị khi user FREE/BASIC bấm vào AI Insight icon.
