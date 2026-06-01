@@ -1,15 +1,16 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { Alert, FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import http from "../services/http";
 import { API_ENDPOINTS } from "../constants/api";
 import { SUCCESS_ALERT_MESSAGES, SUCCESS_ALERT_TITLE } from "../constants/alertMessages";
 import { formatDate, formatMoney, getApiErrorMessage } from "../utils/format";
 import IncomeExpenseChart from "../components/IncomeExpenseChart";
 import { COLORS } from "../constants/colors";
-import ScreenHeader from "../components/ScreenHeader";
 import VoiceInputButton from "../components/VoiceInputButton";
 import { downloadAndShareFile } from "../utils/fileDownload";
+import { getSafeAreaBottom, getSafeAreaTop } from "../utils/safeAreaSpacing";
 
 const FILTER_TYPES = {
   current: "current",
@@ -47,6 +48,7 @@ function IncomeItem({ item, onDelete }) {
 
 export default function IncomeScreen() {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const [incomes, setIncomes] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [filterType, setFilterType] = useState(FILTER_TYPES.current);
@@ -146,8 +148,7 @@ export default function IncomeScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <ScreenHeader title="Thu nhập" theme="light" />
+    <View style={[styles.container, { paddingTop: getSafeAreaTop(insets) }]}>
       <View style={styles.filterCard}>
         <Text style={styles.filterTitle}>Khung thời gian</Text>
         <View style={styles.filterRow}>
@@ -203,7 +204,7 @@ export default function IncomeScreen() {
         data={incomes}
         keyExtractor={(item) => String(item?.id)}
         renderItem={({ item }) => <IncomeItem item={item} onDelete={onDelete} />}
-        contentContainerStyle={[styles.listContent, !incomes.length && styles.listContentEmpty]}
+        contentContainerStyle={[styles.listContent, { paddingBottom: getSafeAreaBottom(insets) }, !incomes.length && styles.listContentEmpty]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         ListHeaderComponent={
           incomes.length ? (
@@ -234,7 +235,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.BG,
     padding: 16,
-    paddingTop: 24
+    paddingTop: 16
   },
   filterCard: {
     backgroundColor: COLORS.CARD,

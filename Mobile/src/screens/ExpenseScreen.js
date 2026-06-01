@@ -1,6 +1,7 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { ActivityIndicator, Alert, FlatList, Pressable, RefreshControl, StyleSheet, Text, TextInput, View } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import http from "../services/http";
@@ -16,6 +17,7 @@ import { AuthContext } from "../components/AuthContext";
 import { analyzeReceiptFile } from "../services/receiptImportService";
 import ShowMoreButton, { useVisibleItems } from "../components/ShowMoreButton";
 import QuickExpenseTemplates from "../components/QuickExpenseTemplates";
+import { getSafeAreaBottom, getSafeAreaTop } from "../utils/safeAreaSpacing";
 
 const FILTER_TYPES = {
   current: "current",
@@ -94,6 +96,7 @@ function ExpenseItem({ item, onDelete, searchKeyword }) {
 
 export default function ExpenseScreen() {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const { user } = useContext(AuthContext);
   const [expenses, setExpenses] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -345,7 +348,7 @@ export default function ExpenseScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: getSafeAreaTop(insets) }]}>
       <View style={styles.filterCard}>
         <Text style={styles.filterTitle}>Khung thời gian</Text>
         <View style={styles.filterRow}>
@@ -438,7 +441,7 @@ export default function ExpenseScreen() {
         renderItem={({ item }) => (
           <ExpenseItem item={item} onDelete={onDelete} searchKeyword={searchQuery.trim()} />
         )}
-        contentContainerStyle={[styles.listContent, !filteredExpenses.length && styles.listContentEmpty]}
+        contentContainerStyle={[styles.listContent, { paddingBottom: getSafeAreaBottom(insets) }, !filteredExpenses.length && styles.listContentEmpty]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         ListHeaderComponent={
           filteredExpenses.length ? (

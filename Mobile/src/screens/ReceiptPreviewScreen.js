@@ -11,8 +11,8 @@ import {
   View,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { COLORS } from "../constants/colors";
-import ScreenHeader from "../components/ScreenHeader";
 import { formatCurrencyInput, formatDate, formatMoney, getApiErrorMessage, parseCurrencyInput, todayIso } from "../utils/format";
 import { fetchCategoriesByType } from "../services/categoryService";
 import { confirmReceiptImport } from "../services/receiptImportService";
@@ -20,6 +20,7 @@ import { PickDateField } from "../utils/pickDate";
 import { CategoryVectorIcon, getIconColor } from "../utils/VectorIcons";
 import http from "../services/http";
 import { API_ENDPOINTS } from "../constants/api";
+import { getSafeAreaBottom, getSafeAreaTop } from "../utils/safeAreaSpacing";
 
 // ═══════════════════════════════════════════════════════════
 // Category Picker Modal cho từng item
@@ -182,6 +183,7 @@ function ReceiptItemRow({ item, index, categories, onUpdate, onDelete }) {
 export default function ReceiptPreviewScreen() {
   const navigation = useNavigation();
   const route = useRoute();
+  const insets = useSafeAreaInsets();
 
   const analyzeResult = route.params?.analyzeResult;
   const merchant = analyzeResult?.merchant || "";
@@ -360,8 +362,7 @@ export default function ReceiptPreviewScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <ScreenHeader title="Xem trước hóa đơn" theme="light" />
+    <View style={[styles.container, { paddingTop: getSafeAreaTop(insets) }]}>
       {/* Header Summary */}
       <View style={styles.summaryCard}>
         <Text style={styles.summaryTitle}>
@@ -378,7 +379,7 @@ export default function ReceiptPreviewScreen() {
       {/* Item List */}
       <ScrollView
         style={styles.list}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, { paddingBottom: getSafeAreaBottom(insets) }]}
         keyboardShouldPersistTaps="handled"
       >
         {/* Hũ chi tiêu liên kết */}

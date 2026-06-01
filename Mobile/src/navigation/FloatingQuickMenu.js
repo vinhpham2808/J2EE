@@ -7,6 +7,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { COLORS } from "../constants/colors";
 
 // ─── Speed Dial sub-actions ──────────────────────────────
@@ -14,41 +15,41 @@ const SUB_ACTIONS = [
   {
     key: "Income",
     icon: "💰",
-    label: "Add Income",
-    tx: -128,
-    ty: -88,
+    label: "Thêm thu nhập",
+    tx: -160,
+    ty: -80,
     color: "#43A047",
   },
   {
     key: "Budget",
     icon: "🎯",
-    label: "Budget",
-    tx: -64,
+    label: "Ngân sách",
+    tx: -80,
     ty: -125,
     color: "#7E57C2",
   },
   {
     key: "Forecast",
     icon: "🔮",
-    label: "Forecast",
+    label: "Dự báo",
     tx: 0,
-    ty: -142,
+    ty: -148,
     color: "#26A69A",
   },
   {
     key: "AddExpense",
     icon: "💸",
-    label: "Add Expense",
-    tx: 64,
+    label: "Thêm chi tiêu",
+    tx: 80,
     ty: -125,
     color: "#E53935",
   },
   {
     key: "Chat",
     icon: "🤖",
-    label: "AI Chat",
-    tx: 128,
-    ty: -88,
+    label: "Chat AI",
+    tx: 160,
+    ty: -80,
     color: "#8E24AA",
   },
 ];
@@ -65,6 +66,7 @@ export function FloatingTabButton({ onPress, isOpen }) {
 // ─── Speed Dial overlay + sub-buttons ────────────────────
 export default function FloatingQuickMenu({ visible, onClose, onSelectRoute }) {
   const overlayOpacity = useRef(new Animated.Value(0)).current;
+  const insets = useSafeAreaInsets();
 
   // one animated value set per sub-button
   const animations = useRef(
@@ -144,8 +146,21 @@ export default function FloatingQuickMenu({ visible, onClose, onSelectRoute }) {
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
       </Animated.View>
 
-      {/* Sub-buttons anchored at center-bottom, above tab bar */}
-      <View style={styles.subButtonsContainer} pointerEvents="box-none">
+      {/* Safe area for interactive floating buttons */}
+      <View
+        style={[
+          styles.safeArea,
+          {
+            paddingTop: insets.top,
+            paddingBottom: insets.bottom,
+            paddingLeft: insets.left,
+            paddingRight: insets.right,
+          },
+        ]}
+        pointerEvents="box-none"
+      >
+        {/* Sub-buttons anchored at center-bottom, above tab bar */}
+        <View style={styles.subButtonsContainer} pointerEvents="box-none">
         {SUB_ACTIONS.map((action, i) => {
           const anim = animations[i];
           return (
@@ -173,10 +188,21 @@ export default function FloatingQuickMenu({ visible, onClose, onSelectRoute }) {
               >
                 <Text style={styles.subIcon}>{action.icon}</Text>
               </Pressable>
-              <Text style={styles.subLabel}>{action.label}</Text>
+              <View style={styles.labelBubble}>
+                <Text
+                  style={styles.subLabel}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.72}
+                  allowFontScaling={false}
+                >
+                  {action.label}
+                </Text>
+              </View>
             </Animated.View>
           );
         })}
+      </View>
       </View>
     </View>
   );
@@ -211,6 +237,13 @@ const styles = StyleSheet.create({
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(0, 0, 0, 0.35)",
+  },
+
+  // ── Safe area wrapper ─────────────────────────────────
+  safeArea: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: "flex-end",
+    alignItems: "center",
   },
 
   // ── Sub-buttons area ──────────────────────────────────
@@ -288,15 +321,23 @@ const styles = StyleSheet.create({
     fontSize: 24,
   },
 
- subLabel: {
-  width: 82,
-  color: "#FFF",
-  fontSize: 11,
-  fontWeight: "600",
-  marginTop: 8,
-  textAlign: "center",
-  textShadowColor: "rgba(0,0,0,0.3)",
-  textShadowOffset: { width: 0, height: 1 },
-  textShadowRadius: 3,
-},
+  labelBubble: {
+    backgroundColor: "#FFF",
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    marginTop: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+
+  subLabel: {
+    color: "#222",
+    fontSize: 11,
+    fontWeight: "700",
+    textAlign: "center",
+  },
 });

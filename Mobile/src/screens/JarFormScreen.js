@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View, Modal, Dimensions } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import http from "../services/http";
 import { API_ENDPOINTS } from "../constants/api";
 import { COLORS } from "../constants/colors";
-import ScreenHeader from "../components/ScreenHeader";
 import { getApiErrorMessage } from "../utils/format";
+import { getSafeAreaContentStyle } from "../utils/safeAreaSpacing";
 
 const JAR_COLORS = [
   { value: "#8B5CF6", label: "Tím" },
@@ -42,6 +43,7 @@ const EMOJI_CATEGORIES = [
 export default function JarFormScreen() {
   const navigation = useNavigation();
   const route = useRoute();
+  const insets = useSafeAreaInsets();
 
   const isEditing = route.params?.isEditing ?? false;
   const initialData = route.params?.initialData ?? null;
@@ -104,8 +106,7 @@ export default function JarFormScreen() {
   const isParentWallet = name === "Ví tổng";
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <ScreenHeader title={isEditing ? "Chỉnh sửa hũ" : "Thiết lập hũ"} theme="light" />
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, getSafeAreaContentStyle(insets)]}>
       <Text style={styles.label}>Tên hũ chi tiêu</Text>
       <TextInput
         style={[styles.input, isParentWallet && styles.disabledInput]}

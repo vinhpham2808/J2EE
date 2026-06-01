@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import http from "../services/http";
@@ -20,15 +21,16 @@ import { SUCCESS_ALERT_MESSAGES, SUCCESS_ALERT_TITLE } from "../constants/alertM
 import { formatCurrencyInput, getApiErrorMessage, parseCurrencyInput, todayIso } from "../utils/format";
 import { PickDateField } from "../utils/pickDate";
 import { COLORS } from "../constants/colors";
-import ScreenHeader from "../components/ScreenHeader";
 import ExpenseNoteField from "../components/ExpenseNoteField";
 import CategoryGridSelector from "../components/CategoryGridSelector";
 import { parseNote, suggestCategory } from "../utils/smartNoteParser";
 import { AuthContext } from "../components/AuthContext";
+import { getSafeAreaContentStyle } from "../utils/safeAreaSpacing";
 
 export default function AddExpenseScreen() {
   const navigation = useNavigation();
   const route = useRoute();
+  const insets = useSafeAreaInsets();
   const { user } = useContext(AuthContext);
   const initialData = route.params?.initialData;
 
@@ -342,9 +344,7 @@ export default function AddExpenseScreen() {
   // ─── Render ──────────────────────────────────────────────────────────────
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <ScreenHeader title="Thêm chi tiêu" theme="light" />
-
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, getSafeAreaContentStyle(insets)]}>
       {/* ── Receipt Import Banner ── */}
       <Pressable
         style={[styles.importBanner, isScanning && styles.importBannerScanning]}

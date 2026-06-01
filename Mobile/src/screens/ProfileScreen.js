@@ -1,9 +1,9 @@
 import React, { useContext } from "react";
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AuthContext } from "../components/AuthContext";
 import { COLORS } from "../constants/colors";
+import { getSafeAreaBottom, getSafeAreaTop } from "../utils/safeAreaSpacing";
 
 function InfoRow({ label, value, showChevron = false, isLast = false }) {
   return (
@@ -18,8 +18,7 @@ function InfoRow({ label, value, showChevron = false, isLast = false }) {
 }
 
 export default function ProfileScreen() {
-  const navigation = useNavigation();
-  const { user, signOut } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const insets = useSafeAreaInsets();
 
   const fullName = user?.fullName || "Người dùng";
@@ -29,21 +28,14 @@ export default function ProfileScreen() {
   const subscriptionPlan = String(user?.subscriptionPlan || "FREE").toUpperCase();
 
   return (
-    <View style={[styles.safeArea, { paddingTop: insets.top }]}>
+    <View style={[styles.safeArea, { paddingTop: getSafeAreaTop(insets, 0) }]}>
       
       {/* Top Application Bar matching mockup */}
       <View style={styles.topAppBar}>
-        <Pressable 
-          style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]} 
-          onPress={() => navigation.goBack()}
-        >
-          <Text style={styles.backButtonText}>←</Text>
-        </Pressable>
         <Text style={styles.appBarTitle}>Hồ sơ</Text>
-        <View style={styles.spacer} />
       </View>
 
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingBottom: getSafeAreaBottom(insets) }]} showsVerticalScrollIndicator={false}>
         
         {/* User Profile Header Card */}
         <View style={styles.heroCard}>
@@ -85,24 +77,6 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Action Buttons Section */}
-        <View style={styles.actionSection}>
-          <Pressable 
-            style={({ pressed }) => [styles.primaryButton, pressed && styles.primaryButtonPressed]} 
-            onPress={() => navigation.navigate("EditProfile")}
-          >
-            <Text style={styles.primaryButtonText}>Chỉnh sửa hồ sơ</Text>
-          </Pressable>
-
-          <Pressable 
-            style={({ pressed }) => [styles.logoutButton, pressed && styles.logoutButtonPressed]} 
-            onPress={signOut}
-          >
-            <Text style={styles.logoutIcon}>🚪</Text>
-            <Text style={styles.logoutText}>Đăng xuất</Text>
-          </Pressable>
-        </View>
-
       </ScrollView>
     </View>
   );
@@ -121,32 +95,12 @@ const styles = StyleSheet.create({
     height: 56,
     backgroundColor: COLORS.BG,
   },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: -8,
-  },
-  backButtonPressed: {
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
-  },
-  backButtonText: {
-    color: COLORS.TEXT_SECONDARY,
-    fontSize: 24,
-    fontWeight: "300",
-  },
   appBarTitle: {
     color: COLORS.TEXT,
     fontSize: 18,
     fontWeight: "700",
     textAlign: "center",
     flex: 1,
-    marginRight: 16, // balance the back button offset
-  },
-  spacer: {
-    width: 40,
   },
   container: {
     flex: 1,
@@ -290,49 +244,5 @@ const styles = StyleSheet.create({
     color: COLORS.PRIMARY,
     fontWeight: "bold",
     fontSize: 14,
-  },
-  actionSection: {
-    marginTop: 8,
-    gap: 12,
-  },
-  primaryButton: {
-    backgroundColor: COLORS.PRIMARY,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 14,
-  },
-  primaryButtonPressed: {
-    opacity: 0.88,
-    transform: [{ scale: 0.99 }],
-  },
-  primaryButtonText: {
-    color: COLORS.WHITE,
-    fontWeight: "750",
-    fontSize: 14,
-  },
-  logoutButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: COLORS.CARD,
-    borderWidth: 1,
-    borderColor: "rgba(231, 111, 81, 0.3)",
-    borderRadius: 16,
-    paddingVertical: 14,
-    gap: 8,
-  },
-  logoutButtonPressed: {
-    backgroundColor: "rgba(231, 111, 81, 0.04)",
-    transform: [{ scale: 0.99 }],
-  },
-  logoutIcon: {
-    fontSize: 16,
-    color: COLORS.PRIMARY,
-  },
-  logoutText: {
-    color: COLORS.PRIMARY,
-    fontSize: 14,
-    fontWeight: "750",
   },
 });

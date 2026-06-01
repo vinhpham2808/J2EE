@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import HomeTopHeader from "../components/HomeTopHeader";
 import HomeBanner from "../components/HomeBanner";
 import FinanceOverviewChart from "../components/FinanceOverviewChart";
@@ -17,6 +18,7 @@ import {
   useAiInsight,
 } from "../ai-insight";
 import ShowMoreButton, { useVisibleItems } from "../components/ShowMoreButton";
+import { getSafeAreaBottom } from "../utils/safeAreaSpacing";
 
 function SectionHeader({ title, onMore, moreLabel = "Xem thêm" }) {
   if (String(title || "").startsWith("Giao ")) {
@@ -112,6 +114,7 @@ function SavingGoalCard({ goal, onPress }) {
 
 export default function DashboardScreen() {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const [dashboard, setDashboard] = useState(null);
   const [savingGoals, setSavingGoals] = useState([]);
   const [monthlySeries, setMonthlySeries] = useState([]);
@@ -217,7 +220,7 @@ export default function DashboardScreen() {
     <>
       <ScrollView
         style={styles.container}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, { paddingBottom: getSafeAreaBottom(insets) }]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
       >

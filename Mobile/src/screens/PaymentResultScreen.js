@@ -1,12 +1,13 @@
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AuthContext } from "../components/AuthContext";
 import { API_ENDPOINTS } from "../constants/api";
 import http from "../services/http";
 import { formatMoney, getApiErrorMessage } from "../utils/format";
 import { COLORS } from "../constants/colors";
-import ScreenHeader from "../components/ScreenHeader";
+import { getSafeAreaContentStyle } from "../utils/safeAreaSpacing";
 
 const PAYMENT_STATUS_LABELS = {
   PAID: "Đã thanh toán thành công",
@@ -21,6 +22,7 @@ const PAYMENT_STATUS_LABELS = {
 export default function PaymentResultScreen() {
   const navigation = useNavigation();
   const route = useRoute();
+  const insets = useSafeAreaInsets();
   const { refreshUser } = useContext(AuthContext);
 
   const result = String(route.params?.result || "").toLowerCase();
@@ -78,8 +80,7 @@ export default function PaymentResultScreen() {
   }, [orderCode, refreshUser, returnedStatus]);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <ScreenHeader title="Kết quả thanh toán" theme="light" />
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, getSafeAreaContentStyle(insets)]}>
       <View style={styles.statusCard}>
         <Text style={styles.sectionTitle}>Trạng thái hiện tại</Text>
         <Text style={[styles.statusValue, displayStatus === "PAID" ? styles.statusPaid : styles.statusNormal]}>

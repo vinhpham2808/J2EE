@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { Alert, FlatList, Modal, Pressable, RefreshControl, StyleSheet, Text, TextInput, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import http from "../services/http";
 import { API_ENDPOINTS } from "../constants/api";
 import { SUCCESS_ALERT_MESSAGES, SUCCESS_ALERT_TITLE } from "../constants/alertMessages";
@@ -8,7 +9,7 @@ import { formatCurrencyInput, formatDate, formatMoney, getApiErrorMessage, parse
 import { PickDateField } from "../utils/pickDate";
 import { COLORS } from "../constants/colors";
 import ShowMoreButton, { useVisibleItems } from "../components/ShowMoreButton";
-import ScreenHeader from "../components/ScreenHeader";
+import { getSafeAreaBottom, getSafeAreaTop } from "../utils/safeAreaSpacing";
 
 function getGoalVisual(goal) {
   const progressPercent = Number(goal?.progressPercent || 0);
@@ -233,6 +234,7 @@ function GoalDetailModal({ goal, visible, onClose, onContribute, onDelete }) {
 }
 
 export default function SavingGoalScreen() {
+  const insets = useSafeAreaInsets();
   const [goals, setGoals] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -408,8 +410,7 @@ export default function SavingGoalScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <ScreenHeader title="Mục tiêu tiết kiệm" theme="light" />
+    <View style={[styles.container, { paddingTop: getSafeAreaTop(insets) }]}>
       <View style={styles.overviewCard}>
         {/* Top badge */}
         <View style={styles.overviewBadgeRow}>
@@ -493,7 +494,7 @@ export default function SavingGoalScreen() {
         data={visibleGoals}
         keyExtractor={(item) => String(item?.id)}
         renderItem={({ item }) => <CompactGoalTab item={item} onPress={setDetailGoal} />}
-        contentContainerStyle={[styles.listContent, !goals.length && styles.listContentEmpty]}
+        contentContainerStyle={[styles.listContent, { paddingBottom: getSafeAreaBottom(insets) }, !goals.length && styles.listContentEmpty]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         ListHeaderComponent={
           goals.length ? (
@@ -563,7 +564,7 @@ export default function SavingGoalScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.BG, padding: 16, paddingTop: 24 },
+  container: { flex: 1, backgroundColor: COLORS.BG, padding: 16, paddingTop: 16 },
   overviewCard: {
     backgroundColor: COLORS.PRIMARY,
     borderRadius: 20,

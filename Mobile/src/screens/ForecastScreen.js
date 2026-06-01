@@ -12,11 +12,12 @@ import {
 } from "react-native";
 import { BarChart, LineChart } from "react-native-chart-kit";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AuthContext } from "../components/AuthContext";
 import { COLORS } from "../constants/colors";
-import ScreenHeader from "../components/ScreenHeader";
 import { formatMoney, formatDate } from "../utils/format";
 import { getAiForecastDraft } from "../ai-insight/services/forecastDraftCache";
+import { getSafeAreaContentStyle } from "../utils/safeAreaSpacing";
 import {
   fetchMonthlyForecast,
   fetchAnomalies,
@@ -193,6 +194,7 @@ function EmptyState({ message }) {
 
 export default function ForecastScreen() {
   const route = useRoute();
+  const insets = useSafeAreaInsets();
   const { user } = useContext(AuthContext);
   const isPremium = String(user?.subscriptionPlan || "").toUpperCase() === "PREMIUM";
 
@@ -491,12 +493,9 @@ export default function ForecastScreen() {
     <>
       <ScrollView
         style={styles.container}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, getSafeAreaContentStyle(insets)]}
         showsVerticalScrollIndicator={false}
       >
-        <ScreenHeader title="Dự báo & Bất thường" theme="light" />
-        
-
         <View style={styles.monthPickerRow}>
           <Pressable
             style={({ pressed }) => [styles.monthPicker, pressed && styles.monthPickerPressed]}

@@ -1,9 +1,10 @@
 import React, { useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { WebView } from "react-native-webview";
 import { COLORS } from "../constants/colors";
-import ScreenHeader from "../components/ScreenHeader";
+import { getSafeAreaBottom, getSafeAreaTop } from "../utils/safeAreaSpacing";
 
 const APP_RESULT_PREFIX = "moneymanager://payment/";
 const WEB_SUCCESS_PATH = "/payment/success";
@@ -13,6 +14,7 @@ const PAYOS_MERCHANT_HEADER_HEIGHT = 56;
 export default function PaymentCheckoutScreen() {
   const navigation = useNavigation();
   const route = useRoute();
+  const insets = useSafeAreaInsets();
   const webViewRef = useRef(null);
 
   const checkoutUrl = route.params?.checkoutUrl ? String(route.params.checkoutUrl) : "";
@@ -139,8 +141,7 @@ export default function PaymentCheckoutScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <ScreenHeader title="Cổng thanh toán" theme="light" />
+    <View style={[styles.container, { paddingTop: getSafeAreaTop(insets), paddingBottom: getSafeAreaBottom(insets, 86) }]}>
       <View style={styles.header}>
         <View style={styles.headerTextWrap}>
           <Text style={styles.headerTitle}>{title}</Text>

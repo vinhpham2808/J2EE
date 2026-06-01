@@ -1,5 +1,6 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Platform, StatusBar, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { COLORS } from "../constants/colors";
 
 /**
@@ -9,36 +10,45 @@ import { COLORS } from "../constants/colors";
  * @param {string} props.title
  * @param {'light'|'dark'|'chat'} [props.theme='light']
  * @param {React.ReactNode} [props.rightElement]
+ * @param {boolean} [props.safeAreaTop=true]
  */
 export default function ScreenHeader({
   title,
   theme = "light",
   rightElement,
+  safeAreaTop = true,
 }) {
+  const insets = useSafeAreaInsets();
   const colors = THEME_COLORS[theme] || THEME_COLORS.light;
+  const statusBarTop = Platform.OS === "android" ? StatusBar.currentHeight || 0 : 0;
+  const topInset = Math.max(insets.top, statusBarTop);
+  const headerGap = 8;
+  const safeTopPadding = safeAreaTop ? Math.max(topInset - 16 + headerGap, 0) : 0;
 
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          backgroundColor: colors.card,
-          borderLeftColor: colors.accent,
-          shadowColor: colors.shadow,
-        },
-      ]}
-    >
-      <Text style={[styles.title, { color: colors.title }]} numberOfLines={1}>
-        {title}
-      </Text>
+    <View style={[styles.safeWrap, { paddingTop: safeTopPadding }]}>
+      <View
+        style={[
+          styles.container,
+          {
+            backgroundColor: colors.card,
+            borderLeftColor: colors.accent,
+            shadowColor: colors.shadow,
+          },
+        ]}
+      >
+        <Text style={[styles.title, { color: colors.title }]} numberOfLines={1}>
+          {title}
+        </Text>
 
-      {rightElement ? (
-        <View style={styles.rightSlot}>
-          {rightElement}
-        </View>
-      ) : (
-        <HeaderAccent color={colors.accent} />
-      )}
+        {rightElement ? (
+          <View style={styles.rightSlot}>
+            {rightElement}
+          </View>
+        ) : (
+          <HeaderAccent color={colors.accent} />
+        )}
+      </View>
     </View>
   );
 }
@@ -80,6 +90,9 @@ const THEME_COLORS = {
 };
 
 const styles = StyleSheet.create({
+  safeWrap: {
+    width: "100%",
+  },
   container: {
     minHeight: 42,
     borderRadius: 6,
@@ -95,7 +108,7 @@ const styles = StyleSheet.create({
   },
   title: {
     flex: 1,
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: "800",
     textAlign: "left",
   },

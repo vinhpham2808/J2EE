@@ -1,15 +1,16 @@
 ﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Animated, Dimensions, FlatList, Modal, Pressable, RefreshControl, StyleSheet, Text, TextInput, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import http from "../services/http";
 import { API_ENDPOINTS } from "../constants/api";
 import { SUCCESS_ALERT_MESSAGES, SUCCESS_ALERT_TITLE } from "../constants/alertMessages";
 import { getApiErrorMessage } from "../utils/format";
 import { COLORS } from "../constants/colors";
-import ScreenHeader from "../components/ScreenHeader";
 import { CategoryVectorIcon, getFirstCategoryIcon, getIconColor, getIconLabel } from "../utils/VectorIcons";
 import IconPickerBottomSheet from "../components/IconPickerBottomSheet";
 import ShowMoreButton, { useVisibleItems } from "../components/ShowMoreButton";
+import { getSafeAreaBottom, getSafeAreaTop } from "../utils/safeAreaSpacing";
 
 const TYPE_META = {
   expense: {
@@ -179,6 +180,7 @@ function CategoryItem({ item, onEditCategory, onDeleteCategory }) {
 }
 
 export default function CategoryScreen() {
+  const insets = useSafeAreaInsets();
   const [categories, setCategories] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -351,8 +353,7 @@ export default function CategoryScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <ScreenHeader title="Danh mục" theme="light" />
+    <View style={[styles.container, { paddingTop: getSafeAreaTop(insets) }]}>
       <View style={styles.formCard}>
         <Text style={styles.formTitle}>Thêm danh mục</Text>
         <Text style={styles.formSubtitle}>Tạo nhóm giao dịch rõ ràng để theo dõi chi tiêu tốt hơn.</Text>
@@ -398,7 +399,7 @@ export default function CategoryScreen() {
             onDeleteCategory={onDeleteCategory}
           />
         )}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, { paddingBottom: getSafeAreaBottom(insets) }]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         ListHeaderComponent={
           categories.length ? (
@@ -489,7 +490,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.BG,
     padding: 16,
-    paddingTop: 50
+    paddingTop: 16
   },
   formCard: {
     backgroundColor: COLORS.CARD,

@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { Alert, FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import http from "../services/http";
 import { API_ENDPOINTS } from "../constants/api";
 import { COLORS } from "../constants/colors";
-import ScreenHeader from "../components/ScreenHeader";
 import { formatCurrencyInput, getApiErrorMessage, parseCurrencyInput, formatMoney } from "../utils/format";
+import { getSafeAreaBottom, getSafeAreaTop } from "../utils/safeAreaSpacing";
 
 export default function JarTransferScreen() {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
 
   const [jars, setJars] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -128,9 +130,8 @@ export default function JarTransferScreen() {
   );
 
   return (
-    <View style={styles.container}>
-      <ScreenHeader title="Chuyển tiền" theme="light" />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+    <View style={[styles.container, { paddingTop: getSafeAreaTop(insets) }]}>
+      <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: getSafeAreaBottom(insets) }]}>
         <Text style={styles.descText}>
           Chuyển số dư linh hoạt giữa các hũ chi tiêu để cân đối hạn mức và nguồn vốn chi tiêu của bạn.
         </Text>

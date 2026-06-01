@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { Text, Pressable, StyleSheet } from "react-native";
+import { Text, Pressable, StyleSheet, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { COLORS } from "../constants/colors";
 import FloatingQuickMenu, { FloatingTabButton } from "./FloatingQuickMenu";
 import DashboardScreen from "../screens/DashboardScreen";
@@ -32,8 +33,9 @@ import PaymentResultScreen from "../screens/PaymentResultScreen";
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
+// ─── Empty placeholder for center FAB tab slot ──────────
 function EmptyScreen() {
-  return null;
+  return <View style={{ flex: 1 }} />;
 }
 
 function PillTabButton({ children, onPress, accessibilityState }) {
@@ -53,6 +55,24 @@ function PillTabButton({ children, onPress, accessibilityState }) {
 }
 
 // ─── Stack navigators for each tab ──────────────────────────
+
+function TabLabel({ label, color }) {
+  return (
+    <Text
+      style={[styles.tabLabel, { color }]}
+      numberOfLines={1}
+      adjustsFontSizeToFit
+      minimumFontScale={0.72}
+      allowFontScaling={false}
+    >
+      {label}
+    </Text>
+  );
+}
+
+const renderTabLabel = (label) => ({ color }) => (
+  <TabLabel label={label} color={color} />
+);
 
 function HomeStack() {
   return (
@@ -109,6 +129,7 @@ function SettingStack() {
 
 export default function MainTabs() {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const [isQuickMenuVisible, setIsQuickMenuVisible] = useState(false);
 
   const openExtraScreen = (routeName) => {
@@ -125,6 +146,15 @@ export default function MainTabs() {
   };
 
   const pillTabBarButton = (props) => <PillTabButton {...props} />;
+
+  const fabTabBarButton = () => (
+    <View style={styles.fabTabSlot}>
+      <FloatingTabButton
+        isOpen={isQuickMenuVisible}
+        onPress={() => setIsQuickMenuVisible((prev) => !prev)}
+      />
+    </View>
+  );
 
   return (
     <>
@@ -149,7 +179,7 @@ export default function MainTabs() {
             borderRightColor: COLORS.TAB_BORDER,
             borderRadius: 20,
             marginHorizontal: 16,
-            marginBottom: 8,
+            marginBottom: Math.max(insets.bottom, 8),
             paddingBottom: 6,
             position: "absolute",
             shadowColor: "#000",
@@ -167,7 +197,7 @@ export default function MainTabs() {
           name="HomeTab"
           component={HomeStack}
           options={{
-            tabBarLabel: "Home",
+            tabBarLabel: renderTabLabel("Trang chủ"),
             tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 17, marginTop: 4 }}>🏠</Text>,
             tabBarButton: pillTabBarButton,
           }}
@@ -177,24 +207,26 @@ export default function MainTabs() {
           name="CategoryTab"
           component={CategoryStack}
           options={{
-            tabBarLabel: "Categories",
+            tabBarLabel: renderTabLabel("Danh mục"),
             tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 17, marginTop: 4 }}>📂</Text>,
             tabBarButton: pillTabBarButton,
           }}
         />
 
+        {/* Center FAB — occupies 5th slot, evenly spaced between tabs */}
         <Tab.Screen
-          name="QuickActions"
+          name="FabCenter"
           component={EmptyScreen}
           options={{
-            tabBarLabel: "",
+            tabBarLabel: () => null,
             tabBarIcon: () => null,
-            tabBarButton: () => (
-              <FloatingTabButton
-                isOpen={isQuickMenuVisible}
-                onPress={() => setIsQuickMenuVisible((prev) => !prev)}
-              />
-            ),
+            tabBarButton: fabTabBarButton,
+          }}
+          listeners={{
+            tabPress: (e) => {
+              e.preventDefault();
+              setIsQuickMenuVisible((prev) => !prev);
+            },
           }}
         />
 
@@ -202,7 +234,7 @@ export default function MainTabs() {
           name="ExpenseTab"
           component={ExpenseStack}
           options={{
-            tabBarLabel: "Expenses",
+            tabBarLabel: renderTabLabel("Chi tiêu"),
             tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 17, marginTop: 4 }}>💸</Text>,
             tabBarButton: pillTabBarButton,
           }}
@@ -212,7 +244,7 @@ export default function MainTabs() {
           name="SettingTab"
           component={SettingStack}
           options={{
-            tabBarLabel: "Profile",
+            tabBarLabel: renderTabLabel("Hồ sơ"),
             tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 17, marginTop: 4 }}>👤</Text>,
             tabBarButton: pillTabBarButton,
           }}
@@ -242,5 +274,18 @@ const styles = StyleSheet.create({
   pillButtonActive: {
     backgroundColor: COLORS.TAB_ACTIVE_BG,
     borderColor: "transparent",
+  },
+  tabLabel: {
+    width: "100%",
+    maxWidth: 64,
+    fontSize: 10,
+    fontWeight: "700",
+    marginBottom: 4,
+    textAlign: "center",
+  },
+  fabTabSlot: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

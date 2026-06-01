@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import http from "../services/http";
 import { fetchCategoriesByType } from "../services/categoryService";
 import { API_ENDPOINTS } from "../constants/api";
@@ -8,12 +9,13 @@ import { SUCCESS_ALERT_MESSAGES, SUCCESS_ALERT_TITLE } from "../constants/alertM
 import { formatCurrencyInput, getApiErrorMessage, parseCurrencyInput, todayIso, formatMoney } from "../utils/format";
 import { PickDateField } from "../utils/pickDate";
 import { COLORS } from "../constants/colors";
-import ScreenHeader from "../components/ScreenHeader";
 import CategoryGridSelector from "../components/CategoryGridSelector";
+import { getSafeAreaContentStyle } from "../utils/safeAreaSpacing";
 
 export default function AddIncomeScreen() {
   const navigation = useNavigation();
   const route = useRoute();
+  const insets = useSafeAreaInsets();
   const initialData = route.params?.initialData;
 
   const [categories, setCategories] = useState([]);
@@ -201,8 +203,7 @@ export default function AddIncomeScreen() {
   const allocationDiff = incomeAmount - totalAllocated;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <ScreenHeader title="Thêm thu nhập" theme="light" />
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, getSafeAreaContentStyle(insets)]}>
       <Text style={styles.label}>Tên khoản thu</Text>
       <TextInput style={styles.input} value={name} onChangeText={setName} placeholder="Ví dụ: Lương tháng" />
 

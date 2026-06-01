@@ -4,10 +4,10 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AuthContext } from "../components/AuthContext";
 import { COLORS } from "../constants/colors";
-import ScreenHeader from "../components/ScreenHeader";
 import { API_ENDPOINTS } from "../constants/api";
 import http from "../services/http";
 import { getApiErrorMessage } from "../utils/format";
+import { getSafeAreaContentStyle } from "../utils/safeAreaSpacing";
 
 // ─── Modular Helper Components ───────────────────────────────
 
@@ -113,26 +113,7 @@ export default function MoreScreen() {
   const initial = fullName.slice(0, 1).toUpperCase();
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: insets.top + 16 }]} showsVerticalScrollIndicator={false}>
-      <ScreenHeader title="Tiện ích khác" theme="light" />
-      
-      {/* Top Application Bar */}
-      <View style={styles.topAppBar}>
-        <View style={styles.appLogoRow}>
-          {profileImageUrl ? (
-            <Image source={{ uri: profileImageUrl }} style={styles.appBarAvatar} />
-          ) : (
-            <View style={styles.appBarAvatarPlaceholder}>
-              <Text style={styles.appBarAvatarPlaceholderText}>{initial}</Text>
-            </View>
-          )}
-          <Text style={styles.appLogoText}>Money Manager</Text>
-        </View>
-        <Pressable style={styles.appBarSettingsButton} onPress={() => navigation.navigate("Profile")}>
-          <Text style={styles.appBarSettingsIcon}>⚙️</Text>
-        </Pressable>
-      </View>
-
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, getSafeAreaContentStyle(insets)]} showsVerticalScrollIndicator={false}>
       {/* Profile Overview Banner Section */}
       <Pressable 
         style={({ pressed }) => [styles.profileHeroCard, pressed && styles.profileHeroCardPressed]}
@@ -276,56 +257,6 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 16,
     paddingBottom: 90
-  },
-  topAppBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 20,
-    height: 48
-  },
-  appLogoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10
-  },
-  appBarAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: COLORS.CARD_BORDER
-  },
-  appBarAvatarPlaceholder: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: COLORS.PRIMARY,
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  appBarAvatarPlaceholderText: {
-    color: COLORS.WHITE,
-    fontWeight: "bold",
-    fontSize: 14
-  },
-  appLogoText: {
-    color: COLORS.PRIMARY,
-    fontSize: 20,
-    fontWeight: "800"
-  },
-  appBarSettingsButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.CARD,
-    borderWidth: 1,
-    borderColor: COLORS.CARD_BORDER,
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  appBarSettingsIcon: {
-    fontSize: 16
   },
   profileHeroCard: {
     flexDirection: "row",

@@ -2,13 +2,14 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { COLORS } from "../constants/colors";
+import { getSafeAreaTop } from "../utils/safeAreaSpacing";
 
 export default function HomeTopHeader({ onMenuPress, onBellPress, unreadCount = 0 }) {
   const insets = useSafeAreaInsets();
   const displayCount = unreadCount > 9 ? "9+" : String(unreadCount);
 
   return (
-    <View style={[styles.container, { paddingTop: Math.max(insets.top, 8) }]}>
+    <View style={[styles.container, { paddingTop: getSafeAreaTop(insets, 8) }]}>
       <Pressable style={styles.iconButton} onPress={onMenuPress}>
         <Text style={styles.iconText}>☰</Text>
       </Pressable>
