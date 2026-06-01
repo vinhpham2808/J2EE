@@ -225,7 +225,7 @@ export default function DashboardScreen() {
         showsVerticalScrollIndicator={false}
       >
         <HomeTopHeader
-          onMenuPress={() => navigation.navigate("SettingTab")}
+          onMenuPress={() => navigation.navigate("SettingTab", { screen: "Profile" })}
           onBellPress={() => setNotificationVisible(true)}
           unreadCount={unreadCount}
         />
