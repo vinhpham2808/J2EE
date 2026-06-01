@@ -9,10 +9,10 @@ import {
   Text,
   View
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { API_ENDPOINTS } from "../constants/api";
 import { COLORS } from "../constants/colors";
 import http from "../services/http";
+import { scale, clampScale, useDynamicViewport } from "../utils/dimensions";
 
 function formatRelativeTime(value) {
   if (!value) return "";
@@ -91,7 +91,7 @@ export default function NotificationModal({
   onClose,
   onUnreadCountChange
 }) {
-  const insets = useSafeAreaInsets();
+  const { insets } = useDynamicViewport();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -178,15 +178,30 @@ export default function NotificationModal({
       statusBarTranslucent
       onRequestClose={onClose}
     >
-      <View style={[styles.overlay, { paddingTop: Math.max(insets.top, 20), paddingBottom: Math.max(insets.bottom, 20) }]}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+      <View
+        style={[styles.overlay, { paddingTop: Math.max(insets.top, scale(20)), paddingBottom: Math.max(insets.bottom, scale(20)) }]}
+        accessibilityViewIsModal={true}
+        importantForAccessibility="yes"
+      >
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={onClose}
+          accessibilityRole="button"
+          accessibilityLabel="Đóng thông báo"
+          importantForAccessibility="no"
+        />
 
-        <View style={styles.sheet}>
+        <View style={styles.sheet} pointerEvents="auto">
           <View style={styles.header}>
             <View>
               <Text style={styles.title}>Thông báo</Text>
             </View>
-            <Pressable style={styles.closeButton} onPress={onClose}>
+            <Pressable
+              style={styles.closeButton}
+              onPress={onClose}
+              accessibilityRole="button"
+              accessibilityLabel="Đóng"
+            >
               <Text style={styles.closeText}>×</Text>
             </Pressable>
           </View>
@@ -251,20 +266,20 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "rgba(9, 6, 10, 0.62)",
     justifyContent: "center",
-    paddingHorizontal: 16
+    paddingHorizontal: scale(16)
   },
   sheet: {
     maxHeight: "82%",
-    borderRadius: 24,
+    borderRadius: scale(24),
     backgroundColor: COLORS.CARD,
     borderWidth: 1,
     borderColor: COLORS.CARD_BORDER,
     overflow: "hidden"
   },
   header: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 14,
+    paddingHorizontal: scale(20),
+    paddingTop: scale(20),
+    paddingBottom: scale(14),
     backgroundColor: COLORS.INFO_LIGHT,
     flexDirection: "row",
     justifyContent: "space-between",
@@ -272,75 +287,75 @@ const styles = StyleSheet.create({
   },
   eyebrow: {
     color: COLORS.INFO,
-    fontSize: 12,
+    fontSize: clampScale(12, 10, 14),
     fontWeight: "900",
     textTransform: "uppercase"
   },
   title: {
-    marginTop: 2,
+    marginTop: scale(2),
     color: COLORS.TEXT,
-    fontSize: 22,
+    fontSize: clampScale(22, 18, 26),
     fontWeight: "900"
   },
   closeButton: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: scale(34),
+    aspectRatio: 1,
+    borderRadius: scale(17),
     backgroundColor: COLORS.CARD,
     alignItems: "center",
     justifyContent: "center"
   },
   closeText: {
     color: COLORS.TEXT,
-    fontSize: 24,
-    lineHeight: 26,
+    fontSize: clampScale(24, 20, 28),
+    lineHeight: scale(26),
     fontWeight: "700"
   },
   toolbar: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: scale(20),
+    paddingVertical: scale(12),
     borderBottomWidth: 1,
     borderBottomColor: COLORS.CARD_BORDER,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    gap: 12
+    gap: scale(12)
   },
   countText: {
     flex: 1,
     color: COLORS.TEXT_SECONDARY,
-    fontSize: 13,
+    fontSize: clampScale(13, 11, 15),
     fontWeight: "600"
   },
   markAllText: {
     color: COLORS.PRIMARY,
-    fontSize: 13,
+    fontSize: clampScale(13, 11, 15),
     fontWeight: "800"
   },
   errorText: {
-    marginHorizontal: 20,
-    marginTop: 12,
-    padding: 10,
-    borderRadius: 12,
+    marginHorizontal: scale(20),
+    marginTop: scale(12),
+    padding: scale(10),
+    borderRadius: scale(12),
     color: COLORS.EXPENSE,
     backgroundColor: COLORS.EXPENSE_LIGHT,
-    fontSize: 13,
+    fontSize: clampScale(13, 11, 15),
     textAlign: "center",
     fontWeight: "700"
   },
   loadingWrap: {
-    paddingVertical: 48,
+    paddingVertical: scale(48),
     alignItems: "center",
     justifyContent: "center"
   },
   loadingText: {
-    marginTop: 10,
+    marginTop: scale(10),
     color: COLORS.TEXT_SECONDARY,
-    fontSize: 13,
+    fontSize: clampScale(13, 11, 15),
     fontWeight: "600"
   },
   listContent: {
-    paddingVertical: 6
+    paddingVertical: scale(6)
   },
   emptyListContent: {
     flexGrow: 1,
@@ -348,8 +363,8 @@ const styles = StyleSheet.create({
   },
   item: {
     flexDirection: "row",
-    paddingHorizontal: 18,
-    paddingVertical: 14,
+    paddingHorizontal: scale(18),
+    paddingVertical: scale(14),
     borderBottomWidth: 1,
     borderBottomColor: COLORS.BG
   },
@@ -357,15 +372,15 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(232, 89, 122, 0.06)"
   },
   itemIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 16,
+    width: scale(42),
+    aspectRatio: 1,
+    borderRadius: scale(16),
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12
+    marginRight: scale(12)
   },
   itemIconText: {
-    fontSize: 18,
+    fontSize: clampScale(18, 16, 22),
     fontWeight: "900"
   },
   itemBody: {
@@ -374,64 +389,64 @@ const styles = StyleSheet.create({
   itemTitleRow: {
     flexDirection: "row",
     alignItems: "flex-start",
-    gap: 8
+    gap: scale(8)
   },
   itemTitle: {
     flex: 1,
     color: COLORS.TEXT,
-    fontSize: 14,
+    fontSize: clampScale(14, 12, 16),
     fontWeight: "700",
-    lineHeight: 19
+    lineHeight: scale(19)
   },
   itemTitleUnread: {
     fontWeight: "900"
   },
   unreadDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: scale(8),
+    aspectRatio: 1,
+    borderRadius: scale(4),
     backgroundColor: COLORS.PRIMARY,
-    marginTop: 5
+    marginTop: scale(5)
   },
   itemMessage: {
-    marginTop: 5,
+    marginTop: scale(5),
     color: COLORS.TEXT_SECONDARY,
-    fontSize: 13,
-    lineHeight: 18
+    fontSize: clampScale(13, 11, 15),
+    lineHeight: scale(18)
   },
   itemTime: {
-    marginTop: 7,
+    marginTop: scale(7),
     color: COLORS.TEXT_MUTED,
-    fontSize: 11,
+    fontSize: clampScale(11, 9, 13),
     fontWeight: "700"
   },
   emptyState: {
     alignItems: "center",
-    paddingHorizontal: 28,
-    paddingVertical: 48
+    paddingHorizontal: scale(28),
+    paddingVertical: scale(48)
   },
   emptyIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: scale(56),
+    aspectRatio: 1,
+    borderRadius: scale(28),
     backgroundColor: COLORS.ROSE_MIST,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 14
+    marginBottom: scale(14)
   },
   emptyIconText: {
-    fontSize: 24
+    fontSize: clampScale(24, 20, 28)
   },
   emptyTitle: {
     color: COLORS.TEXT,
-    fontSize: 16,
+    fontSize: clampScale(16, 14, 18),
     fontWeight: "900",
-    marginBottom: 6
+    marginBottom: scale(6)
   },
   emptyMessage: {
     color: COLORS.TEXT_SECONDARY,
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: clampScale(13, 11, 15),
+    lineHeight: scale(19),
     textAlign: "center"
   }
 });

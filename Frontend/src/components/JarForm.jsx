@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import toast from "react-hot-toast";
 import EmojiPickerPopup from "./EmojiPickerPopup.jsx";
 import Input from "./Input.jsx";
@@ -16,30 +16,20 @@ const JAR_COLORS = [
   { value: "#84CC16", label: "Xanh chuối" },
 ];
 
+const buildInitialJarForm = (initialData) => ({
+  name: initialData?.name || "",
+  icon: initialData?.icon || "",
+  color: initialData?.color || "#8B5CF6",
+  targetPercentage: initialData?.targetPercentage?.toString() || "",
+});
+
 const JarForm = ({ initialData, isEditing = false, jars = [], onSave, onCancel }) => {
-  const [form, setForm] = useState({
-    name: "",
-    icon: "",
-    color: "#8B5CF6",
-    targetPercentage: "",
-  });
+  const [form, setForm] = useState(() => buildInitialJarForm(initialData));
   const [balancingJarId, setBalancingJarId] = useState("");
 
   const originalPct = initialData ? (initialData.targetPercentage || 0) : 0;
   const currentPct = parseFloat(form.targetPercentage) || 0;
   const pctDiff = currentPct - originalPct;
-
-  useEffect(() => {
-    if (initialData) {
-      setForm({
-        name: initialData.name || "",
-        icon: initialData.icon || "",
-        color: initialData.color || "#8B5CF6",
-        targetPercentage: initialData.targetPercentage?.toString() || "",
-      });
-      setBalancingJarId("");
-    }
-  }, [initialData]);
 
   const handleChange = (key, value) => setForm({ ...form, [key]: value });
 

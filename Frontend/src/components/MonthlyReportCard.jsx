@@ -1,4 +1,4 @@
-import { useMemo, useState, useContext, useEffect } from "react";
+import { useMemo, useState, useContext, useEffect, useRef } from "react";
 import InfoCard from "./InfoCard";
 import CustomPieChart from "./CustomPieChart";
 import ReactMarkdown from "react-markdown";
@@ -6,7 +6,9 @@ import remarkGfm from "remark-gfm";
 import rehypeSanitize from "rehype-sanitize";
 import axiosConfig from "../util/axiosConfig";
 import { API_ENDPOINTS } from "../util/apiEndpoints";
+import { buildMonthlyReportAiChatRequest } from "../util/monthlyReportAiRequest";
 import { AppContext } from "../context/AppContext.jsx";
+import { useNavigate } from "react-router-dom";
 import {
   TrendingUp,
   TrendingDown,
@@ -24,8 +26,8 @@ import {
   Brain,
   Sparkles,
   Loader2,
-  Lock,
-  RefreshCw
+  RefreshCw,
+  Crown
 } from "lucide-react";
 
 const GRADE_COLORS = {
@@ -43,17 +45,25 @@ const formatCurrency = (value) => {
 
 const MonthlyReportCard = ({ report }) => {
   const { user } = useContext(AppContext);
+  const navigate = useNavigate();
   const isPremium = user?.subscriptionPlan === "PREMIUM";
   const gradeColor = GRADE_COLORS[report.grade] || GRADE_COLORS.F;
 
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisError, setAnalysisError] = useState(null);
+  const analysisInFlightRef = useRef(false);
+  const analysisRequestIdRef = useRef(0);
 
   const analyzeWithAI = async () => {
+    if (analysisInFlightRef.current) return;
+
+    const requestId = analysisRequestIdRef.current + 1;
+    analysisRequestIdRef.current = requestId;
+    analysisInFlightRef.current = true;
+
     setIsAnalyzing(true);
     setAnalysisError(null);
-    setAiAnalysis(null);
 
     const categoryTop = report.categoryBreakdown?.slice(0, 3)
       .map((c) => `${c.name}: ${c.percent?.toFixed(1)}%`)
@@ -67,7 +77,7 @@ const MonthlyReportCard = ({ report }) => {
         : "không đổi";
 
     const prompt =
-      `Phân tích hành vi tài chính tháng ${report.monthName} của tôi (trả lời chi tiết, khoảng 300-400 từ, dùng bullet points ngắn gọn):\n` +
+      `Phân tích hành vi tài chính tháng ${report.monthName} của tôi (trả lời ngắn gọn, khoảng 90-140 từ, tối đa 3 ý chính):\n` +
       `- Xếp loại: ${report.grade} (${report.gradeLabel})\n` +
       `- Thu nhập: ${formatCurrency(report.totalIncome)}\n` +
       `- Chi tiêu: ${formatCurrency(report.totalExpense)}\n` +
@@ -76,20 +86,34 @@ const MonthlyReportCard = ({ report }) => {
       `- Danh mục chi nhiều nhất: ${categoryTop}\n` +
       `- Điểm mạnh: ${report.strengths?.join("; ") || "Không có"}\n` +
       `- Cần cải thiện: ${report.improvements?.join("; ") || "Không có"}\n\n` +
-      `Hãy: (1) nhận diện pattern hành vi chi tiêu, (2) chỉ ra thói quen tốt/xấu, (3) đưa ra 3-4 lời khuyên cụ thể và thực tế.`;
+      `Hãy: (1) nhận diện pattern chi tiêu chính, (2) chỉ ra điểm tốt hoặc rủi ro đáng chú ý nhất, (3) đưa ra 1-2 lời khuyên cụ thể và thực tế.`;
 
     try {
-      const response = await axiosConfig.post(API_ENDPOINTS.AI_CHAT, {
-        provider: "gptoss",
-        messages: [{ role: "user", content: prompt }],
-      });
-      setAiAnalysis(response.data?.reply || "Không thể tạo phân tích.");
-    } catch (err) {
-      setAnalysisError(
-        err.response?.data?.message || "Không thể kết nối AI. Vui lòng thử lại."
+      const response = await axiosConfig.post(
+        API_ENDPOINTS.MONTHLY_REPORT_AI_ANALYSIS,
+        buildMonthlyReportAiChatRequest(prompt),
+        { timeout: 90000, _skipGlobalLoading: true }
       );
+
+      if (analysisRequestIdRef.current === requestId) {
+        setAiAnalysis(response.data?.reply || "Không thể tạo phân tích.");
+      }
+    } catch (err) {
+      if (analysisRequestIdRef.current === requestId) {
+        const timeoutMessage = err.code === "ECONNABORTED"
+          ? "AI đang phản hồi chậm hơn dự kiến. Vui lòng thử lại sau ít phút."
+          : null;
+        setAnalysisError(
+          timeoutMessage ||
+          err.response?.data?.message ||
+          "Không thể kết nối AI. Vui lòng thử lại."
+        );
+      }
     } finally {
-      setIsAnalyzing(false);
+      if (analysisRequestIdRef.current === requestId) {
+        setIsAnalyzing(false);
+      }
+      analysisInFlightRef.current = false;
     }
   };
 
@@ -108,27 +132,25 @@ const MonthlyReportCard = ({ report }) => {
 
   const SpendingChangeIcon = spendingChangeInfo.icon;
 
-  // Transform category data for pie chart
+  const PIE_FALLBACK_COLORS = useMemo(() => ["#F59E0B", "#8B5CF6", "#10B981", "#3B82F6", "#EF4444", "#EC4899", "#06B6D4", "#84CC16"], []);
+
   const pieData = useMemo(() => {
     if (!report.categoryBreakdown || report.categoryBreakdown.length === 0) return [];
-    return report.categoryBreakdown.map((item) => ({
+    return report.categoryBreakdown.map((item, i) => ({
       name: item.name,
       amount: item.amount,
       percent: item.percent,
-      color: item.color || "#94A3B8",
+      color: (!item.color || item.color === "#94A3B8") ? PIE_FALLBACK_COLORS[i % PIE_FALLBACK_COLORS.length] : item.color,
       icon: item.icon || "📦",
     }));
-  }, [report.categoryBreakdown]);
+  }, [report.categoryBreakdown, PIE_FALLBACK_COLORS]);
 
-  // Extract colors from pieData for CustomPieChart
-  const PIE_FALLBACK_COLORS = ["#F59E0B", "#8B5CF6", "#10B981", "#3B82F6", "#EF4444", "#EC4899", "#06B6D4", "#84CC16"];
-  const pieColors = pieData.length > 0
-    ? pieData.map((item, i) => item.color || PIE_FALLBACK_COLORS[i % PIE_FALLBACK_COLORS.length])
-    : PIE_FALLBACK_COLORS;
+  const pieColors = useMemo(() => {
+    return pieData.map((item) => item.color);
+  }, [pieData]);
 
   return (
     <div className="space-y-6">
-      {/* Grade Badge */}
       <div className={`relative overflow-hidden p-8 rounded-2xl border-2 ${gradeColor.border} ${gradeColor.bg} text-center`}>
         <div className="text-8xl font-black tracking-tighter mb-2 ${gradeColor.text}">
           <span className={gradeColor.text}>{report.grade}</span>
@@ -139,7 +161,6 @@ const MonthlyReportCard = ({ report }) => {
         </p>
       </div>
 
-      {/* Key Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <InfoCard
           icon={<TrendingUp size={22} />}
@@ -167,7 +188,6 @@ const MonthlyReportCard = ({ report }) => {
         />
       </div>
 
-      {/* Savings Rate */}
       <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
@@ -189,18 +209,45 @@ const MonthlyReportCard = ({ report }) => {
         </div>
       </div>
 
-      {/* Category Breakdown */}
       {pieData.length > 0 && (
         <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-6">
           <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
             <ChartBar size={18} className="text-violet-500" />
             Phân bổ chi tiêu theo danh mục
           </h3>
-          <CustomPieChart data={pieData} colors={pieColors} />
+          <div className="flex justify-center">
+            <CustomPieChart
+              data={pieData}
+              colors={pieColors}
+              showTextAnchor
+              label="Tổng chi tiêu"
+              totalAmount={formatCurrency(report.totalExpense)}
+            />
+          </div>
+          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pt-6 border-t border-slate-100 dark:border-white/10">
+            {pieData.map((item, idx) => (
+              <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-base shrink-0"
+                    style={{ backgroundColor: `${item.color}20`, color: item.color }}
+                  >
+                    {item.icon}
+                  </div>
+                  <div className="truncate">
+                    <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">{item.name}</p>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">{item.percent?.toFixed(1)}%</p>
+                  </div>
+                </div>
+                <span className="text-xs font-extrabold text-slate-900 dark:text-white shrink-0">
+                  {formatCurrency(item.amount)}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
-      {/* Month-over-Month Comparison */}
       <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-6">
         <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
           <TrendingUp size={18} className="text-violet-500" />
@@ -267,7 +314,6 @@ const MonthlyReportCard = ({ report }) => {
         </div>
       </div>
 
-      {/* Badges */}
       {report.badges && report.badges.length > 0 && (
         <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-6">
           <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
@@ -288,7 +334,6 @@ const MonthlyReportCard = ({ report }) => {
         </div>
       )}
 
-      {/* Budget & Goal Status */}
       {report.totalBudgets > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-6">
@@ -314,7 +359,6 @@ const MonthlyReportCard = ({ report }) => {
         </div>
       )}
 
-      {/* Strengths & Improvements */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {report.strengths && report.strengths.length > 0 && (
           <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-6">
@@ -350,7 +394,6 @@ const MonthlyReportCard = ({ report }) => {
         )}
       </div>
 
-      {/* AI Behavior Analysis */}
       <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
@@ -365,16 +408,57 @@ const MonthlyReportCard = ({ report }) => {
         </div>
 
         {!isPremium ? (
-          <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20">
-            <Lock size={16} className="text-amber-500 shrink-0 mt-0.5" />
-            <p className="text-sm text-amber-700 dark:text-amber-300">
-              Tính năng phân tích hành vi AI chỉ khả dụng cho gói PREMIUM.
-            </p>
+          <div className="relative overflow-hidden rounded-2xl p-6 border border-purple-500/30 text-white bg-slate-900 shadow-xl animate-fade-in-up">
+            <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-purple-600/20 blur-2xl pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-32 h-32 rounded-full bg-indigo-600/15 blur-2xl pointer-events-none" />
+
+            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex-1 flex flex-col md:flex-row items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-purple-600 to-pink-500 flex items-center justify-center shrink-0 shadow-lg shadow-purple-500/20 text-white">
+                  <Crown className="w-6 h-6 animate-pulse" />
+                </div>
+                <div>
+                  <h4 className="text-base font-bold text-white flex items-center gap-2">
+                    Mở khóa Phân tích hành vi tài chính AI
+                    <span className="text-[9px] bg-gradient-to-r from-purple-600 to-pink-600 px-1.5 py-0.5 rounded-full font-extrabold uppercase">
+                      Premium
+                    </span>
+                  </h4>
+                  <p className="text-sm text-slate-300 mt-1 leading-relaxed">
+                    Nova Money sẽ phân tích sâu toàn bộ dòng tiền hàng tháng của bạn, tìm ra các thói quen tiêu dùng lãng phí ẩn giấu và đưa ra các đề xuất điều chỉnh cá nhân hóa cực kỳ chi tiết.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => navigate("/payment")}
+                className="w-full md:w-auto px-5 py-2.5 rounded-xl text-sm font-bold text-white whitespace-nowrap
+                  bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-500 hover:to-pink-400
+                  shadow-lg shadow-purple-600/20 hover:scale-[1.02] active:scale-[0.98] transition-all duration-150 flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Sparkles size={14} />
+                Nâng cấp ngay
+              </button>
+            </div>
           </div>
         ) : isAnalyzing ? (
-          <div className="flex items-center gap-3 py-4 text-sm text-slate-500 dark:text-slate-400">
-            <Loader2 size={18} className="animate-spin text-violet-500" />
-            Nova đang phân tích hành vi tài chính của bạn...
+          <div className="space-y-3 py-2">
+            {aiAnalysis && (
+              <div className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed opacity-75 prose-sm max-w-none
+                [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_ul]:my-2
+                [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:space-y-1 [&_ol]:my-2
+                [&_li]:leading-relaxed
+                [&_strong]:font-semibold [&_strong]:text-slate-900 [&_strong]:dark:text-white
+                [&_p]:mb-2 [&_p:last-child]:mb-0
+                [&_h3]:font-semibold [&_h3]:text-slate-800 [&_h3]:dark:text-slate-100 [&_h3]:mt-3 [&_h3]:mb-1">
+                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSanitize]}>
+                  {aiAnalysis}
+                </ReactMarkdown>
+              </div>
+            )}
+            <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
+              <Loader2 size={18} className="animate-spin text-violet-500" />
+              Nova đang phân tích hành vi tài chính của bạn...
+            </div>
           </div>
         ) : aiAnalysis ? (
           <div>

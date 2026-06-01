@@ -3,6 +3,7 @@ import { AppContext } from "../context/AppContext.jsx";
 import { ShieldCheck, User, Zap } from "lucide-react";
 import { SIDE_BAR_DATA } from "../assets/assets.js";
 import { useNavigate } from "react-router-dom";
+import favicon from "../assets/logo/favicon.png";
 
 const Sidebar = ({ activeMenu, mobileOverlay = false }) => {
   const { user } = useContext(AppContext);
@@ -18,7 +19,7 @@ const Sidebar = ({ activeMenu, mobileOverlay = false }) => {
         className="flex items-center gap-2.5 mb-7 px-1 cursor-pointer"
       >
         <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center shrink-0 shadow-md">
-          <img src="/favicon.png" alt="Money Manager Logo" className="w-12 h-12 max-w-none object-cover scale-110" />
+          <img src={favicon} alt="Money Manager Logo" className="w-12 h-12 max-w-none object-cover scale-110" />
         </div>
         <span className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
           Money<span className="text-amber-500">Manager</span>
@@ -52,8 +53,8 @@ const Sidebar = ({ activeMenu, mobileOverlay = false }) => {
               {user?.fullName || "Người dùng"}
             </p>
             {user?.role === "admin" && (
-              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[9px] font-bold uppercase tracking-wide border border-amber-500/20 shrink-0">
-                <ShieldCheck size={10} />
+              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[11px] font-extrabold uppercase tracking-wide border border-amber-500/20 shrink-0">
+                <ShieldCheck size={11} />
                 Admin
               </span>
             )}

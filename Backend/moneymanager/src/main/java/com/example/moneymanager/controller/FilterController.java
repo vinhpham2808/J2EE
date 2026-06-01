@@ -43,10 +43,14 @@ public class FilterController {
         Sort sort = Sort.by(direction, sortField);
         subscriptionService.ensureCanUseFilters(profileService.getCurrentProfile(), startDate);
         if ("income".equals(filter.getType())) {
-            List<IncomeDTO> incomes = incomeService.filterIncomes(startDate, endDate, keyword, sort);
+            List<IncomeDTO> incomes = (filter.getPage() != null && filter.getSize() != null)
+                    ? incomeService.filterIncomes(startDate, endDate, keyword, sort, filter.getPage(), filter.getSize())
+                    : incomeService.filterIncomes(startDate, endDate, keyword, sort);
             return ResponseEntity.ok(incomes);
         } else if ("expense".equalsIgnoreCase(filter.getType())) {
-            List<ExpenseDTO> expenses = expenseService.filterExpenses(startDate, endDate, keyword, sort);
+            List<ExpenseDTO> expenses = (filter.getPage() != null && filter.getSize() != null)
+                    ? expenseService.filterExpenses(startDate, endDate, keyword, sort, filter.getPage(), filter.getSize())
+                    : expenseService.filterExpenses(startDate, endDate, keyword, sort);
             return ResponseEntity.ok(expenses);
         } else {
             return ResponseEntity.badRequest().body("Invalid type. Must be 'income' or 'expense'");

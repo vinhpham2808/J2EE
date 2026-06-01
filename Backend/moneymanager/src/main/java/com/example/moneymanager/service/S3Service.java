@@ -72,7 +72,7 @@ public class S3Service {
                 .contentType(file.getContentType())
                 .build();
 
-        s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+        s3Client.putObject(putObjectRequest, RequestBody.fromBytes(file.getBytes()));
 
         return String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, fileName);
     }

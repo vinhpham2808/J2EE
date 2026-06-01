@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Alert } from "react-native";
 import { sendAiChat, parseAiIntent, confirmAiAction, undoAiAction } from "../../services/aiService";
 import { parseIntentResponse, isCrudIntent, isActionIntent, INTENT_ICONS } from "../../utils/aiIntentParser";
@@ -18,29 +18,119 @@ const WELCOME_MESSAGE = {
 };
 
 /**
- * useChatMessages — Quản lý toàn bộ state tin nhắn, gửi/nhận, xác nhận CRUD, undo.
- *
- * Nhận vào:
- *   activeMode, activeProvider, activeModel, activeModelLabel
- *
- * Trả về:
- *   messages, loading, chatBusy, pendingIntent, isProcessingCrud
- *   sendMessage, handleConfirmAction, handleCancelConfirmation, handleUndo
- *   flatListRef, hasUserStartedChat
+ * useChatMessages — Quản lý toàn bộ state tin nhắn, sessions, sửa tin, dừng & thử lại.
  */
 export default function useChatMessages({ activeMode, activeProvider, activeModel, activeModelLabel }) {
   const [messages, setMessages] = useState([WELCOME_MESSAGE]);
+  const [sessions, setSessions] = useState([]);
+  const [activeSessionId, setActiveSessionId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [inputLocked, setInputLocked] = useState(false);
   const [isProcessingCrud, setIsProcessingCrud] = useState(false);
   const [pendingIntent, setPendingIntent] = useState(null);
 
-  const flatListRef    = useRef(null);
-  const messagesRef    = useRef(messages);
-  const isSendingRef   = useRef(false);
-  const messageIdRef   = useRef(0);
+  const flatListRef = useRef(null);
+  const messagesRef = useRef(messages);
+  const isSendingRef = useRef(false);
+  const messageIdRef = useRef(0);
+  const abortControllerRef = useRef(null);
+  const currentRequestIdRef = useRef(0);
 
   const chatBusy = loading || inputLocked || isProcessingCrud;
+
+  // ── Session Management ────────────────────────────────
+
+  const fetchSessions = useCallback(async () => {
+    try {
+      const response = await http.get(API_ENDPOINTS.AI_CHAT_SESSIONS);
+      setSessions(response.data || []);
+    } catch {
+      setSessions([]);
+    }
+  }, []);
+
+  const selectSession = useCallback(async (sessionId) => {
+    stopGenerating();
+    const requestId = ++currentRequestIdRef.current;
+    isSendingRef.current = false;
+
+    setActiveSessionId(sessionId);
+    setPendingIntent(null);
+    setLoading(true);
+    setInputLocked(false);
+    try {
+      const response = await http.get(API_ENDPOINTS.AI_CHAT_MESSAGES(sessionId));
+      if (requestId !== currentRequestIdRef.current) return;
+
+      const rawMsgs = response.data || [];
+      const mapped = rawMsgs.map((m) => ({
+        id: String(m.id || Math.random()),
+        text: m.content || "",
+        sender: m.role === "user" ? "user" : "bot",
+        time: m.timestamp ? new Date(m.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : getCurrentTimeLabel()
+      }));
+      const nextMsgs = mapped.length > 0 ? mapped : [WELCOME_MESSAGE];
+      setMessages(nextMsgs);
+      messagesRef.current = nextMsgs;
+    } catch {
+      if (requestId !== currentRequestIdRef.current) return;
+      setMessages([WELCOME_MESSAGE]);
+      messagesRef.current = [WELCOME_MESSAGE];
+    } finally {
+      if (requestId === currentRequestIdRef.current) {
+        setLoading(false);
+      }
+    }
+  }, [stopGenerating]);
+
+  const deleteSession = useCallback(async (sessionId) => {
+    try {
+      await http.delete(API_ENDPOINTS.AI_CHAT_DELETE_SESSION(sessionId));
+      if (activeSessionId === sessionId) {
+        startNewChat();
+      }
+      fetchSessions();
+    } catch {
+      Alert.alert("Lỗi", "Không thể xóa phiên trò chuyện.");
+    }
+  }, [activeSessionId, fetchSessions]);
+
+  const renameSession = useCallback(async (sessionId, newTitle) => {
+    if (!newTitle.trim()) return;
+    try {
+      await http.put(API_ENDPOINTS.AI_CHAT_RENAME_SESSION(sessionId), { title: newTitle });
+      fetchSessions();
+    } catch {
+      Alert.alert("Lỗi", "Không thể đổi tên phiên.");
+    }
+  }, [fetchSessions]);
+
+  const startNewChat = useCallback(() => {
+    stopGenerating();
+    currentRequestIdRef.current += 1;
+    isSendingRef.current = false;
+
+    setActiveSessionId(null);
+    setPendingIntent(null);
+    setLoading(false);
+    setInputLocked(false);
+    setMessages([WELCOME_MESSAGE]);
+    messagesRef.current = [WELCOME_MESSAGE];
+  }, [stopGenerating]);
+
+  // Tải danh sách phiên chat khi khởi chạy
+  useEffect(() => {
+    fetchSessions();
+  }, [fetchSessions]);
+
+  // ── Stop Generating ──────────────────────────────────
+
+  const stopGenerating = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+  }, []);
 
   // ── Internal helpers ───────────────────────────────────
 
@@ -61,6 +151,15 @@ export default function useChatMessages({ activeMode, activeProvider, activeMode
     return msgs
       .filter((m) => m.id !== "welcome" && !m.isSystem && !m.isIntent && !m.isConfirmation)
       .slice(-20)
+      .map((m) => ({
+        role: m.sender === "user" ? "user" : "assistant",
+        content: m.text
+      }));
+  }, []);
+
+  const buildPersistedMessages = useCallback((msgs) => {
+    return msgs
+      .filter((m) => m.id !== "welcome" && !m.isSystem && !m.isIntent && !m.isConfirmation && !m.isError)
       .map((m) => ({
         role: m.sender === "user" ? "user" : "assistant",
         content: m.text
@@ -91,17 +190,18 @@ export default function useChatMessages({ activeMode, activeProvider, activeMode
     throw new Error("Không xác định được hành động.");
   }, []);
 
-  // ── Send message ───────────────────────────────────────
+  // ── Send / Edit / Resend ───────────────────────────────
 
-  const sendMessage = useCallback(async (textToSend) => {
+  const sendMessage = useCallback(async (textToSend, options = {}) => {
     const trimmedText = String(textToSend || "").trim();
-    if (!trimmedText || chatBusy || isSendingRef.current) return;
+    const editMessageId = options?.editMessageId ?? null;
+    if (!trimmedText || (chatBusy && !editMessageId) || isSendingRef.current) return;
 
-    // Lấy pendingIntent từ state mới nhất (dùng ref nếu cần, nhưng ở đây closure đủ)
-    // Ta dùng messagesRef để truy xuất pending gián tiếp
     const currentMessages = messagesRef.current;
+    
+    // Nếu có pendingIntent (đang chờ xác nhận CRUD) thì chặn gửi tin nhắn mới
     const hasPendingIntent = currentMessages.some((m) => m.isIntent && !m.isConfirmation);
-    if (hasPendingIntent) {
+    if (hasPendingIntent && !editMessageId) {
       appendMessage({
         id: createMessageId("system-warn"),
         text: "⚠️ Vui lòng xác nhận hoặc hủy thao tác hiện tại trước khi gửi lệnh mới.",
@@ -114,24 +214,55 @@ export default function useChatMessages({ activeMode, activeProvider, activeMode
 
     isSendingRef.current = true;
     setInputLocked(true);
+    setLoading(true);
+
+    // Xử lý Cắt Lịch Sử (Nếu đang chỉnh sửa tin nhắn cũ)
+    const editingMessageIndex = editMessageId
+      ? currentMessages.findIndex((m) => m.id === editMessageId)
+      : -1;
+    const isEditingExisting = editingMessageIndex >= 0;
+    
+    const baseMessages = isEditingExisting
+      ? currentMessages.slice(0, editingMessageIndex)
+      : currentMessages;
 
     const userMessage = {
-      id: createMessageId("user"),
+      id: isEditingExisting ? editMessageId : createMessageId("user"),
       text: trimmedText,
       sender: "user",
       time: getCurrentTimeLabel()
     };
 
-    const nextMessages = [...currentMessages, userMessage];
+    const nextMessages = [...baseMessages, userMessage];
     messagesRef.current = nextMessages;
     setMessages(nextMessages);
-    setLoading(true);
+    setPendingIntent(null);
+
+    const requestId = ++currentRequestIdRef.current;
+
+    // Khởi tạo AbortController cho phép dừng generate giữa chừng
+    abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
 
     try {
       const history = buildHistory(nextMessages);
 
+      // Nếu đang chỉnh sửa tin nhắn cũ, gửi PUT đồng bộ lại lịch sử lên server
+      if (isEditingExisting && activeSessionId) {
+        await http.put(
+          API_ENDPOINTS.AI_CHAT_REPLACE_MESSAGES(activeSessionId),
+          { messages: buildPersistedMessages(nextMessages) }
+        );
+        if (requestId !== currentRequestIdRef.current) return;
+      }
+
       if (activeMode === "chat") {
-        const response = await sendAiChat(history, activeProvider, activeModel);
+        const response = await sendAiChat(
+          history, activeProvider, activeModel,
+          activeSessionId, true, signal
+        );
+        if (requestId !== currentRequestIdRef.current) return;
+        
         appendMessage({
           id: createMessageId("bot"),
           text: response?.reply || "Tôi đã nhận câu hỏi nhưng hiện chưa tạo được câu trả lời phù hợp.",
@@ -139,13 +270,25 @@ export default function useChatMessages({ activeMode, activeProvider, activeMode
           modelLabel: activeModelLabel,
           time: getCurrentTimeLabel()
         });
+
+        if (response?.sessionId && !activeSessionId) {
+          setActiveSessionId(response.sessionId);
+          fetchSessions();
+        }
       } else {
         // Agent Mode
         const intentResponse = await parseAiIntent(
           trimmedText, "dashboard", history,
-          activeProvider, activeModel
+          activeProvider, activeModel, activeSessionId, signal
         );
+        if (requestId !== currentRequestIdRef.current) return;
+        
         const parsed = parseIntentResponse(intentResponse);
+
+        if (intentResponse?.sessionId && !activeSessionId) {
+          setActiveSessionId(intentResponse.sessionId);
+          fetchSessions();
+        }
 
         if (isCrudIntent(parsed.intent) || isActionIntent(parsed.intent)) {
           setPendingIntent(parsed);
@@ -177,7 +320,12 @@ export default function useChatMessages({ activeMode, activeProvider, activeMode
           });
         } else {
           // Fallback to chat
-          const response = await sendAiChat(history, activeProvider, activeModel);
+          const response = await sendAiChat(
+            history, activeProvider, activeModel,
+            activeSessionId || intentResponse?.sessionId, true, signal
+          );
+          if (requestId !== currentRequestIdRef.current) return;
+          
           appendMessage({
             id: createMessageId("bot"),
             text: response?.reply || "Tôi đã nhận câu hỏi nhưng hiện chưa tạo được câu trả lời phù hợp.",
@@ -187,21 +335,59 @@ export default function useChatMessages({ activeMode, activeProvider, activeMode
           });
         }
       }
+      
+      // Đồng bộ lại danh sách phiên chat
+      fetchSessions();
+
     } catch (error) {
-      const errorMsg = error.response?.data?.message || "Không thể xử lý yêu cầu. Vui lòng thử lại sau.";
-      appendMessage({
-        id: createMessageId("bot-error"),
-        text: errorMsg,
-        sender: "bot",
-        isError: true,
-        time: getCurrentTimeLabel()
-      });
+      if (requestId !== currentRequestIdRef.current) return;
+      if (error.name === "AbortError" || error.message === "canceled" || error.code === "ERR_CANCELED") {
+        // Xử lý khi người dùng ấn nút STOP
+        appendMessage({
+          id: createMessageId("bot-info"),
+          text: "⏹️ Đã dừng sinh phản hồi.",
+          sender: "bot",
+          isSystem: true,
+          time: getCurrentTimeLabel()
+        });
+      } else {
+        const errorMsg = error.response?.data?.message || "Không thể xử lý yêu cầu. Vui lòng thử lại sau.";
+        appendMessage({
+          id: createMessageId("bot-error"),
+          text: errorMsg,
+          sender: "bot",
+          isError: true,
+          time: getCurrentTimeLabel()
+        });
+      }
     } finally {
-      isSendingRef.current = false;
-      setLoading(false);
-      setInputLocked(false);
+      if (requestId === currentRequestIdRef.current) {
+        isSendingRef.current = false;
+        setLoading(false);
+        setInputLocked(false);
+        abortControllerRef.current = null;
+      }
     }
-  }, [activeMode, activeProvider, activeModel, activeModelLabel, chatBusy, buildHistory, appendMessage, createMessageId]);
+  }, [activeMode, activeProvider, activeModel, activeModelLabel, chatBusy, activeSessionId, buildHistory, buildPersistedMessages, appendMessage, createMessageId, fetchSessions]);
+
+  // ── Retry ─────────────────────────────────────────────
+
+  const retryLastMessage = useCallback(() => {
+    const currentMessages = messagesRef.current;
+    const lastUserIdx = [...currentMessages].reverse().findIndex((m) => m.sender === "user");
+    if (lastUserIdx < 0) return;
+
+    const actualIdx = currentMessages.length - 1 - lastUserIdx;
+    const lastUserMsg = currentMessages[actualIdx];
+
+    // Cắt bỏ mọi tin nhắn lỗi hoặc Bot phản hồi sau tin nhắn User cuối
+    const nextMessages = currentMessages.slice(0, actualIdx);
+    messagesRef.current = nextMessages;
+    setMessages(nextMessages);
+
+    // Gửi lại nội dung tin nhắn đó
+    sendMessage(lastUserMsg.text);
+  }, [sendMessage]);
 
   // ── Confirm / Cancel / Undo ────────────────────────────
 
@@ -288,6 +474,8 @@ export default function useChatMessages({ activeMode, activeProvider, activeMode
   return {
     // State
     messages,
+    sessions,
+    activeSessionId,
     loading,
     chatBusy,
     pendingIntent,
@@ -297,6 +485,13 @@ export default function useChatMessages({ activeMode, activeProvider, activeMode
     flatListRef,
     // Actions
     sendMessage,
+    retryLastMessage,
+    stopGenerating,
+    selectSession,
+    deleteSession,
+    renameSession,
+    startNewChat,
+    fetchSessions,
     handleConfirmAction,
     handleCancelConfirmation,
     handleUndo

@@ -39,19 +39,6 @@ const Profile = () => {
         setCurrentImageUrl(user.profileImageUrl || "");
     }, [user]);
 
-    const persistToken = (token, nextEmail) => {
-        if (localStorage.getItem("token")) {
-            localStorage.setItem("token", token);
-            sessionStorage.removeItem("token");
-            if (localStorage.getItem("rememberedEmail") !== null) {
-                localStorage.setItem("rememberedEmail", nextEmail);
-            }
-            return;
-        }
-        sessionStorage.setItem("token", token);
-        localStorage.removeItem("token");
-    };
-
     const handleShowPasswordFields = () => {
         setShowPasswordFields(true);
         setError("");
@@ -84,8 +71,7 @@ const Profile = () => {
                 newPassword: newPassword.trim(),
             });
 
-            const {token, user: updatedUser} = response.data;
-            persistToken(token, updatedUser.email || email.trim());
+            const { user: updatedUser } = response.data;
             setUser(updatedUser);
             setCurrentImageUrl(updatedUser.profileImageUrl || "");
             setProfilePhoto(null);

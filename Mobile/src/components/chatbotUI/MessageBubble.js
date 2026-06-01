@@ -14,15 +14,29 @@ const cleanMarkdown = (text) => {
   return cleaned;
 };
 
-export default function MessageBubble({ message, onConfirm, onCancel, onUndo, isProcessing }) {
+export default function MessageBubble({ message, onConfirm, onCancel, onUndo, onEditMessage, onRetry, isProcessing }) {
   const isUser = message.sender === "user";
   const isBot = message.sender === "bot";
   const isSystem = message.isSystem;
   const isError = message.isError;
+  const isStopInfo = isSystem && message.text === "⏹️ Đã dừng sinh phản hồi.";
 
   return (
     <View style={[styles.messageRow, isUser ? styles.userRow : styles.botRow]}>
       {!isUser && <AssistantAvatar />}
+      
+      {isUser && onEditMessage && (
+        <Pressable
+          style={styles.editButton}
+          onPress={() => onEditMessage(message)}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Chỉnh sửa tin nhắn"
+        >
+          <Text style={styles.editIcon}>✏️</Text>
+        </Pressable>
+      )}
+
       <View style={[styles.messageColumn, isUser && styles.userColumn]}>
         <View
           style={[
@@ -80,6 +94,18 @@ export default function MessageBubble({ message, onConfirm, onCancel, onUndo, is
           {isBot && !message.isIntent && !isSystem && !isError && message.modelLabel && (
             <Text style={styles.modelFootprint}>Nova Money · {message.modelLabel}</Text>
           )}
+
+          {/* Retry Button inside error or stopped messages */}
+          {(isError || isStopInfo) && onRetry && (
+            <Pressable
+              style={styles.retryBtn}
+              onPress={onRetry}
+              accessibilityRole="button"
+              accessibilityLabel="Thử lại tin nhắn"
+            >
+              <Text style={styles.retryBtnText}>🔄 Thử lại</Text>
+            </Pressable>
+          )}
         </View>
         <Text style={[styles.timeText, isUser && styles.userTime]}>
           {message.time}
@@ -93,13 +119,27 @@ const styles = StyleSheet.create({
   messageRow: {
     width: "100%",
     flexDirection: "row",
-    marginBottom: 16
+    marginBottom: 16,
+    alignItems: "center"
   },
   botRow: {
     alignItems: "flex-start"
   },
   userRow: {
     justifyContent: "flex-end"
+  },
+  editButton: {
+    padding: 8,
+    marginRight: 4,
+    borderRadius: 16,
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.08)"
+  },
+  editIcon: {
+    fontSize: 12
   },
   messageColumn: {
     maxWidth: "80%",
@@ -194,6 +234,24 @@ const styles = StyleSheet.create({
   },
   undoBtnText: {
     color: "#4cdad9",
+    fontSize: 12,
+    fontWeight: "700"
+  },
+  retryBtn: {
+    marginTop: 8,
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(232, 89, 122, 0.1)",
+    borderWidth: 1,
+    borderColor: "rgba(232, 89, 122, 0.25)",
+    borderRadius: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4
+  },
+  retryBtnText: {
+    color: COLORS.PRIMARY,
     fontSize: 12,
     fontWeight: "700"
   }

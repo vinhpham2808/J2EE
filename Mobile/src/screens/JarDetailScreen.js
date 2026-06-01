@@ -93,7 +93,7 @@ export default function JarDetailScreen() {
     try {
       const [jarsRes, expensesRes] = await Promise.all([
         http.get(API_ENDPOINTS.GET_JARS),
-        http.get(API_ENDPOINTS.GET_ALL_EXPENSE)
+        http.get(API_ENDPOINTS.GET_ALL_EXPENSE + "?all=true")
       ]);
       setJars(Array.isArray(jarsRes.data) ? jarsRes.data : []);
       setExpenses(Array.isArray(expensesRes.data) ? expensesRes.data : []);
@@ -110,7 +110,7 @@ export default function JarDetailScreen() {
     try {
       const [jarsRes, expensesRes] = await Promise.all([
         http.get(API_ENDPOINTS.GET_JARS),
-        http.get(API_ENDPOINTS.GET_ALL_EXPENSE)
+        http.get(API_ENDPOINTS.GET_ALL_EXPENSE + "?all=true")
       ]);
       setJars(Array.isArray(jarsRes.data) ? jarsRes.data : []);
       setExpenses(Array.isArray(expensesRes.data) ? expensesRes.data : []);
@@ -127,11 +127,13 @@ export default function JarDetailScreen() {
     }, [fetchJarsAndExpenses])
   );
 
-  const selectedJar = useMemo(() => jars.find(j => j.id === id) || null, [jars, id]);
+  const selectedJar = useMemo(() => jars.find(j => Number(j.id) === Number(id)) || null, [jars, id]);
   const totalBalance = useMemo(() => jars.reduce((sum, j) => sum + (j.currentBalance ?? 0), 0), [jars]);
 
   const jarExpenses = useMemo(() => {
-    return expenses.filter(e => e.jarId === id).sort((a, b) => new Date(b.date) - new Date(a.date));
+    return expenses
+      .filter(e => e.jarId !== null && Number(e.jarId) === Number(id))
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
   }, [expenses, id]);
 
   // Group by category for Pie chart

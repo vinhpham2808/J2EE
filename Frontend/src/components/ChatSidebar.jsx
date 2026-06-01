@@ -1,6 +1,8 @@
 import { useState, useContext, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContext.jsx";
+import axiosConfig from "../util/axiosConfig";
+import { API_ENDPOINTS } from "../util/apiEndpoints";
 import {
   Pencil,
   Search,
@@ -17,6 +19,7 @@ import {
   ArrowLeft
 } from "lucide-react";
 import { useTheme } from "../context/ThemeContext.jsx";
+import favicon from "../assets/logo/AI_favicon.png";
 
 const groupSessions = (sessions) => {
   const now = new Date();
@@ -61,7 +64,6 @@ const ChatSidebar = ({
   const [editingId, setEditingId] = useState(null);
   const [editTitle, setEditTitle] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(null);
-  const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef(null);
@@ -76,11 +78,15 @@ const ChatSidebar = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleLogout = () => {
-    localStorage.clear();
-    sessionStorage.clear();
-    clearUser();
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      await axiosConfig.post(API_ENDPOINTS.LOGOUT);
+    } catch (err) {
+      console.error("Logout error:", err);
+    } finally {
+      clearUser();
+      navigate("/login");
+    }
   };
 
   const filteredSessions = searchQuery.trim()
@@ -143,18 +149,22 @@ const ChatSidebar = ({
             placeholder="Tìm kiếm..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-transparent hover:bg-slate-100 dark:hover:bg-white/5 focus:bg-slate-200 dark:focus:bg-white/10
+            className="w-full bg-slate-100/50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/8
+              border border-slate-200 dark:border-white/10
               text-[14px] text-slate-800 dark:text-[#e3e3e3]
-              rounded-full py-3 pl-[44px] pr-10 outline-none transition-colors
-              placeholder-slate-600 dark:placeholder-[#e3e3e3] font-medium"
+              rounded-full py-2.5 pl-[42px] pr-10 outline-none transition-all duration-300
+              placeholder-slate-400 dark:placeholder-slate-500 font-medium
+              focus:bg-white dark:focus:bg-slate-900/60 focus:border-violet-500 dark:focus:border-amber-500
+              focus:ring-1 focus:ring-violet-500/20 dark:focus:ring-amber-500/20
+              focus:shadow-[0_0_15px_rgba(139,92,246,0.1)] dark:focus:shadow-[0_0_15px_rgba(245,158,11,0.1)]"
           />
-          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 dark:text-[#e3e3e3] opacity-80 pointer-events-none" />
+          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-violet-500 dark:group-focus-within:text-amber-500 transition-colors pointer-events-none" />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors active:scale-90"
             >
-              <X size={16} />
+              <X size={15} />
             </button>
           )}
         </div>
@@ -183,7 +193,7 @@ const ChatSidebar = ({
             )}
           </div>
         ) : (
-          grouped.map((group, gi) => (
+          grouped.map((group) => (
             <div key={group.label} className="mb-4">
               <div className="sticky top-0 bg-slate-50/90 dark:bg-[#1e1f20]/90 backdrop-blur-sm z-10 py-1">
                 <h3 className="text-[13px] font-medium text-slate-500 dark:text-[#c4c7c5] px-4">
@@ -200,7 +210,7 @@ const ChatSidebar = ({
                           value={editTitle}
                           onChange={(e) => setEditTitle(e.target.value)}
                           onKeyDown={(e) => {
-                            if (e.key === "Enter") confirmRename();
+                            if (e.key === "Enter" && !e.isComposing) confirmRename();
                             if (e.key === "Escape") cancelRename();
                           }}
                           className="flex-1 bg-slate-200 dark:bg-white/10 rounded-full px-3 py-1.5 text-sm text-slate-800 dark:text-slate-200
@@ -273,9 +283,9 @@ const ChatSidebar = ({
           <div className="flex-1 min-w-0 flex flex-col justify-center">
             <p className="text-sm font-medium text-slate-700 dark:text-[#e3e3e3] truncate">{userName}</p>
             <span className={`text-[11px] font-medium tracking-wide ${
-              userPlan === "PREMIUM" ? "text-amber-500 dark:text-amber-400" : "text-slate-400 dark:text-[#c4c7c5]"
+              userPlan === "PREMIUM" ? "text-amber-500 dark:text-amber-400" : userPlan === "BASIC" ? "text-violet-500 dark:text-violet-400 font-semibold" : "text-slate-400 dark:text-[#c4c7c5]"
             }`}>
-              {userPlan === "PREMIUM" ? "Premium" : "Free"}
+              {userPlan === "PREMIUM" ? "Premium" : userPlan === "BASIC" ? "Basic" : "Free"}
             </span>
           </div>
 
@@ -352,7 +362,7 @@ const ChatSidebar = ({
           <div className="bg-white dark:bg-[#282a2c] rounded-[24px] p-6 mx-4 shadow-2xl max-w-[480px] w-full">
             <p className="text-[22px] text-slate-900 dark:text-[#e3e3e3] font-normal mb-3">Bạn muốn xoá cuộc trò chuyện?</p>
             <p className="text-[14px] text-slate-600 dark:text-[#c4c7c5] mb-6 leading-relaxed">
-              Thao tác này sẽ xoá toàn bộ tin nhắn, câu trả lời và nội dung trao đổi khỏi lịch sử trò chuyện của bạn với trợ lý Nova. Hành động này không thể hoàn tác.
+              Thao tác này sẽ xoá toàn bộ tin nhắn, câu trả lời và nội dung trao đổi khỏi lịch sử trò chuyện của bạn với trợ lý Nova Money. Hành động này không thể hoàn tác.
             </p>
             <div className="flex justify-end gap-2 mt-2">
               <button
@@ -380,10 +390,10 @@ const ChatSidebar = ({
         <div className="flex items-center justify-between px-5 py-4 mt-1">
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-full overflow-hidden flex items-center justify-center bg-transparent">
-              <img src="/favicon.png" alt="Logo" className="w-8 h-8 max-w-none object-cover scale-110 drop-shadow-sm" />
+              <img src={favicon} alt="Logo" className="w-8 h-8 max-w-none object-cover scale-110 drop-shadow-sm" />
             </div>
             <span className="text-xl font-medium text-slate-800 dark:text-[#e3e3e3] tracking-tight">
-              Nova
+              Nova Money
             </span>
           </div>
           {/* Mobile close button remains visible on small screens too */}

@@ -1,4 +1,4 @@
-import { Download, LoaderCircle, Mail, FileSpreadsheet, Lock } from "lucide-react";
+import { LoaderCircle, Mail, FileSpreadsheet, Lock } from "lucide-react";
 import TransactionInfoCard from "./TransactionInfoCard.jsx";
 import moment from "moment";
 import { useState } from "react";
@@ -27,52 +27,46 @@ const IncomeList = ({
 
     return (
         <div className="card">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-1">
+            <div className="mb-1 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <h5 className="text-lg font-semibold text-slate-900 dark:text-white">Nguồn thu nhập</h5>
-                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                    <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
                         {transactions?.length ?? 0} giao dịch
                     </p>
                 </div>
 
-                <div className="flex flex-col items-end gap-2">
-                    <div className="flex items-center gap-2">
-                        {/* Email button */}
+                <div className="flex w-full flex-col gap-2 sm:w-auto sm:items-end">
+                    <div className="flex flex-wrap items-center gap-2 sm:justify-end">
                         <button
                             disabled={isBusy || disableExportActions}
                             onClick={() => handleAction("email", onEmail)}
                             title={disableExportActions ? disabledMessage : "Gửi báo cáo qua email"}
                             type="button"
                             className={[
-                                "inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition",
-                                "border border-slate-200 dark:border-white/10",
-                                "bg-white dark:bg-white/5 text-slate-600 dark:text-slate-300",
-                                "hover:bg-slate-50 dark:hover:bg-white/10 hover:border-slate-300 dark:hover:border-white/20",
-                                "active:scale-95 shadow-sm",
-                                (isBusy || disableExportActions) ? "opacity-50 cursor-not-allowed" : "",
+                                "inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-600 shadow-sm transition dark:border-white/10 dark:bg-white/5 dark:text-slate-300",
+                                "hover:bg-slate-50 hover:border-slate-300 dark:hover:bg-white/10 dark:hover:border-white/20 active:scale-95",
+                                (isBusy || disableExportActions) ? "cursor-not-allowed opacity-50" : "",
                             ].join(" ")}
                         >
                             {loadingAction === "email" ? (
                                 <><LoaderCircle size={14} className="animate-spin" />Đang gửi...</>
                             ) : disableExportActions ? (
-                                <><Lock size={14} />Gửi Email</>
+                                <><Lock size={14} />Gửi email</>
                             ) : (
-                                <><Mail size={14} />Gửi Email</>
+                                <><Mail size={14} />Gửi email</>
                             )}
                         </button>
 
-                        {/* Download button */}
                         <button
                             disabled={isBusy || disableExportActions}
                             onClick={() => handleAction("download", onDownload)}
                             title={disableExportActions ? disabledMessage : "Tải file Excel về máy"}
                             type="button"
                             className={[
-                                "inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition",
-                                "shadow-sm active:scale-95",
+                                "inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition shadow-sm active:scale-95",
                                 disableExportActions
-                                    ? "border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-400 dark:text-slate-500 opacity-50 cursor-not-allowed"
-                                    : "border border-emerald-500/30 bg-emerald-500 hover:bg-emerald-400 text-white",
+                                    ? "cursor-not-allowed border border-slate-200 bg-white text-slate-400 opacity-50 dark:border-white/10 dark:bg-white/5 dark:text-slate-500"
+                                    : "border border-emerald-500/30 bg-emerald-500 text-white hover:bg-emerald-400",
                             ].join(" ")}
                         >
                             {loadingAction === "download" ? (
@@ -85,16 +79,16 @@ const IncomeList = ({
                         </button>
                     </div>
 
-                    {disableExportActions && disabledMessage && (
-                        <p className="max-w-xs text-right text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                    {disableExportActions && disabledMessage ? (
+                        <p className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 sm:max-w-xs sm:text-right">
                             <Lock size={11} />
                             {disabledMessage}
                         </p>
-                    )}
+                    ) : null}
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 mt-4">
+            <div className="mt-4 grid grid-cols-1 gap-2 sm:gap-3 md:grid-cols-2">
                 {transactions?.map((income) => (
                     <TransactionInfoCard
                         key={income.id}

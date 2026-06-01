@@ -35,6 +35,7 @@ public class GeminiController {
     public ResponseEntity<AssistantChatResponseDTO> chat(
             @RequestBody AssistantChatRequestDTO requestDTO
     ) {
+        subscriptionService.ensureCanUseDetailedAi(profileService.getCurrentProfile());
         return ResponseEntity.ok(geminiService.chat(requestDTO.getMessage()));
     }
 

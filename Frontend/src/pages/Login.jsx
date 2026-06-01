@@ -1,8 +1,7 @@
 import { useCallback, useContext, useEffect, useState, useRef } from "react";
 import { LoaderCircle, Zap } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AppContext } from "../context/AppContext.jsx";
-import { useTheme } from "../context/ThemeContext.jsx";
 import Header from "../components/Header.jsx";
 import Input from "../components/Input.jsx";
 import axiosConfig from "../util/axiosConfig.jsx";
@@ -10,6 +9,9 @@ import { API_ENDPOINTS } from "../util/apiEndpoints.js";
 import { validateEmail } from "../util/validation.js";
 import { usePageTitle } from "../hooks/usePageTitle.js";
 import Footer from "../components/Footer.jsx";
+import favicon from "../assets/logo/favicon.png";
+import toast from "react-hot-toast";
+import { getPostAuthRedirectPath } from "../util/defaultAuthenticatedRoute.js";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
@@ -17,16 +19,16 @@ const Login = () => {
   const navigate = useNavigate();
   usePageTitle("Đăng nhập");
   const { setUser } = useContext(AppContext);
-  const { theme } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const googleBtnContainerRef = useRef(null);
   const googleBtnLightRef = useRef(null);
   const googleBtnDarkRef = useRef(null);
+
+  const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
     const rememberedEmail = localStorage.getItem("rememberedEmail");
@@ -36,37 +38,32 @@ const Login = () => {
     }
   }, []);
 
+  useEffect(() => {
+    if (searchParams.get("expired") === "true") {
+      toast.error("Phiên đăng nhập đã hết hạn hoặc bạn đã đăng xuất ở một tab khác. Vui lòng đăng nhập lại.", {
+        id: "session-expired-toast"
+      });
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("expired");
+      setSearchParams(newParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
   const handleGoogleCredential = useCallback(async (response) => {
-    setIsGoogleLoading(true);
     setError("");
     try {
       const { data } = await axiosConfig.post(API_ENDPOINTS.GOOGLE_AUTH, {
         idToken: response.credential,
       });
-      const { token, user } = data;
-      if (token) {
-        // Google login không có "remember me" → dùng sessionStorage mặc định
-        // Nếu rememberMe đang bật → lưu localStorage
-        if (rememberMe) {
-          localStorage.setItem("token", token);
-          sessionStorage.removeItem("token");
-        } else {
-          sessionStorage.setItem("token", token);
-          localStorage.removeItem("token");
-        }
+      const { user } = data;
+      if (user) {
         setUser(user);
-        if (user.role === "admin") {
-          navigate("/admin");
-        } else {
-          navigate("/dashboard");
-        }
+        navigate(getPostAuthRedirectPath(user));
       }
     } catch (err) {
       setError(err.response?.data?.message || "Đăng nhập bằng Google thất bại. Vui lòng thử lại.");
-    } finally {
-      setIsGoogleLoading(false);
     }
-  }, [navigate, setUser, rememberMe]);
+  }, [navigate, setUser]);
 
   // Load Google Identity Services script và khởi tạo
   useEffect(() => {
@@ -129,23 +126,6 @@ const Login = () => {
     };
   }, [handleGoogleCredential]);
 
-  const handleGoogleLogin = () => {
-    if (!GOOGLE_CLIENT_ID) {
-      setError("Google Client ID chưa được cấu hình.");
-      return;
-    }
-    if (!window.google?.accounts?.id) {
-      setError("Đang tải Google Sign-In, vui lòng thử lại sau giây lát.");
-      return;
-    }
-    window.google.accounts.id.prompt((notification) => {
-      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-        // Fallback: dùng renderButton nếu popup bị chặn
-        setError("Google popup bị chặn bởi trình duyệt. Vui lòng cho phép popup và thử lại.");
-      }
-    });
-  };
-
   const handleForgotPassword = () => navigate("/forgot-password");
 
   const handleSubmit = async (event) => {
@@ -166,23 +146,15 @@ const Login = () => {
 
     try {
       const response = await axiosConfig.post(API_ENDPOINTS.LOGIN, { email, password });
-      const { token, user } = response.data;
-      if (token) {
+      const { user } = response.data;
+      if (user) {
         if (rememberMe) {
-          localStorage.setItem("token", token);
-          sessionStorage.removeItem("token");
           localStorage.setItem("rememberedEmail", email.trim());
         } else {
-          sessionStorage.setItem("token", token);
-          localStorage.removeItem("token");
           localStorage.removeItem("rememberedEmail");
         }
         setUser(user);
-        if (user.role === "admin") {
-          navigate("/admin");
-        } else {
-          navigate("/dashboard");
-        }
+        navigate(getPostAuthRedirectPath(user));
       }
     } catch (err) {
       setError(err.response?.data?.message || err.message);
@@ -204,7 +176,7 @@ const Login = () => {
             <div className="relative">
               <div className="flex items-center gap-2 mb-10">
                 <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center shrink-0 shadow-md">
-                  <img src="/favicon.png" alt="Money Manager Logo" className="w-12 h-12 max-w-none object-cover scale-110" />
+                  <img src={favicon} alt="Money Manager Logo" className="w-12 h-12 max-w-none object-cover scale-110" />
                 </div>
                 <span className="text-white font-bold text-lg">Money<span className="text-amber-400">Manager</span></span>
               </div>

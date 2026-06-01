@@ -4,6 +4,8 @@ import com.example.moneymanager.dto.SubscriptionPlanConfigDTO;
 import com.example.moneymanager.entity.SubscriptionPlanConfigEntity;
 import com.example.moneymanager.repository.SubscriptionPlanConfigRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +19,11 @@ public class SubscriptionPlanConfigService {
 
     private final SubscriptionPlanConfigRepository repository;
 
+    /**
+     * Lấy danh sách gói cước — cache 60 phút (gói cước rất ít thay đổi).
+     * Cache key: "subscription-plans" (shared across all users).
+     */
+    @Cacheable(value = "subscriptionPlans", key = "'all'")
     public List<SubscriptionPlanConfigDTO> getAllPlans() {
         return repository.findAllByOrderByDisplayOrderAscCreatedAtAsc()
                 .stream()
@@ -25,12 +32,14 @@ public class SubscriptionPlanConfigService {
     }
 
     @Transactional
+    @CacheEvict(value = "subscriptionPlans", allEntries = true)
     public SubscriptionPlanConfigDTO createPlan(SubscriptionPlanConfigDTO dto) {
         SubscriptionPlanConfigEntity entity = toEntity(dto);
         return toDTO(repository.save(entity));
     }
 
     @Transactional
+    @CacheEvict(value = "subscriptionPlans", allEntries = true)
     public SubscriptionPlanConfigDTO updatePlan(Long id, SubscriptionPlanConfigDTO dto) {
         SubscriptionPlanConfigEntity entity = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy gói thanh toán."));
@@ -50,6 +59,7 @@ public class SubscriptionPlanConfigService {
     }
 
     @Transactional
+    @CacheEvict(value = "subscriptionPlans", allEntries = true)
     public void deletePlan(Long id) {
         if (!repository.existsById(id)) {
             throw new RuntimeException("Không tìm thấy gói thanh toán.");

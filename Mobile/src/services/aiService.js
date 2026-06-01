@@ -18,12 +18,14 @@ export const sendGeminiChat = async (message) => {
  * @param {string} model - optional model identifier
  * @returns {Promise<{reply: string, provider: string, modelUsed: string}>}
  */
-export const sendAiChat = async (messages, provider = "gemini", model = null) => {
+export const sendAiChat = async (messages, provider = "gemini", model = null, sessionId = null, saveHistory = true, signal = null) => {
   const response = await http.post(API_ENDPOINTS.AI_CHAT, {
     provider,
     model,
-    messages
-  });
+    messages,
+    sessionId,
+    saveHistory
+  }, { signal });
   return response.data;
 };
 
@@ -34,16 +36,19 @@ export const sendAiChat = async (messages, provider = "gemini", model = null) =>
  * @param {Array<{role: string, content: string}>} conversationHistory 
  * @param {string} provider 
  * @param {string} model 
+ * @param {string} sessionId 
+ * @param {any} signal 
  * @returns {Promise<any>}
  */
-export const parseAiIntent = async (userMessage, pageContext = "dashboard", conversationHistory = [], provider = "gemini", model = null) => {
+export const parseAiIntent = async (userMessage, pageContext = "dashboard", conversationHistory = [], provider = "gemini", model = null, sessionId = null, signal = null) => {
   const response = await http.post(API_ENDPOINTS.AI_PARSE_INTENT, {
     provider,
     model,
     userMessage,
     pageContext,
-    conversationHistory
-  });
+    conversationHistory,
+    sessionId
+  }, { signal });
   return response.data;
 };
 

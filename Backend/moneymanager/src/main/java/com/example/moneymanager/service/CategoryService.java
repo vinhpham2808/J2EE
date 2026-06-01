@@ -8,6 +8,9 @@ import com.example.moneymanager.repository.CategoryRepository;
 import com.example.moneymanager.repository.ExpenseRepository;
 import com.example.moneymanager.repository.IncomeRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,33 +27,52 @@ public class CategoryService {
     private final IncomeRepository incomeRepository;
     private final BudgetRepository budgetRepository;
 
-    //save category
+    /**
+     * Helper cho SpEL cache key — lấy profileId của user hiện tại.
+     * Được gọi bởi các @Cacheable key="currentProfileId()".
+     */
+    public Long currentProfileId() {
+        return profileService.getCurrentProfile().getId();
+    }
+
+    /** Tạo danh mục mới, xóa toàn bộ cache categories (allEntries=true đơn giản hơn) */
+    @CacheEvict(value = "categories", allEntries = true)
     public CategoryDTO saveCategory(CategoryDTO categoryDTO) {
         ProfileEntity profile = profileService.getCurrentProfile();
         subscriptionService.ensureCanCreateCategory(profile);
         if (categoryRepository.existsByNameAndProfileId(categoryDTO.getName(), profile.getId())) {
             throw new RuntimeException("Category with this name already exists");
         }
-
         CategoryEntity newCategory = toEntity(categoryDTO, profile);
         newCategory = categoryRepository.save(newCategory);
         return toDTO(newCategory);
     }
 
-    //get categories for current user
+    /**
+     * Lấy tất cả danh mục của user hiện tại.
+     * Cache key = profileId, TTL = 30 phút (cấu hình trong RedisConfig).
+     * Cache tự động miss khi saveCategory / updateCategory / deleteCategory được gọi.
+     */
+    @Cacheable(value = "categories", key = "#root.target.currentProfileId()")
     public List<CategoryDTO> getCategoriesForCurrentUser() {
         ProfileEntity profile = profileService.getCurrentProfile();
         List<CategoryEntity> categories = categoryRepository.findByProfileId(profile.getId());
         return categories.stream().map(this::toDTO).toList();
     }
 
-    //get categories by type for current user
+    /**
+     * Lấy danh mục theo type (expense/income).
+     * Cache key = profileId + '-' + type.
+     */
+    @Cacheable(value = "categories", key = "#root.target.currentProfileId() + '-' + #type")
     public List<CategoryDTO> getCategoriesByTypeForCurrentUser(String type) {
         ProfileEntity profile = profileService.getCurrentProfile();
         List<CategoryEntity> entities = categoryRepository.findByTypeAndProfileId(type, profile.getId());
         return entities.stream().map(this::toDTO).toList();
     }
 
+    /** Cập nhật danh mục, xóa cache */
+    @CacheEvict(value = "categories", allEntries = true)
     public CategoryDTO updateCategory(Long categoryId, CategoryDTO dto) {
         ProfileEntity profile = profileService.getCurrentProfile();
         CategoryEntity existingCategory = categoryRepository.findByIdAndProfileId(categoryId, profile.getId())
@@ -62,21 +84,21 @@ public class CategoryService {
         return toDTO(existingCategory);
     }
 
-    // Xoá danh mục kèm toàn bộ giao dịch (expense/income/budget) thuộc danh mục đó
+    /** Xoá danh mục kèm toàn bộ giao dịch, xóa cache */
     @Transactional
+    @CacheEvict(value = "categories", allEntries = true)
     public void deleteCategory(Long categoryId) {
         ProfileEntity profile = profileService.getCurrentProfile();
         CategoryEntity category = categoryRepository.findByIdAndProfileId(categoryId, profile.getId())
                 .orElseThrow(() -> new RuntimeException("Category not found or not accessible"));
-        // Xoá tất cả expense, income và budget thuộc danh mục này trước
         expenseRepository.deleteByCategoryId(categoryId);
         incomeRepository.deleteByCategoryId(categoryId);
         budgetRepository.deleteByCategoryId(categoryId);
-        // Sau đó xoá danh mục
         categoryRepository.delete(category);
     }
 
-    //helper methods
+    // ─── Helpers ────────────────────────────────────────────────────
+
     private CategoryEntity toEntity(CategoryDTO categoryDTO, ProfileEntity profile) {
         return CategoryEntity.builder()
                 .name(categoryDTO.getName())
@@ -89,13 +111,12 @@ public class CategoryService {
     private CategoryDTO toDTO(CategoryEntity entity) {
         return CategoryDTO.builder()
                 .id(entity.getId())
-                .profileId(entity.getProfile() != null ?  entity.getProfile().getId(): null)
+                .profileId(entity.getProfile() != null ? entity.getProfile().getId() : null)
                 .name(entity.getName())
                 .icon(entity.getIcon())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .type(entity.getType())
                 .build();
-
     }
 }

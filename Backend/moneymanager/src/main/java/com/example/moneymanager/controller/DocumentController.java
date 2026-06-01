@@ -2,6 +2,8 @@ package com.example.moneymanager.controller;
 
 import com.example.moneymanager.service.DocumentService;
 import com.example.moneymanager.service.ProfileService;
+import com.example.moneymanager.service.PaymentService;
+import com.example.moneymanager.entity.PaymentEntity;
 import com.example.moneymanager.entity.ProfileEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,27 +19,35 @@ public class DocumentController {
 
     private final DocumentService documentService;
     private final ProfileService profileService;
+    private final PaymentService paymentService;
     private final com.example.moneymanager.service.ExpenseService expenseService;
     private final com.example.moneymanager.service.IncomeService incomeService;
 
     /**
-     * Sinh hóa đơn PDF cho một đơn hàng đã thanh toán.
+     * Sinh hóa đơn PDF cho một giao dịch đã thanh toán.
      * POST /documents/invoice
-     * Body: { "orderCode": 123, "amount": 99000, "planName": "Premium 1 tháng", "paidDate": "2026-05-07" }
+     * Body: { "orderCode": 123 }
+     * Server lookup amount/planName/paidDate từ DB theo current user.
      */
     @PostMapping("/invoice")
     public ResponseEntity<?> generateInvoice(@RequestBody Map<String, Object> request) {
         try {
-            ProfileEntity profile = profileService.getCurrentProfile();
+            if (request.get("orderCode") == null) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Thiếu mã giao dịch."));
+            }
             Long orderCode = Long.valueOf(request.get("orderCode").toString());
-            Long amount = Long.valueOf(request.get("amount").toString());
-            String planName = (String) request.get("planName");
-            LocalDate paidDate = request.get("paidDate") != null
-                    ? LocalDate.parse(request.get("paidDate").toString())
+            PaymentEntity payment = paymentService.findOwnedPaidPayment(orderCode);
+            ProfileEntity profile = profileService.getCurrentProfile();
+            LocalDate paidDate = payment.getUpdatedAt() != null
+                    ? payment.getUpdatedAt().toLocalDate()
                     : LocalDate.now();
 
             Map<String, String> result = documentService.generateInvoice(
-                    orderCode, amount, planName, profile.getEmail(), paidDate
+                    payment.getOrderCode(),
+                    payment.getAmount(),
+                    payment.getPlanName(),
+                    profile.getEmail(),
+                    paidDate
             );
             return ResponseEntity.ok(result);
         } catch (Exception e) {

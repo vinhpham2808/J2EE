@@ -245,6 +245,10 @@ public class GeminiService {
     }
 
     public String generateMultiTurn(String systemPrompt, List<AIChatMessageDTO> messages, int maxOutputTokens) {
+        return generateMultiTurn(systemPrompt, messages, maxOutputTokens, false);
+    }
+
+    public String generateMultiTurn(String systemPrompt, List<AIChatMessageDTO> messages, int maxOutputTokens, boolean forceJson) {
         validateConfiguration();
         ObjectNode requestBody = objectMapper.createObjectNode();
         requestBody.set("systemInstruction", buildSystemInstruction(systemPrompt));
@@ -262,13 +266,16 @@ public class GeminiService {
         }
         requestBody.set("contents", contents);
         ObjectNode genConfig = objectMapper.createObjectNode();
-        genConfig.put("temperature", 0.4);
+        genConfig.put("temperature", forceJson ? 0.1 : 0.4);
         genConfig.put("maxOutputTokens", maxOutputTokens);
+        if (forceJson) {
+            genConfig.put("responseMimeType", "application/json");
+        }
         requestBody.set("generationConfig", genConfig);
         JsonNode responseBody = executeGenerateContentRequest(requestBody);
         String outputText = extractOutputText(responseBody);
         if (outputText == null || outputText.isBlank()) {
-            throw new RuntimeException("Gemini kh\u00F4ng tr\u1EA3 v\u1EC1 n\u1ED9i dung h\u1EE3p l\u1EC7.");
+            throw new RuntimeException("Gemini không trả về nội dung hợp lệ.");
         }
         return outputText.trim();
     }

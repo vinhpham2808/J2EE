@@ -38,6 +38,6 @@ public class ForecastController {
 
     @PostMapping("/insights")
     public ResponseEntity<ForecastInsightDTO> getInsights(@RequestBody MonthlyForecastDTO forecastDTO) {
-        return ResponseEntity.ok(forecastService.getGeminiInsights(forecastDTO));
+        return ResponseEntity.ok(forecastService.analyzeForecastWithAi(forecastDTO));
     }
 }

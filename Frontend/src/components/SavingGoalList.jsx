@@ -46,7 +46,29 @@ const SavingGoalList = ({ goals, loading, onAddClick, onEdit, onDelete, onContri
                 </div>
 
                 {loading && (
-                    <div className="py-10 text-center text-slate-400">Đang tải...</div>
+                    <div className="grid grid-cols-1 gap-5 md:grid-cols-2 animate-pulse">
+                        {[1, 2].map((i) => (
+                            <div key={i} className="rounded-[28px] border border-slate-200 dark:border-white/10 bg-white/40 dark:bg-white/[0.02] p-5 sm:p-6 space-y-4 min-h-[180px] flex flex-col justify-between">
+                                <div className="flex justify-between items-start">
+                                    <div className="flex items-center gap-3 w-2/3">
+                                        <div className="w-11 h-11 rounded-xl bg-slate-200 dark:bg-white/10 shrink-0" />
+                                        <div className="space-y-1.5 w-full">
+                                            <div className="h-3.5 bg-slate-200 dark:bg-white/10 rounded-md w-full" />
+                                            <div className="h-2.5 bg-slate-200 dark:bg-white/10 rounded-md w-1/2" />
+                                        </div>
+                                    </div>
+                                    <div className="w-8 h-8 bg-slate-200 dark:bg-white/10 rounded-lg shrink-0" />
+                                </div>
+                                <div className="space-y-3">
+                                    <div className="h-2.5 w-full bg-slate-200/50 dark:bg-white/5 rounded-full animate-pulse" />
+                                    <div className="flex justify-between items-center">
+                                        <div className="h-3 w-16 bg-slate-200 dark:bg-white/10 rounded" />
+                                        <div className="h-6 w-24 bg-slate-200 dark:bg-white/10 rounded-xl" />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 )}
 
                 {!loading && goals.length === 0 && (

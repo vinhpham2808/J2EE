@@ -40,10 +40,6 @@ public class OtpService {
         profile.setOtpAttempts(0);
         profileRepository.save(profile);
 
-        System.out.println("==================================================");
-        System.out.println("Generated OTP for " + profile.getEmail() + " (" + purpose + "): " + rawOtp);
-        System.out.println("==================================================");
-
         String subject;
         String htmlBody;
         if (purpose == OtpPurpose.ACCOUNT_ACTIVATION) {
@@ -57,7 +53,7 @@ public class OtpService {
         try {
             emailService.sendHtmlEmail(profile.getEmail(), subject, htmlBody);
         } catch (Exception e) {
-            System.err.println("Warning: Could not send OTP email to " + profile.getEmail() + ". Error: " + e.getMessage());
+            // Log failure without exposing OTP
         }
     }
 

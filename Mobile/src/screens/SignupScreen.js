@@ -11,6 +11,7 @@ import {
 } from "../utils/accountActivation";
 import appLogo from "../assets/applogo.png";
 import { COLORS } from "../constants/colors";
+import { scale, clampScale } from "../utils/dimensions";
 
 export default function SignupScreen() {
   const navigation = useNavigation();
@@ -125,91 +126,91 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: -120,
     left: -100,
-    width: 300,
-    height: 300,
-    borderRadius: 150,
+    width: scale(300),
+    height: scale(300),
+    borderRadius: scale(150),
     backgroundColor: COLORS.PRIMARY_GLOW
   },
   bgGlowBottom: {
     position: "absolute",
     right: -140,
     bottom: -120,
-    width: 320,
-    height: 320,
-    borderRadius: 160,
+    width: scale(320),
+    height: scale(320),
+    borderRadius: scale(160),
     backgroundColor: COLORS.PRIMARY_GLOW
   },
   content: {
     flexGrow: 1,
     justifyContent: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 40
+    paddingHorizontal: scale(20),
+    paddingVertical: scale(40)
   },
   brandRow: {
     alignItems: "center",
-    marginBottom: 16
+    marginBottom: scale(16)
   },
   brandLogo: {
-    width: 160,
-    height: 50
+    width: 90,
+    height: 90
   },
   title: {
-    fontSize: 28,
+    fontSize: clampScale(28, 24, 32),
     fontWeight: "800",
     color: COLORS.DARK_TEXT,
     textAlign: "center",
-    marginBottom: 6
+    marginBottom: scale(6)
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: clampScale(14, 12, 16),
     color: COLORS.DARK_TEXT_SECONDARY,
     textAlign: "center",
-    marginBottom: 24
+    marginBottom: scale(24)
   },
   formCard: {
     backgroundColor: COLORS.DARK_CARD_SOLID,
-    borderRadius: 18,
+    borderRadius: scale(18),
     borderWidth: 1,
     borderColor: COLORS.DARK_BORDER,
-    padding: 18,
-    gap: 12
+    padding: scale(18),
+    gap: scale(12)
   },
   inputWrap: {
     backgroundColor: COLORS.DARK_INPUT_BG,
-    borderRadius: 12,
+    borderRadius: scale(12),
     borderWidth: 1,
     borderColor: COLORS.DARK_BORDER,
-    paddingHorizontal: 14,
-    height: 48,
+    paddingHorizontal: scale(14),
+    height: scale(48),
     justifyContent: "center"
   },
   input: {
     color: COLORS.DARK_TEXT,
-    fontSize: 15
+    fontSize: clampScale(15, 13, 17)
   },
   actionButton: {
     backgroundColor: COLORS.PRIMARY,
-    borderRadius: 14,
-    height: 50,
+    borderRadius: scale(14),
+    height: scale(50),
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 4
+    marginTop: scale(4)
   },
   actionButtonDisabled: {
     opacity: 0.6
   },
   actionButtonText: {
     color: COLORS.DARK_TEXT,
-    fontSize: 16,
+    fontSize: clampScale(16, 14, 18),
     fontWeight: "700"
   },
   backButton: {
     alignItems: "center",
-    paddingVertical: 8
+    paddingVertical: scale(8)
   },
   backButtonText: {
     color: COLORS.PRIMARY_LIGHT,
-    fontSize: 13,
+    fontSize: clampScale(13, 11, 15),
     fontWeight: "600"
   }
 });

@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from '../context/ThemeContext';
 import { 
     Sun, Moon, TrendingUp, Shield, BarChart3, Wallet, Target, Sparkles, 
     Star, ArrowRight, Check, ChevronRight, Menu, X, ArrowUpRight, ShieldCheck, Zap
 } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
 import { usePageTitle } from '../hooks/usePageTitle.js';
+import favicon from '../assets/logo/favicon.png';
 
 const LandingPage = () => {
     const navigate = useNavigate();
     usePageTitle("Trang chủ");
-    const { theme } = useTheme();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
 
@@ -50,7 +49,7 @@ const LandingPage = () => {
                         {/* Logo */}
                         <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => scrollTo('hero')}>
                             <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center shrink-0 shadow-md">
-                                <img src="/favicon.png" alt="Money Manager Logo" className="w-12 h-12 max-w-none object-cover scale-110" />
+                                <img src={favicon} alt="Money Manager Logo" className="w-12 h-12 max-w-none object-cover scale-110" />
                             </div>
                             <span className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
                                 Money<span className="text-amber-500">Manager</span>
@@ -84,7 +83,8 @@ const LandingPage = () => {
                                     text-slate-700 dark:text-slate-200
                                     hover:text-slate-900 dark:hover:text-white
                                     hover:bg-slate-100 dark:hover:bg-white/10
-                                    transition duration-200"
+                                    border border-transparent hover:border-slate-200 dark:hover:border-white/10
+                                    transition-all duration-300 hover:shadow-xs active:scale-[0.98]"
                             >
                                 Đăng Nhập
                             </button>
@@ -92,8 +92,8 @@ const LandingPage = () => {
                                 onClick={() => navigate('/signup')}
                                 className="px-5 py-2.5 rounded-xl text-sm font-bold
                                     bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 
-                                    text-white shadow-lg shadow-violet-500/25
-                                    transition duration-200 active:scale-95 flex items-center gap-2"
+                                    text-white shadow-lg shadow-violet-500/20 hover:shadow-violet-600/35 hover:-translate-y-0.5
+                                    transition-all duration-300 active:scale-[0.98] flex items-center gap-2"
                             >
                                 Bắt Đầu <ArrowRight size={16} />
                             </button>
@@ -169,8 +169,8 @@ const LandingPage = () => {
                                 onClick={() => navigate('/signup')}
                                 className="w-full sm:w-auto px-10 py-4 rounded-2xl font-bold text-base
                                     bg-slate-900 dark:bg-white text-white dark:text-slate-900
-                                    shadow-xl shadow-slate-900/20 dark:shadow-white/10
-                                    transition duration-200 hover:-translate-y-1 hover:shadow-2xl"
+                                    shadow-xl shadow-slate-900/10 dark:shadow-white/5
+                                    transition-all duration-300 hover:-translate-y-1 hover:shadow-slate-900/20 dark:hover:shadow-white/15 active:scale-[0.98]"
                             >
                                 Bắt đầu miễn phí
                             </button>
@@ -180,7 +180,7 @@ const LandingPage = () => {
                                     bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10
                                     text-slate-700 dark:text-slate-300
                                     hover:bg-slate-50 dark:hover:bg-white/10 hover:border-violet-500/30
-                                    transition duration-200 hover:-translate-y-1"
+                                    transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:shadow-slate-200/20 dark:hover:shadow-black/20 active:scale-[0.98]"
                             >
                                 Xem Demo Trực Tiếp
                             </button>
@@ -396,7 +396,7 @@ const LandingPage = () => {
                                     </li>
                                 ))}
                             </ul>
-                            <button onClick={() => navigate('/signup')} className="w-full py-4 rounded-2xl font-bold bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-900 dark:text-white transition-colors">
+                            <button onClick={() => navigate('/signup')} className="w-full py-4 rounded-2xl font-bold bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-900 dark:text-white transition-all duration-300 active:scale-[0.98]">
                                 Dùng Miễn Phí
                             </button>
                         </div>
@@ -425,7 +425,7 @@ const LandingPage = () => {
                                     </li>
                                 ))}
                             </ul>
-                            <button onClick={() => navigate('/signup')} className="w-full py-4 rounded-2xl font-bold bg-white text-[#8b5cf6] hover:bg-slate-50 transition-colors shadow-lg">
+                            <button onClick={() => navigate('/signup')} className="w-full py-4 rounded-2xl font-bold bg-white text-[#8b5cf6] hover:bg-slate-50 hover:shadow-xl hover:shadow-white/10 transition-all duration-300 active:scale-[0.98]">
                                 Bắt Đầu Gói Cơ Bản
                             </button>
                         </div>
@@ -456,7 +456,7 @@ const LandingPage = () => {
                                     </li>
                                 ))}
                             </ul>
-                            <button onClick={() => navigate('/signup')} className="w-full py-4 rounded-2xl font-bold bg-slate-800 hover:bg-slate-700 text-white transition-colors border border-slate-700">
+                            <button onClick={() => navigate('/signup')} className="w-full py-4 rounded-2xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-lg shadow-violet-600/15 hover:shadow-violet-600/30 border border-violet-500/10 transition-all duration-300 active:scale-[0.98]">
                                 Nâng Cấp Premium
                             </button>
                         </div>
@@ -482,9 +482,9 @@ const LandingPage = () => {
                         <button
                             onClick={() => navigate('/signup')}
                             className="w-full sm:w-auto px-12 py-5 rounded-2xl font-black text-lg
-                                bg-white text-slate-900 hover:bg-slate-100
-                                shadow-2xl shadow-white/20
-                                transition duration-200 hover:-translate-y-1"
+                                bg-white text-slate-900 hover:bg-slate-50
+                                shadow-2xl shadow-white/10 hover:shadow-white/20 hover:-translate-y-1
+                                transition-all duration-300 active:scale-[0.98]"
                         >
                             Đăng Ký Tài Khoản Mới
                         </button>
@@ -502,7 +502,7 @@ const LandingPage = () => {
                         <div className="lg:col-span-2">
                             <div className="flex items-center gap-2 mb-6 cursor-pointer" onClick={() => scrollTo('hero')}>
                                 <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center shrink-0 shadow-md">
-                                    <img src="/favicon.png" alt="Money Manager Logo" className="w-12 h-12 max-w-none object-cover scale-110" />
+                                    <img src={favicon} alt="Money Manager Logo" className="w-12 h-12 max-w-none object-cover scale-110" />
                                 </div>
                                 <span className="text-xl font-bold text-slate-900 dark:text-white">
                                     Money<span className="text-amber-500">Manager</span>

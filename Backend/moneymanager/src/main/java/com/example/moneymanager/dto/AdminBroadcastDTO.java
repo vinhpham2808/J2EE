@@ -12,4 +12,5 @@ import lombok.NoArgsConstructor;
 public class AdminBroadcastDTO {
     private String title;
     private String message;
+    private String type;
 }

@@ -1,8 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import axiosConfig from "../util/axiosConfig.jsx";
 import { API_ENDPOINTS } from "../util/apiEndpoints.js";
 import Modal from "./Modal.jsx";
 import { HandCoins, History } from "lucide-react";
+import DateInput from "./DateInput.jsx";
+import { getTodayIsoDate } from "../util/dateInput.js";
 
 const fmt = (n) =>
     new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(n);
@@ -20,11 +22,11 @@ const ContributionModal = ({ goal, onClose, onContribute }) => {
 
     const [form, setForm] = useState({
         amount: "",
-        contributionDate: new Date().toISOString().split("T")[0],
+        contributionDate: getTodayIsoDate(),
         note: "",
     });
 
-    const fetchHistory = async () => {
+    const fetchHistory = useCallback(async () => {
         setLoadingHistory(true);
         try {
             const res = await axiosConfig.get(API_ENDPOINTS.SAVING_GOAL_CONTRIBUTIONS(goal.id));
@@ -34,11 +36,11 @@ const ContributionModal = ({ goal, onClose, onContribute }) => {
         } finally {
             setLoadingHistory(false);
         }
-    };
+    }, [goal.id]);
 
     useEffect(() => {
         if (tab === "history") fetchHistory();
-    }, [tab]);
+    }, [fetchHistory, tab]);
 
     const handleSubmit = async () => {
         if (!form.amount || Number(form.amount) <= 0) { alert("Số tiền phải lớn hơn 0"); return; }
@@ -49,7 +51,7 @@ const ContributionModal = ({ goal, onClose, onContribute }) => {
         };
         const ok = await onContribute(goal.id, dto);
         if (ok) {
-            setForm({ amount: "", contributionDate: new Date().toISOString().split("T")[0], note: "" });
+            setForm({ amount: "", contributionDate: getTodayIsoDate(), note: "" });
             fetchHistory();
         }
     };
@@ -112,8 +114,7 @@ const ContributionModal = ({ goal, onClose, onContribute }) => {
                     </div>
                     <div>
                         <label className={labelClass}>Ngày đóng góp</label>
-                        <input
-                            type="date"
+                        <DateInput
                             value={form.contributionDate}
                             onChange={(e) => setForm({ ...form, contributionDate: e.target.value })}
                             className="form-input"

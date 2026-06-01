@@ -89,6 +89,7 @@ public class BudgetService {
     /**
      * Lấy danh sách hạn mức của tháng/năm hiện tại.
      */
+    @Transactional(readOnly = true)
     public List<BudgetDTO> getBudgetsForCurrentMonth() {
         ProfileEntity profile = profileService.getCurrentProfile();
         int month = LocalDate.now().getMonthValue();
@@ -100,9 +101,19 @@ public class BudgetService {
         Map<Long, BigDecimal> spentByCategoryId = budgetRepository
                 .getTotalSpentByCategoryForProfileAndMonth(profile.getId(), month, year)
                 .stream()
+                .filter(row -> row[0] != null)
                 .collect(Collectors.toMap(
-                        row -> (Long) row[0],
-                        row -> (BigDecimal) row[1]
+                        row -> ((Number) row[0]).longValue(),
+                        row -> {
+                            Object val = row[1];
+                            if (val instanceof BigDecimal) {
+                                return (BigDecimal) val;
+                            } else if (val instanceof Number) {
+                                return new BigDecimal(val.toString());
+                            }
+                            return BigDecimal.ZERO;
+                        },
+                        (a, b) -> a
                 ));
 
         return budgets.stream().map(b -> {

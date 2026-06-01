@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -50,6 +52,9 @@ public class NotificationService {
     @Value("${money.manager.frontend.url}")
     private String frontendUrl;
 
+    @Value("${app.scheduled-jobs.enabled:true}")
+    private boolean scheduledJobsEnabled;
+
     // --- Core Notification Methods ---
     
     @Transactional
@@ -81,11 +86,24 @@ public class NotificationService {
 
     @Transactional
     public void createBroadcast(String title, String message) {
+        createBroadcast(title, message, "ADMIN");
+    }
+
+    @Transactional
+    public void createBroadcast(String title, String message, String typeStr) {
+        NotificationType type = NotificationType.ADMIN;
+        if (typeStr != null) {
+            try {
+                type = NotificationType.valueOf(typeStr.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                // Default to ADMIN
+            }
+        }
         NotificationEntity notification = NotificationEntity.builder()
                 .profile(null) // null indicates broadcast to all
                 .title(title)
                 .message(message)
-                .type(NotificationType.ADMIN)
+                .type(type)
                 .isRead(false)
                 .build();
         notificationRepository.save(notification);
@@ -95,13 +113,32 @@ public class NotificationService {
     public List<NotificationDTO> getNotificationsForCurrentUser() {
         ProfileEntity profile = profileService.getCurrentProfile();
         List<NotificationEntity> notifications = notificationRepository.findByProfileIdOrProfileIsNullOrderByCreatedAtDesc(profile.getId());
+        java.util.Set<Long> readNotificationIds = notificationReadRepository.findReadNotificationIdsByProfileId(profile.getId());
 
         return notifications.stream().map(n -> NotificationDTO.builder()
                 .id(n.getId())
                 .title(n.getTitle())
                 .message(n.getMessage())
                 .type(n.getType().name())
-                .isRead(isRead(n, profile.getId()))
+                .isRead(n.getProfile() == null ? readNotificationIds.contains(n.getId()) : Boolean.TRUE.equals(n.getIsRead()))
+                .createdAt(n.getCreatedAt())
+                .build()
+        ).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<NotificationDTO> getNotificationsForCurrentUser(int page, int size) {
+        ProfileEntity profile = profileService.getCurrentProfile();
+        org.springframework.data.domain.PageRequest pageRequest = org.springframework.data.domain.PageRequest.of(page, size);
+        List<NotificationEntity> notifications = notificationRepository.findTopNByProfileIdOrProfileIsNullOrderByCreatedAtDesc(profile.getId(), pageRequest);
+        java.util.Set<Long> readNotificationIds = notificationReadRepository.findReadNotificationIdsByProfileId(profile.getId());
+
+        return notifications.stream().map(n -> NotificationDTO.builder()
+                .id(n.getId())
+                .title(n.getTitle())
+                .message(n.getMessage())
+                .type(n.getType().name())
+                .isRead(n.getProfile() == null ? readNotificationIds.contains(n.getId()) : Boolean.TRUE.equals(n.getIsRead()))
                 .createdAt(n.getCreatedAt())
                 .build()
         ).toList();
@@ -139,21 +176,55 @@ public class NotificationService {
     @Transactional
     public void markAllAsRead() {
         ProfileEntity profile = profileService.getCurrentProfile();
-        List<NotificationEntity> notifications = notificationRepository.findByProfileIdOrProfileIsNullOrderByCreatedAtDesc(profile.getId());
+        notificationRepository.markAllPersonalAsRead(profile.getId());
 
-        for (NotificationEntity n : notifications) {
-            if (isRead(n, profile.getId())) continue;
-            if (n.getProfile() == null) {
-                notificationReadRepository.save(NotificationReadEntity.builder()
-                        .notification(n)
-                        .profile(profile)
-                        .build());
+        List<NotificationEntity> unreadBroadcasts = notificationRepository.findUnreadBroadcastsForProfile(profile.getId());
+        if (!unreadBroadcasts.isEmpty()) {
+            List<NotificationReadEntity> readEntities = unreadBroadcasts.stream()
+                    .map(n -> NotificationReadEntity.builder()
+                            .notification(n)
+                            .profile(profile)
+                            .build())
+                    .toList();
+            notificationReadRepository.saveAll(readEntities);
+        }
+    }
+
+    @Transactional
+    public void deleteNotification(Long notificationId) {
+        ProfileEntity profile = profileService.getCurrentProfile();
+        NotificationEntity notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông báo"));
+
+        if (notification.getProfile() == null) {
+            notificationReadRepository.deleteByNotificationId(notificationId);
+            notificationRepository.delete(notification);
+        } else if (notification.getProfile().getId().equals(profile.getId())) {
+            notificationReadRepository.deleteByNotificationId(notificationId);
+            notificationRepository.delete(notification);
+        } else {
+            throw new RuntimeException("Không có quyền xóa thông báo này");
+        }
+    }
+
+    @Transactional
+    public void deleteMultipleNotifications(List<Long> notificationIds) {
+        ProfileEntity profile = profileService.getCurrentProfile();
+        List<NotificationEntity> notifications = notificationRepository.findAllById(notificationIds);
+
+        for (NotificationEntity notification : notifications) {
+            if (notification.getProfile() == null) {
+                notificationReadRepository.deleteByNotificationId(notification.getId());
+                notificationRepository.delete(notification);
+            } else if (notification.getProfile().getId().equals(profile.getId())) {
+                notificationReadRepository.deleteByNotificationId(notification.getId());
+                notificationRepository.delete(notification);
             } else {
-                n.setIsRead(true);
-                notificationRepository.save(n);
+                throw new RuntimeException("Không có quyền xóa thông báo này: " + notification.getId());
             }
         }
     }
+
 
     private boolean isRead(NotificationEntity n, Long profileId) {
         if (n.getProfile() == null) {
@@ -283,51 +354,61 @@ public class NotificationService {
 
     @Scheduled(cron = "0 0 22 * * *", zone = "Asia/Ho_Chi_Minh")
     public void sendDailyIncomeExpenseReminder() {
+        if (!scheduledJobsEnabled) { log.debug("sendDailyIncomeExpenseReminder skipped (jobs disabled)"); return; }
         log.info("Job started: sendDailyIncomeExpenseReminder()");
-        List<ProfileEntity> profiles = profileRepository.findAll();
-        for(ProfileEntity profile : profiles) {
-            if (!emailNotificationPreferenceService.isNotificationEnabled(profile.getId(), EmailNotificationType.DAILY_EXPENSE_REPORT)) {
-                continue;
+        int page = 0;
+        Page<ProfileEntity> batch;
+        do {
+            batch = profileRepository.findAll(PageRequest.of(page++, 100));
+            for (ProfileEntity profile : batch.getContent()) {
+                if (!emailNotificationPreferenceService.isNotificationEnabled(profile.getId(), EmailNotificationType.DAILY_EXPENSE_REPORT)) {
+                    continue;
+                }
+                String htmlBody = mailTemplateService.buildDailyReminderEmail(profile.getFullName(), frontendUrl);
+                emailService.sendHtmlEmail(profile.getEmail(), "[Money Manager] Nhắc nhở hằng ngày: cập nhật thu chi", htmlBody);
             }
-            String htmlBody = mailTemplateService.buildDailyReminderEmail(profile.getFullName(), frontendUrl);
-            emailService.sendHtmlEmail(profile.getEmail(), "[Money Manager] Nhắc nhở hằng ngày: cập nhật thu chi", htmlBody);
-        }
+        } while (batch.hasNext());
         log.info("Job completed: sendDailyIncomeExpenseReminder()");
     }
 
     @Scheduled(cron = "0 0 23 * * *", zone = "IST")
     public void sendDailyExpenseSummary() {
+        if (!scheduledJobsEnabled) { log.debug("sendDailyExpenseSummary skipped (jobs disabled)"); return; }
         log.info("Job started: sendDailyExpenseSummary()");
-        List<ProfileEntity> profiles = profileRepository.findAll();
-        for (ProfileEntity profile : profiles) {
-            if (!emailNotificationPreferenceService.isNotificationEnabled(profile.getId(), EmailNotificationType.DAILY_EXPENSE_REPORT)) {
-                continue;
-            }
-            List<ExpenseDTO> todaysExpenses = expenseService.getExpensesForUserOnDate(profile.getId(), LocalDate.now());
-            if (!todaysExpenses.isEmpty()) {
-                StringBuilder table = new StringBuilder();
-                table.append("<table role=\"presentation\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" width=\"100%\" style=\"border-collapse:collapse;margin-bottom:8px;\">");
-                table.append("<tr style=\"background:#f0f0ff;\">")
-                     .append("<th style=\"padding:10px 12px;border:1px solid #e2e8f0;font-size:13px;color:#374151;text-align:left;\">STT</th>")
-                     .append("<th style=\"padding:10px 12px;border:1px solid #e2e8f0;font-size:13px;color:#374151;text-align:left;\">Tên khoản chi</th>")
-                     .append("<th style=\"padding:10px 12px;border:1px solid #e2e8f0;font-size:13px;color:#374151;text-align:right;\">Số tiền</th>")
-                     .append("<th style=\"padding:10px 12px;border:1px solid #e2e8f0;font-size:13px;color:#374151;text-align:left;\">Danh mục</th>")
-                     .append("</tr>");
-                int i = 1;
-                for (ExpenseDTO expense : todaysExpenses) {
-                    String rowBg = (i % 2 == 0) ? "background:#f8fafc;" : "";
-                    table.append("<tr style=\"").append(rowBg).append("\">");
-                    table.append("<td style=\"padding:9px 12px;border:1px solid #e2e8f0;font-size:13px;color:#6b7280;\">").append(i++).append("</td>");
-                    table.append("<td style=\"padding:9px 12px;border:1px solid #e2e8f0;font-size:13px;color:#374151;\">").append(expense.getName()).append("</td>");
-                    table.append("<td style=\"padding:9px 12px;border:1px solid #e2e8f0;font-size:13px;color:#374151;text-align:right;\">").append(expense.getAmount()).append("</td>");
-                    table.append("<td style=\"padding:9px 12px;border:1px solid #e2e8f0;font-size:13px;color:#374151;\">").append(expense.getCategoryId() != null ? expense.getCategoryName() : "Không có").append("</td>");
-                    table.append("</tr>");
+        int page = 0;
+        Page<ProfileEntity> batch;
+        do {
+            batch = profileRepository.findAll(PageRequest.of(page++, 100));
+            for (ProfileEntity profile : batch.getContent()) {
+                if (!emailNotificationPreferenceService.isNotificationEnabled(profile.getId(), EmailNotificationType.DAILY_EXPENSE_REPORT)) {
+                    continue;
                 }
-                table.append("</table>");
-                String htmlBody = mailTemplateService.buildDailyExpenseSummaryEmail(profile.getFullName(), table.toString());
-                emailService.sendHtmlEmail(profile.getEmail(), "[Money Manager] Tổng hợp chi tiêu hằng ngày", htmlBody);
+                List<ExpenseDTO> todaysExpenses = expenseService.getExpensesForUserOnDate(profile.getId(), LocalDate.now());
+                if (!todaysExpenses.isEmpty()) {
+                    StringBuilder table = new StringBuilder();
+                    table.append("<table role=\"presentation\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" width=\"100%\" style=\"border-collapse:collapse;margin-bottom:8px;\">");
+                    table.append("<tr style=\"background:#f0f0ff;\">")
+                         .append("<th style=\"padding:10px 12px;border:1px solid #e2e8f0;font-size:13px;color:#374151;text-align:left;\">STT</th>")
+                         .append("<th style=\"padding:10px 12px;border:1px solid #e2e8f0;font-size:13px;color:#374151;text-align:left;\">Tên khoản chi</th>")
+                         .append("<th style=\"padding:10px 12px;border:1px solid #e2e8f0;font-size:13px;color:#374151;text-align:right;\">Số tiền</th>")
+                         .append("<th style=\"padding:10px 12px;border:1px solid #e2e8f0;font-size:13px;color:#374151;text-align:left;\">Danh mục</th>")
+                         .append("</tr>");
+                    int i = 1;
+                    for (ExpenseDTO expense : todaysExpenses) {
+                        String rowBg = (i % 2 == 0) ? "background:#f8fafc;" : "";
+                        table.append("<tr style=\"").append(rowBg).append("\">");
+                        table.append("<td style=\"padding:9px 12px;border:1px solid #e2e8f0;font-size:13px;color:#6b7280;\"").append(">").append(i++).append("</td>");
+                        table.append("<td style=\"padding:9px 12px;border:1px solid #e2e8f0;font-size:13px;color:#374151;\"").append(">").append(expense.getName()).append("</td>");
+                        table.append("<td style=\"padding:9px 12px;border:1px solid #e2e8f0;font-size:13px;color:#374151;text-align:right;\"").append(">").append(expense.getAmount()).append("</td>");
+                        table.append("<td style=\"padding:9px 12px;border:1px solid #e2e8f0;font-size:13px;color:#374151;\"").append(">").append(expense.getCategoryId() != null ? expense.getCategoryName() : "Không có").append("</td>");
+                        table.append("</tr>");
+                    }
+                    table.append("</table>");
+                    String htmlBody = mailTemplateService.buildDailyExpenseSummaryEmail(profile.getFullName(), table.toString());
+                    emailService.sendHtmlEmail(profile.getEmail(), "[Money Manager] Tổng hợp chi tiêu hằng ngày", htmlBody);
+                }
             }
-        }
+        } while (batch.hasNext());
         log.info("Job completed: sendDailyExpenseSummary()");
     }
 
@@ -335,30 +416,33 @@ public class NotificationService {
 
     @Scheduled(cron = "0 0 8 1 * *", zone = "Asia/Kolkata")
     public void sendMonthlyReportCardNotification() {
+        if (!scheduledJobsEnabled) { log.debug("sendMonthlyReportCardNotification skipped (jobs disabled)"); return; }
         log.info("Job started: sendMonthlyReportCardNotification()");
-        List<ProfileEntity> profiles = profileRepository.findAll();
         LocalDate now = LocalDate.now();
-        // Previous month
         YearMonth prevMonth = YearMonth.from(now).minusMonths(1);
-
-        for (ProfileEntity profile : profiles) {
-            try {
-                MonthlyReportCardDTO report = monthlyReportCardService.getReportCard(prevMonth.getYear(), prevMonth.getMonthValue());
-                String title = "📊 Bảng điểm tháng " + prevMonth.getMonthValue() + "/" + prevMonth.getYear();
-                String message = String.format(
-                        "Điểm %s (%s) | Thu nhập: %s | Chi tiêu: %s | Tiết kiệm: %s (%.1f%%)",
-                        report.getGrade(),
-                        report.getGradeLabel(),
-                        NumberFormat.getInstance(new Locale("vi", "VN")).format(report.getTotalIncome()),
-                        NumberFormat.getInstance(new Locale("vi", "VN")).format(report.getTotalExpense()),
-                        NumberFormat.getInstance(new Locale("vi", "VN")).format(report.getSavings()),
-                        report.getSavingsRate()
-                );
-                createNotification(profile, title, message, NotificationType.MONTHLY_REPORT);
-            } catch (Exception e) {
-                log.error("Error sending monthly report for user {}: {}", profile.getId(), e.getMessage());
+        int page = 0;
+        Page<ProfileEntity> batch;
+        do {
+            batch = profileRepository.findAll(PageRequest.of(page++, 100));
+            for (ProfileEntity profile : batch.getContent()) {
+                try {
+                    MonthlyReportCardDTO report = monthlyReportCardService.getReportCard(prevMonth.getYear(), prevMonth.getMonthValue());
+                    String title = "📊 Bảng điểm tháng " + prevMonth.getMonthValue() + "/" + prevMonth.getYear();
+                    String message = String.format(
+                            "Điểm %s (%s) | Thu nhập: %s | Chi tiêu: %s | Tiết kiệm: %s (%.1f%%)",
+                            report.getGrade(),
+                            report.getGradeLabel(),
+                            java.text.NumberFormat.getInstance(new java.util.Locale("vi", "VN")).format(report.getTotalIncome()),
+                            java.text.NumberFormat.getInstance(new java.util.Locale("vi", "VN")).format(report.getTotalExpense()),
+                            java.text.NumberFormat.getInstance(new java.util.Locale("vi", "VN")).format(report.getSavings()),
+                            report.getSavingsRate()
+                    );
+                    createNotification(profile, title, message, NotificationType.MONTHLY_REPORT);
+                } catch (Exception e) {
+                    log.error("Error sending monthly report for user {}: {}", profile.getId(), e.getMessage());
+                }
             }
-        }
+        } while (batch.hasNext());
         log.info("Job completed: sendMonthlyReportCardNotification()");
     }
 
@@ -366,43 +450,47 @@ public class NotificationService {
 
     @Scheduled(cron = "0 0 21 * * *", zone = "Asia/Kolkata")
     public void sendDailySavingStreakReminder() {
+        if (!scheduledJobsEnabled) { log.debug("sendDailySavingStreakReminder skipped (jobs disabled)"); return; }
         log.info("Job started: sendDailySavingStreakReminder()");
-        List<ProfileEntity> profiles = profileRepository.findAll();
         LocalDate today = LocalDate.now();
+        int page = 0;
+        Page<ProfileEntity> batch;
+        do {
+            batch = profileRepository.findAll(PageRequest.of(page++, 100));
+            for (ProfileEntity profile : batch.getContent()) {
+                try {
+                    // Check if already sent today
+                    boolean alreadySent = notificationRepository.findByProfileIdAndTypeAndCreatedAtAfter(
+                            profile.getId(), NotificationType.SAVING_STREAK, today.atStartOfDay()
+                    ).size() > 0;
+                    if (alreadySent) continue;
 
-        for (ProfileEntity profile : profiles) {
-            try {
-                // Check if already sent today
-                boolean alreadySent = notificationRepository.findByProfileIdAndTypeAndCreatedAtAfter(
-                        profile.getId(), NotificationType.SAVING_STREAK, today.atStartOfDay()
-                ).size() > 0;
-                if (alreadySent) continue;
+                    // Count consecutive days with transactions
+                    int streak = 0;
+                    LocalDate checkDate = today.minusDays(1);
+                    while (true) {
+                        boolean hasExpense = !expenseRepository.findByProfileIdAndDate(profile.getId(), checkDate).isEmpty();
+                        boolean hasIncome = !incomeRepository.findByProfileIdAndDate(profile.getId(), checkDate).isEmpty();
 
-                // Count consecutive days with transactions
-                int streak = 0;
-                LocalDate checkDate = today.minusDays(1); // start from yesterday
-                while (true) {
-                    boolean hasExpense = !expenseRepository.findByProfileIdAndDate(profile.getId(), checkDate).isEmpty();
-                    boolean hasIncome = !incomeRepository.findByProfileIdAndDate(profile.getId(), checkDate).isEmpty();
-
-                    if (hasExpense || hasIncome) {
-                        streak++;
-                        checkDate = checkDate.minusDays(1);
-                    } else {
-                        break;
+                        if (hasExpense || hasIncome) {
+                            streak++;
+                            checkDate = checkDate.minusDays(1);
+                        } else {
+                            break;
+                        }
                     }
-                }
 
-                if (streak >= 2) {
-                    String message = String.format(
-                            "Bạn đã có chuỗi %d ngày liên tiếp theo dõi tài chính! Hãy tiếp tục duy trì nhé! 💪",
-                            streak);
-                    createNotification(profile, "🔥 Chuỗi ngày theo dõi", message, NotificationType.SAVING_STREAK);
+                    if (streak >= 2) {
+                        String message = String.format(
+                                "Bạn đã có chuỗi %d ngày liên tiếp theo dõi tài chính! Hãy tiếp tục duy trì nhé! 💪",
+                                streak);
+                        createNotification(profile, "🔥 Chuỗi ngày theo dõi", message, NotificationType.SAVING_STREAK);
+                    }
+                } catch (Exception e) {
+                    log.error("Error checking streak for user {}: {}", profile.getId(), e.getMessage());
                 }
-            } catch (Exception e) {
-                log.error("Error checking streak for user {}: {}", profile.getId(), e.getMessage());
             }
-        }
+        } while (batch.hasNext());
         log.info("Job completed: sendDailySavingStreakReminder()");
     }
 

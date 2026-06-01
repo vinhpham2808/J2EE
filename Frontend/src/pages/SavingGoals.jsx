@@ -95,17 +95,18 @@ const SavingGoals = () => {
         />
 
         <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="Tạo mục tiêu tiết kiệm">
-          <SavingGoalForm onSave={handleCreateGoal} onCancel={() => setShowAddModal(false)} />
+          <SavingGoalForm key="create-goal" onSave={handleCreateGoal} onCancel={() => setShowAddModal(false)} />
         </Modal>
 
         <Modal isOpen={!!editGoal} onClose={() => setEditGoal(null)} title="Cập nhật mục tiêu">
-          <SavingGoalForm initialData={editGoal} isEditing={true} onSave={handleUpdateGoal} onCancel={() => setEditGoal(null)} />
+          <SavingGoalForm key={editGoal?.id || "edit-goal"} initialData={editGoal} isEditing={true} onSave={handleUpdateGoal} onCancel={() => setEditGoal(null)} />
         </Modal>
 
         <Modal isOpen={deleteAlert.show} onClose={() => setDeleteAlert({ show: false, id: null })} title="Huỷ mục tiêu">
           <DeleteAlert
             content="Bạn có chắc muốn huỷ mục tiêu này không? Mục tiêu sẽ chuyển sang trạng thái đã huỷ."
             onDelete={() => handleDeleteGoal(deleteAlert.id)}
+            onCancel={() => setDeleteAlert({ show: false, id: null })}
           />
         </Modal>
 

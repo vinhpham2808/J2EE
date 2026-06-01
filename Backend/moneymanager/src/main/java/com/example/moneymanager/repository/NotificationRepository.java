@@ -4,6 +4,7 @@ import com.example.moneymanager.entity.NotificationEntity;
 import com.example.moneymanager.entity.NotificationType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -26,6 +27,13 @@ public interface NotificationRepository extends JpaRepository<NotificationEntity
 
     @Query("SELECT COUNT(n) FROM NotificationEntity n WHERE n.profile IS NULL AND NOT EXISTS (SELECT r FROM NotificationReadEntity r WHERE r.notification = n AND r.profile.id = :profileId)")
     long countUnreadBroadcastsForProfile(@Param("profileId") Long profileId);
+
+    @Query("SELECT n FROM NotificationEntity n WHERE n.profile IS NULL AND NOT EXISTS (SELECT r FROM NotificationReadEntity r WHERE r.notification = n AND r.profile.id = :profileId)")
+    List<NotificationEntity> findUnreadBroadcastsForProfile(@Param("profileId") Long profileId);
+
+    @Modifying
+    @Query("UPDATE NotificationEntity n SET n.isRead = true WHERE n.profile.id = :profileId AND (n.isRead = false OR n.isRead IS NULL)")
+    void markAllPersonalAsRead(@Param("profileId") Long profileId);
 
     // Find notifications by profile, type, and created after a specific time (for duplicate check)
     List<NotificationEntity> findByProfileIdAndTypeAndCreatedAtAfter(Long profileId, NotificationType type, LocalDateTime after);

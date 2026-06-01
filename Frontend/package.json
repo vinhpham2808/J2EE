@@ -6,8 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "test": "node --test src/util/defaultAuthenticatedRoute.test.js src/util/authRedirect.test.js src/util/monthlyReportAiRequest.test.js src/util/transactionCalendar.test.js src/util/dateInput.test.js src/util/aiIntentParser.test.js",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "security:check": "node scripts/security-check.js",
+    "test:security": "npm run security:check"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

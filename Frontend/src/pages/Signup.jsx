@@ -11,6 +11,7 @@ import uploadProfileImage from "../util/uploadProfileImage.js";
 import Header from "../components/Header.jsx";
 import { usePageTitle } from "../hooks/usePageTitle.js";
 import Footer from "../components/Footer.jsx";
+import favicon from "../assets/logo/favicon.png";
 
 const Signup = () => {
   usePageTitle("Đăng ký tài khoản");
@@ -78,7 +79,7 @@ const Signup = () => {
             {/* Header */}
             <div className="flex items-center justify-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center shrink-0 shadow-md">
-                <img src="/favicon.png" alt="Money Manager Logo" className="w-12 h-12 max-w-none object-cover scale-110" />
+                <img src={favicon} alt="Money Manager Logo" className="w-12 h-12 max-w-none object-cover scale-110" />
               </div>
               <span className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Money<span className="text-amber-500">Manager</span></span>
             </div>

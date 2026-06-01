@@ -31,6 +31,17 @@ public class PaymentController {
         }
     }
 
+    @GetMapping
+    public ResponseEntity<?> getPayments() {
+        try {
+            return ResponseEntity.ok(paymentService.getPaymentsForCurrentUser());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                    "message", e.getMessage()
+            ));
+        }
+    }
+
     @GetMapping("/{orderCode}")
     public ResponseEntity<?> getPaymentByOrderCode(@PathVariable Long orderCode) {
         try {
@@ -38,6 +49,18 @@ public class PaymentController {
             return ResponseEntity.ok(responseDTO);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                    "message", e.getMessage()
+            ));
+        }
+    }
+
+    @DeleteMapping("/{orderCode}")
+    public ResponseEntity<?> deletePayment(@PathVariable Long orderCode) {
+        try {
+            paymentService.deletePayment(orderCode);
+            return ResponseEntity.ok(Map.of("message", "Đã xóa hóa đơn thành công."));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
                     "message", e.getMessage()
             ));
         }

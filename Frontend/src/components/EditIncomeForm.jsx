@@ -6,6 +6,7 @@ import { formatCurrency } from "../util/helper.js";
 import axiosConfig from "../util/axiosConfig.jsx";
 import { API_ENDPOINTS } from "../util/apiEndpoints.js";
 import { hasDisplayImage } from "../util/imageDisplay.js";
+import { normalizeToIsoDate } from "../util/dateInput.js";
 
 const fmt = (n) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(n ?? 0);
@@ -14,7 +15,7 @@ const EditIncomeForm = ({onUpdateIncome, categories, incomeData}) => {
     const [income, setIncome] = useState({
         name: incomeData.name || '',
         amount: String(incomeData.amount || ''),
-        date: incomeData.date || '',
+        date: normalizeToIsoDate(incomeData.date),
         icon: incomeData.icon || '',
         categoryId: incomeData.categoryId || ''
     });

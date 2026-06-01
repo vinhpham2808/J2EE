@@ -11,6 +11,7 @@ ANTIGRAVITY.md
 .gemini/
 .gemini
 .copilot/
+.codex/
 .claude/.instructions.md
 .instructions.md
 .prompt.md

@@ -1,13 +1,9 @@
-import {useEffect, useRef, useState} from "react";
+import {useRef, useState} from "react";
 import {Trash, Upload, User} from "lucide-react";
 
-const ProfilePhotoSelector = ({image, setImage, currentImageUrl = "", onRemoveCurrentImage}) => {
+const ProfilePhotoSelector = ({setImage, currentImageUrl = "", onRemoveCurrentImage}) => {
     const inputRef = useRef(null);
     const [previewUrl, setPreviewUrl] = useState(null);
-
-    useEffect(() => {
-        if (!image) setPreviewUrl(null);
-    }, [image]);
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];

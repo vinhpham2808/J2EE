@@ -7,6 +7,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import axiosConfig from "../util/axiosConfig.jsx";
 import { API_ENDPOINTS } from "../util/apiEndpoints.js";
+import { safeOpenExternal } from "../util/safeNavigation.js";
 import { AppContext } from "../context/AppContext.jsx";
 import { usePageTitle } from "../hooks/usePageTitle.js";
 import Footer from "../components/Footer.jsx";
@@ -47,8 +48,7 @@ const PaymentSuccess = () => {
         planName: payment.planName || payment.description,
         paidDate: payment.updatedAt || payment.createdAt || arrivedAt,
       });
-      if (response.data?.presignedUrl) {
-        window.open(response.data.presignedUrl, "_blank");
+      if (response.data?.presignedUrl && safeOpenExternal(response.data.presignedUrl)) {
         toast.success("Đã mở hóa đơn PDF");
       } else {
         toast.error("Không tìm thấy link tải hóa đơn");

@@ -9,14 +9,17 @@ export default function ChatInputBar({
   value = "",
   onChangeText,
   onSend,
+  onStop,
   placeholder,
   loading,
   disabled,
   onMicPress,
   isRecording
 }) {
+
   const insets = useSafeAreaInsets();
   const isDisabled = loading || disabled;
+
   const hasText = value.trim().length > 0;
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
@@ -62,12 +65,27 @@ export default function ChatInputBar({
   );
 
   const renderRightAction = () => {
+    if (loading && onStop) {
+      return (
+        <Pressable
+          style={[styles.actionCircle, styles.actionCircleStop]}
+          onPress={onStop}
+          accessibilityRole="button"
+          accessibilityLabel="Dừng tạo phản hồi"
+        >
+          <Svg width={14} height={14} viewBox="0 0 24 24" fill={COLORS.WHITE}>
+            <Rect x="4" y="4" width="16" height="16" rx="2" />
+          </Svg>
+        </Pressable>
+      );
+    }
+
     if (hasText) {
       return (
         <Pressable
-          style={[styles.actionCircle, isDisabled && styles.actionCircleDisabled]}
+          style={[styles.actionCircle, disabled && styles.actionCircleDisabled]}
           onPress={onSend}
-          disabled={isDisabled}
+          disabled={disabled}
         >
           <Svg width={18} height={18} viewBox="0 0 24 24" fill={COLORS.WHITE}>
             <Path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z" />
@@ -83,10 +101,10 @@ export default function ChatInputBar({
             style={[
               styles.actionCircle,
               styles.actionCircleRecording,
-              isDisabled && styles.actionCircleDisabled
+              disabled && styles.actionCircleDisabled
             ]}
             onPress={onMicPress}
-            disabled={isDisabled}
+            disabled={disabled}
           >
             <WaveformIcon />
           </Pressable>
@@ -96,9 +114,9 @@ export default function ChatInputBar({
 
     return (
       <Pressable
-        style={[styles.actionCircle, isDisabled && styles.actionCircleDisabled]}
+        style={[styles.actionCircle, disabled && styles.actionCircleDisabled]}
         onPress={onMicPress}
-        disabled={isDisabled}
+        disabled={disabled}
       >
         <MicIcon />
       </Pressable>
@@ -113,13 +131,13 @@ export default function ChatInputBar({
         </View>
 
         <TextInput
-          style={[styles.input, isDisabled && styles.inputDisabled]}
+          style={[styles.input, isInputDisabled && styles.inputDisabled]}
           placeholder={placeholder}
           placeholderTextColor={COLORS.CHAT_MUTED}
           value={value}
-          onChangeText={isDisabled ? undefined : onChangeText}
-          editable={!isDisabled}
-          selectTextOnFocus={!isDisabled}
+          onChangeText={isInputDisabled ? undefined : onChangeText}
+          editable={!isInputDisabled}
+          selectTextOnFocus={!isInputDisabled}
           multiline
         />
 
@@ -186,5 +204,8 @@ const styles = StyleSheet.create({
   },
   actionCircleRecording: {
     backgroundColor: "#EF4444"
+  },
+  actionCircleStop: {
+    backgroundColor: COLORS.EXPENSE
   }
 });

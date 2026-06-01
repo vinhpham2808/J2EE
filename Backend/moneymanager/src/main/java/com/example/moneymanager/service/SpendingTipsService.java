@@ -30,9 +30,11 @@ public class SpendingTipsService {
     private final ExpenseService expenseService;
     private final GptOssService gptOssService;
     private final SpendingTipsRepository repository;
+    private final SubscriptionService subscriptionService;
 
     public SpendingTipsResponseDTO generateSmartTips() {
         ProfileEntity profile = profileService.getCurrentProfile();
+        subscriptionService.ensureCanUseDetailedAi(profile);
 
         Optional<SpendingTipEntity> cached = repository.findTopByProfileIdOrderByGeneratedAtDesc(profile.getId());
         if (cached.isPresent() && isCacheValid(cached.get(), profile.getSubscriptionPlan())) {

@@ -127,6 +127,7 @@ const Budget = () => {
                     <DeleteAlert
                         content="Bạn có chắc muốn xóa hạn mức này không?"
                         onDelete={() => handleDeleteBudget(deleteAlert.id)}
+                        onCancel={() => setDeleteAlert({ show: false, id: null })}
                     />
                 </Modal>
             </div>

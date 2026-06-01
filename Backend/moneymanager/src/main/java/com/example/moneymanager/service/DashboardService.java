@@ -4,7 +4,9 @@ import com.example.moneymanager.dto.*;
 import com.example.moneymanager.entity.ProfileEntity;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -19,7 +21,13 @@ import static java.util.stream.Stream.concat;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class DashboardService {
+
+    public Long getProfileId() {
+        ProfileEntity profile = profileService.getCurrentProfile();
+        return profile != null ? profile.getId() : null;
+    }
 
     private final IncomeService incomeService;
     private final ExpenseService expenseService;
@@ -29,6 +37,8 @@ public class DashboardService {
     private final GeminiService geminiService;
     private final GptOssService gptOssService;
 
+    @Transactional(readOnly = true)
+    @Cacheable(value = "dashboard", key = "#root.target.getProfileId()", unless = "#result == null or #result.isEmpty()")
     public Map<String, Object> getDashboardData() {
         try {
             ProfileEntity profile = profileService.getCurrentProfile();
@@ -76,11 +86,13 @@ public class DashboardService {
                 return cmp;
             }).collect(Collectors.toList());
 
-            returnValue.put("totalBalance",
-                    incomeService.getTotalIncomeForCurrentUser()
-                            .subtract(expenseService.getTotalExpenseForCurrentUser()));
-            returnValue.put("totalIncome", incomeService.getTotalIncomeForCurrentUser());
-            returnValue.put("totalExpense", expenseService.getTotalExpenseForCurrentUser());
+            // Tối ưu: gọi 1 lần thay vì 2 lần
+            java.math.BigDecimal totalIncome = incomeService.getTotalIncomeForCurrentUser();
+            java.math.BigDecimal totalExpense = expenseService.getTotalExpenseForCurrentUser();
+            
+            returnValue.put("totalBalance", totalIncome.subtract(totalExpense));
+            returnValue.put("totalIncome", totalIncome);
+            returnValue.put("totalExpense", totalExpense);
             returnValue.put("recent5Expenses", latestExpenses);
             returnValue.put("recent5Incomes", latestIncomes);
             returnValue.put("recentTransactions", recentTransactions);
@@ -98,26 +110,24 @@ public class DashboardService {
             List<SavingGoalDTO> allGoals = savingGoalService.getAllGoals();
             returnValue.put("priorityGoal", allGoals.isEmpty() ? null : allGoals.get(0));
 
-            // Monthly History (Last 6 Months)
-            List<Map<String, Object>> monthlyHistory = new java.util.ArrayList<>();
+            // Tối ưu: dùng aggregate query thay vì loop 6 lần
+            List<Map<String, Object>> monthlyHistory = new ArrayList<>();
             LocalDate now = LocalDate.now();
+            LocalDate startDate = now.minusMonths(5).withDayOfMonth(1);
+            LocalDate endDate = now.withDayOfMonth(now.lengthOfMonth());
+            
+            // Lấy tất cả monthly totals trong 2 queries
+            Map<String, java.math.BigDecimal> incomeByMonth = incomeService.getMonthlyTotalsForCurrentUser(startDate, endDate);
+            Map<String, java.math.BigDecimal> expenseByMonth = expenseService.getMonthlyTotalsForCurrentUser(startDate, endDate);
+            
             for (int i = 5; i >= 0; i--) {
                 LocalDate date = now.minusMonths(i);
-                int year = date.getYear();
-                int month = date.getMonthValue();
+                String monthKey = date.getYear() + "-" + String.format("%02d", date.getMonthValue());
                 
-                java.math.BigDecimal monthIncome = incomeService.getIncomesByMonthForCurrentUser(year, month)
-                        .stream().map(com.example.moneymanager.dto.IncomeDTO::getAmount)
-                        .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
-                
-                java.math.BigDecimal monthExpense = expenseService.getExpensesByMonthForCurrentUser(year, month)
-                        .stream().map(com.example.moneymanager.dto.ExpenseDTO::getAmount)
-                        .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
-
                 Map<String, Object> history = new HashMap<>();
-                history.put("month", "T" + month);
-                history.put("income", monthIncome);
-                history.put("expense", monthExpense);
+                history.put("month", "T" + date.getMonthValue());
+                history.put("income", incomeByMonth.getOrDefault(monthKey, java.math.BigDecimal.ZERO));
+                history.put("expense", expenseByMonth.getOrDefault(monthKey, java.math.BigDecimal.ZERO));
                 monthlyHistory.add(history);
             }
             returnValue.put("monthlyHistory", monthlyHistory);

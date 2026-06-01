@@ -1,6 +1,5 @@
 import React, { useMemo, useRef, useState } from "react";
 import {
-  Dimensions,
   FlatList,
   Image,
   Pressable,
@@ -12,8 +11,7 @@ import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import appLogo from "../assets/applogo.png";
 import { COLORS } from "../constants/colors";
-
-const { width } = Dimensions.get("window");
+import { scale, clampScale, useDynamicViewport } from "../utils/dimensions";
 
 export const ONBOARDING_KEY = "botdev_onboarding_done";
 
@@ -41,6 +39,7 @@ export default function OnboardingScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const lastIndex = SLIDES.length - 1;
   const isLastSlide = currentIndex === lastIndex;
+  const { width: viewportWidth } = useDynamicViewport();
 
   const dots = useMemo(
     () =>
@@ -94,7 +93,7 @@ export default function OnboardingScreen() {
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={{ viewAreaCoveragePercentThreshold: 50 }}
         renderItem={({ item }) => (
-          <View style={styles.slide}>
+          <View style={[styles.slide, { width: viewportWidth - scale(40) }]}>
             <View style={styles.iconBubble}>
               <Text style={styles.iconText}>$</Text>
             </View>
@@ -118,26 +117,26 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.DARK_BG,
-    paddingHorizontal: 20,
-    paddingTop: 18,
-    paddingBottom: 26
+    paddingHorizontal: scale(20),
+    paddingTop: scale(18),
+    paddingBottom: scale(26)
   },
   bgGlowTop: {
     position: "absolute",
     top: -90,
     left: -80,
-    width: 260,
-    height: 260,
-    borderRadius: 130,
+    width: scale(260),
+    height: scale(260),
+    borderRadius: scale(130),
     backgroundColor: COLORS.PRIMARY_GLOW
   },
   bgGlowBottom: {
     position: "absolute",
     right: -120,
     bottom: -90,
-    width: 280,
-    height: 280,
-    borderRadius: 140,
+    width: scale(280),
+    height: scale(280),
+    borderRadius: scale(140),
     backgroundColor: COLORS.PRIMARY_GLOW
   },
   headerRow: {
@@ -146,79 +145,78 @@ const styles = StyleSheet.create({
     justifyContent: "space-between"
   },
   brandLogo: {
-    width: 150,
-    height: 46
+    width: scale(40),
+    aspectRatio: 1
   },
   skipText: {
     color: COLORS.DARK_TEXT_SECONDARY,
-    fontSize: 14,
+    fontSize: clampScale(14, 12, 16),
     fontWeight: "600"
   },
   slide: {
-    width: width - 40,
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 12
+    paddingHorizontal: scale(12)
   },
   iconBubble: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: scale(120),
+    aspectRatio: 1,
+    borderRadius: scale(60),
     borderWidth: 1,
     borderColor: COLORS.PRIMARY_GLOW_STRONG,
     backgroundColor: COLORS.PRIMARY_GLOW,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 26
+    marginBottom: scale(26)
   },
   iconText: {
     color: COLORS.PRIMARY_LIGHT,
-    fontSize: 52,
+    fontSize: clampScale(52, 40, 60),
     fontWeight: "800"
   },
   title: {
     color: COLORS.DARK_TEXT,
-    fontSize: 30,
+    fontSize: clampScale(30, 24, 34),
     fontWeight: "800",
     textAlign: "center",
     letterSpacing: 0.3
   },
   subtitle: {
-    marginTop: 12,
+    marginTop: scale(12),
     color: COLORS.DARK_TEXT_SECONDARY,
     textAlign: "center",
-    lineHeight: 22,
-    fontSize: 15
+    lineHeight: scale(22),
+    fontSize: clampScale(15, 13, 17)
   },
   footer: {
-    marginTop: 18
+    marginTop: scale(18)
   },
   dotsRow: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    gap: 9,
-    marginBottom: 20
+    gap: scale(9),
+    marginBottom: scale(20)
   },
   dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: scale(8),
+    height: scale(8),
+    borderRadius: scale(4),
     backgroundColor: COLORS.DARK_BORDER
   },
   dotActive: {
-    width: 18,
+    width: scale(18),
     backgroundColor: COLORS.PRIMARY
   },
   ctaButton: {
-    borderRadius: 12,
+    borderRadius: scale(12),
     backgroundColor: COLORS.PRIMARY,
-    paddingVertical: 14,
+    paddingVertical: scale(14),
     alignItems: "center"
   },
   ctaText: {
     color: COLORS.DARK_TEXT,
     fontWeight: "800",
-    fontSize: 15
+    fontSize: clampScale(15, 13, 17)
   }
 });

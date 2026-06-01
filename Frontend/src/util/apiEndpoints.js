@@ -15,6 +15,7 @@ export const API_ENDPOINTS = {
     VERIFY_RESET_OTP: "/verify-reset-otp",
     RESET_PASSWORD: "/reset-password",
     GOOGLE_AUTH: "/auth/google",
+    LOGOUT: "/logout",
 
     // User profile endpoints
     GET_USER_INFO: "/profile",
@@ -25,6 +26,8 @@ export const API_ENDPOINTS = {
     CONFIRM_PAYMENT_WEBHOOK: "/payments/payos/confirm-webhook",
     GET_PAYMENT_BY_ORDER_CODE: (orderCode) => `/payments/${orderCode}`,
     SYNC_PAYMENT_STATUS: (orderCode) => `/payments/${orderCode}/status`,
+    USER_PAYMENTS: "/payments",
+    USER_PAYMENT_DELETE: (orderCode) => `/payments/${orderCode}`,
 
     // Category endpoints
     GET_ALL_CATEGORIES: "/categories",
@@ -68,20 +71,26 @@ export const API_ENDPOINTS = {
     AI_PAGE_CONTEXT: (page) => `/ai/page-context?page=${page}`,
     AI_CHAT_SESSIONS: "/ai/chat/sessions",
     AI_CHAT_MESSAGES: (sessionId) => `/ai/chat/sessions/${sessionId}/messages`,
+    AI_CHAT_REPLACE_MESSAGES: (sessionId) => `/ai/chat/sessions/${sessionId}/messages`,
     AI_CHAT_RENAME_SESSION: (sessionId) => `/ai/chat/sessions/${sessionId}/rename`,
     AI_CHAT_DELETE_SESSION: (sessionId) => `/ai/chat/sessions/${sessionId}`,
 
     // Monthly Report endpoints
     MONTHLY_REPORT_CURRENT: "/reports/monthly",
     MONTHLY_REPORT_BY_MONTH: (year, month) => `/reports/monthly/${year}/${month}`,
+    MONTHLY_REPORT_AI_ANALYSIS: "/reports/monthly/ai-analysis",
 
     // Admin endpoints
     ADMIN_OVERVIEW: "/admin/overview",
     ADMIN_PAYMENTS: "/admin/payments",
+    ADMIN_PAYMENT_DETAIL: (orderCode) => `/admin/payments/${orderCode}`,
+    ADMIN_PAYMENT_DELETE: (orderCode) => `/admin/payments/${orderCode}`,
     ADMIN_BROADCAST: "/admin/notifications/broadcast",
     ADMIN_NOTIFICATIONS: "/admin/notifications",
     ADMIN_NOTIFICATION_UPDATE: (id) => `/admin/notifications/${id}`,
     ADMIN_NOTIFICATION_DELETE: (id) => `/admin/notifications/${id}`,
+    ADMIN_NOTIFICATION_DELETE_BULK: "/admin/notifications/delete-bulk",
+
     ADMIN_USERS: "/admin/users",
     ADMIN_USER_DETAIL: (id) => `/admin/users/${id}`,
     ADMIN_USER_UPDATE: (id) => `/admin/users/${id}`,
@@ -98,6 +107,9 @@ export const API_ENDPOINTS = {
     GET_UNREAD_COUNT: "/notifications/unread-count",
     MARK_NOTIFICATION_READ: (id) => `/notifications/${id}/read`,
     MARK_ALL_NOTIFICATIONS_READ: "/notifications/read-all",
+    DELETE_NOTIFICATION: (id) => `/notifications/${id}`,
+    DELETE_NOTIFICATIONS_BULK: "/notifications/delete-bulk",
+
 
     // Saving Goal endpoints
     GET_SAVING_GOALS: "/saving-goals",

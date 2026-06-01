@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Zap } from "lucide-react";
 import ThemeToggle from "./ThemeToggle.jsx";
+import favicon from "../assets/logo/favicon.png";
 
 const Header = () => {
   return (
@@ -9,7 +10,7 @@ const Header = () => {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <Link to="/home" className="flex items-center gap-2.5" aria-label="Go to home page">
           <div className="w-7 h-7 rounded-full overflow-hidden flex items-center justify-center shrink-0 shadow-sm">
-            <img src="/favicon.png" alt="Money Manager Logo" className="w-10 h-10 max-w-none object-cover scale-110" />
+            <img src={favicon} alt="Money Manager Logo" className="w-10 h-10 max-w-none object-cover scale-110" />
           </div>
           <span className="text-base font-bold text-slate-900 dark:text-white tracking-tight">
             Money<span className="text-amber-500">Manager</span>

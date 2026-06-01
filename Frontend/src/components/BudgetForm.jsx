@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Input from "./Input.jsx";
-import { formatCurrency, parseCurrency } from "../util/helper.js";
+import { formatCurrency } from "../util/helper.js";
 
 /**
  * BudgetForm – Form thiết lập hạn mức ngân sách
@@ -19,13 +19,6 @@ const BudgetForm = ({ categories = [], onSave, onCancel }) => {
         year: now.getFullYear(),
     });
 
-    // Tự chọn category đầu tiên nếu chưa chọn
-    useEffect(() => {
-        if (categories.length > 0 && !form.categoryId) {
-            setForm((prev) => ({ ...prev, categoryId: categories[0].id }));
-        }
-    }, [categories]);
-
     const handleChange = (key, value) =>
         setForm((prev) => ({ ...prev, [key]: value }));
 
@@ -34,13 +27,15 @@ const BudgetForm = ({ categories = [], onSave, onCancel }) => {
         handleChange("amountLimit", value);
     };
 
+    const selectedCategoryId = form.categoryId || categories[0]?.id || "";
+
     const handleSubmit = () => {
-        if (!form.categoryId) return alert("Vui lòng chọn danh mục");
+        if (!selectedCategoryId) return alert("Vui lòng chọn danh mục");
         if (!form.amountLimit || Number(form.amountLimit) <= 0)
             return alert("Số tiền hạn mức phải lớn hơn 0");
 
         onSave({
-            categoryId: Number(form.categoryId),
+            categoryId: Number(selectedCategoryId),
             amountLimit: Number(form.amountLimit),
             month: Number(form.month),
             year: Number(form.year),
@@ -68,7 +63,7 @@ const BudgetForm = ({ categories = [], onSave, onCancel }) => {
         <div className="budget-form">
             <Input
                 label="Danh mục chi tiêu"
-                value={form.categoryId}
+                value={selectedCategoryId}
                 onChange={({ target }) => handleChange("categoryId", target.value)}
                 isSelect
                 options={categoryOptions}

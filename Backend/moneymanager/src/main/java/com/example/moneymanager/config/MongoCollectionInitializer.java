@@ -9,19 +9,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.TimeUnit;
 
-/**
- * Initializes MongoDB collections and indexes for chat history on application startup.
- * This is needed because spring.data.mongodb.auto-index-creation=false is set
- * to avoid blocking startup when SRV DNS resolve is slow.
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "app.mongo-init.enabled", havingValue = "true", matchIfMissing = true)
 public class MongoCollectionInitializer implements ApplicationRunner {
 
     private final MongoTemplate mongoTemplate;
@@ -38,7 +35,6 @@ public class MongoCollectionInitializer implements ApplicationRunner {
     private void initChatCollections() {
         MongoDatabase db = mongoTemplate.getDb();
 
-        // ── chat_sessions ──────────────────────────────────────────────────────
         createCollectionIfAbsent(db, "chat_sessions");
         MongoCollection<Document> sessions = db.getCollection("chat_sessions");
 
@@ -46,25 +42,21 @@ public class MongoCollectionInitializer implements ApplicationRunner {
                 Indexes.ascending("userId"),
                 new IndexOptions().name("userId_idx"));
 
-        // TTL index on updatedAt — documents expire after 30 days
         ensureIndex(sessions,
                 Indexes.ascending("updatedAt"),
                 new IndexOptions()
                         .name("updatedAt_ttl_idx")
                         .expireAfter(2592000L, TimeUnit.SECONDS));
 
-        // ── chat_messages ──────────────────────────────────────────────────────
         createCollectionIfAbsent(db, "chat_messages");
         MongoCollection<Document> messages = db.getCollection("chat_messages");
 
-        // Compound index for fetching messages by session ordered by time
         ensureIndex(messages,
                 Indexes.compoundIndex(
                         Indexes.ascending("sessionId"),
                         Indexes.ascending("timestamp")),
                 new IndexOptions().name("sessionId_timestamp_idx"));
 
-        // TTL index on timestamp — messages expire after 30 days
         ensureIndex(messages,
                 Indexes.ascending("timestamp"),
                 new IndexOptions()
@@ -92,7 +84,6 @@ public class MongoCollectionInitializer implements ApplicationRunner {
         try {
             collection.createIndex(keys, options);
         } catch (Exception e) {
-            // Index already exists with the same name — safe to ignore
             if (!e.getMessage().contains("already exists") && !e.getMessage().contains("IndexOptionsConflict")) {
                 log.warn("Could not create index '{}': {}", options.getName(), e.getMessage());
             }

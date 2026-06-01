@@ -38,6 +38,17 @@ public class AdminController {
         return ResponseEntity.ok(adminService.getPayments(status, search, limit));
     }
 
+    @GetMapping("/payments/{orderCode}")
+    public ResponseEntity<?> getPaymentDetail(@PathVariable Long orderCode) {
+        return ResponseEntity.ok(adminService.getPaymentByOrderCode(orderCode));
+    }
+
+    @DeleteMapping("/payments/{orderCode}")
+    public ResponseEntity<?> deletePayment(@PathVariable Long orderCode) {
+        adminService.deletePayment(orderCode);
+        return ResponseEntity.ok(Map.of("message", "Đã xóa hóa đơn thành công."));
+    }
+
     // ─── User CRUD ───────────────────────────────────────────────────
 
     @GetMapping("/users")
@@ -89,5 +100,12 @@ public class AdminController {
         adminService.deleteBroadcast(id);
         return ResponseEntity.ok(Map.of("message", "Xoá thông báo thành công"));
     }
+
+    @PostMapping("/notifications/delete-bulk")
+    public ResponseEntity<?> deleteBroadcasts(@RequestBody List<Long> ids) {
+        adminService.deleteBroadcasts(ids);
+        return ResponseEntity.ok(Map.of("message", "Xoá các thông báo thành công"));
+    }
+
 
 }

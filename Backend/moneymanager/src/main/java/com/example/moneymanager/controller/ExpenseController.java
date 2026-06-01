@@ -31,8 +31,13 @@ public class ExpenseController {
 
     @GetMapping
     public ResponseEntity<List<ExpenseDTO>> getExpenses(
-            @RequestParam(required = false) Boolean all
+            @RequestParam(required = false) Boolean all,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
     ) {
+        if (page != null && size != null) {
+            return ResponseEntity.ok(expenseService.getExpensesForCurrentUser(all, page, size));
+        }
         List<ExpenseDTO> expenses = Boolean.TRUE.equals(all)
                 ? expenseService.getAllExpensesForCurrentUser()
                 : expenseService.getCurrentMonthExpensesForCurrentUser();

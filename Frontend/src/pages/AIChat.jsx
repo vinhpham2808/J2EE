@@ -5,11 +5,15 @@ import ChatSidebar from "../components/ChatSidebar.jsx";
 import ChatWindow from "../components/ChatWindow.jsx";
 import { useUser } from "../hooks/useUser.jsx";
 import axiosConfig from "../util/axiosConfig.jsx";
+import Dashboard from "../components/Dashboard.jsx";
 import { API_ENDPOINTS } from "../util/apiEndpoints.js";
-import { parseIntentResponse, isCrudIntent, isActionIntent } from "../util/aiIntentParser.js";
+import { parseIntentResponse, isCrudIntent, isActionIntent, clientTelemetry, isExportEmailIntent } from "../util/aiIntentParser.js";
+import { useNavigate } from "react-router-dom";
+import { Sparkles, TrendingUp, Zap, MessageSquare } from "lucide-react";
+import aiIcon from "../assets/logo/AI_favicon.png";
 
 const AGENT_MODEL_OPTIONS = [
-  { value: "gemini", label: "Gemini Flash", description: "Phản hồi nhanh, tiết kiệm", icon: "🤖" },
+  { value: "gemini", label: "Gemini 3.1 Flash-Lite", description: "Phản hồi nhanh, tiết kiệm", icon: "🤖" },
 ];
 
 const buildHistory = (msgs) =>
@@ -19,10 +23,17 @@ const buildHistory = (msgs) =>
     .map((m) => ({ role: m.role, content: m.content }))
     .slice(-20);
 
+const buildPersistedMessages = (msgs) =>
+  msgs
+    .filter((m) => !m.isSystem && !m.isIntent && !m.isConfirmation && !m.isUndoAction && !m.isError)
+    .filter((m) => m.role === "user" || m.role === "assistant")
+    .map((m) => ({ role: m.role, content: m.content }));
+
 const AIChat = () => {
   useUser();
   const { user } = useContext(AppContext);
   const { currentPage } = useRouteContext();
+  const navigate = useNavigate();
 
   // Plan-based flags
   const isFreePlan  = !user?.subscriptionPlan || user?.subscriptionPlan === "FREE";
@@ -87,7 +98,7 @@ const AIChat = () => {
       return {
         activeProvider: "gemini",
         activeModel: "gemini-3.1-flash-lite",
-        activeModelLabel: "Gemini 3.1 Flash Lite",
+        activeModelLabel: "Gemini 3.1 Flash-Lite",
       };
     }
     // Chat mode — luôn dùng GPT-OSS
@@ -98,11 +109,17 @@ const AIChat = () => {
     };
   };
 
-  const handleSendMessage = async (text) => {
+  const handleSendMessage = async (text, options = {}) => {
     const trimmedMessage = text.trim();
+    const editMessageId = options?.editMessageId ?? null;
     if (!trimmedMessage || isSending) return;
 
-    if (pendingIntent) {
+    const editingMessageIndex = editMessageId
+      ? messages.findIndex((message) => message.id === editMessageId)
+      : -1;
+    const isEditingExistingMessage = editingMessageIndex >= 0;
+
+    if (pendingIntent && !isEditingExistingMessage) {
       setMessages((prev) => [
         ...prev,
         {
@@ -118,6 +135,7 @@ const AIChat = () => {
     setIsSending(true);
 
     const { activeProvider, activeModel, activeModelLabel } = resolveModel();
+    const baseMessages = isEditingExistingMessage ? messages.slice(0, editingMessageIndex) : messages;
 
     const userMsg = { 
       id: `user-${Date.now()}`, 
@@ -128,13 +146,34 @@ const AIChat = () => {
       modelLabel: activeModelLabel,
       timestamp: new Date().toISOString() 
     };
-    const updatedMessages = [...messages, userMsg];
+    const updatedMessages = [...baseMessages, userMsg];
+    setPendingIntent(null);
     setMessages(updatedMessages);
 
     try {
       abortControllerRef.current = new AbortController();
       const signal = abortControllerRef.current.signal;
       const conversationHistory = buildHistory(updatedMessages);
+      const replaceEditedSessionHistory = async (sessionId, nextMessages) => {
+        if (!isEditingExistingMessage || !sessionId) return;
+        try {
+          await axiosConfig.put(
+            API_ENDPOINTS.AI_CHAT_REPLACE_MESSAGES(sessionId),
+            { messages: buildPersistedMessages(nextMessages) },
+            { _skipGlobalLoading: true }
+          );
+        } catch {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: `system-rewrite-failed-${Date.now()}`,
+              role: "assistant",
+              content: "Đã gửi lại nhưng chưa đồng bộ hoàn toàn lịch sử chat. Bạn tải lại phiên nếu thấy nội dung cũ.",
+              isSystem: true
+            }
+          ]);
+        }
+      };
 
       if (selectedProvider === "gptoss") {
         const { data } = await axiosConfig.post(API_ENDPOINTS.AI_CHAT, {
@@ -143,9 +182,9 @@ const AIChat = () => {
           sessionId: activeSessionId,
           saveHistory: true,
           messages: conversationHistory,
-        }, { signal });
+        }, { signal, _skipGlobalLoading: true });
 
-        setMessages(prev => [...prev, {
+        const nextMessages = [...updatedMessages, {
           id: `assistant-${Date.now()}`,
           role: "assistant",
           content: data.reply || "Tôi đã nhận câu hỏi nhưng hiện chưa tạo được câu trả lời phù hợp.",
@@ -153,11 +192,14 @@ const AIChat = () => {
           modelUsed: data.modelUsed,
           modelLabel: activeModelLabel,
           timestamp: new Date().toISOString(),
-        }]);
+        }];
+        setMessages(nextMessages);
 
+        const resolvedSessionId = data.sessionId || activeSessionId;
         if (data.sessionId && !activeSessionId) {
           setActiveSessionId(data.sessionId);
         }
+        await replaceEditedSessionHistory(resolvedSessionId, nextMessages);
         debouncedFetchSessions();
         setIsSending(false);
         return;
@@ -171,31 +213,48 @@ const AIChat = () => {
         userMessage: trimmedMessage,
         pageContext: currentPage || "dashboard",
         conversationHistory
-      }, { signal });
+      }, { signal, _skipGlobalLoading: true });
 
       const parsed = parseIntentResponse(intentResponse.data);
+      const resolvedSessionId = intentResponse.data?.sessionId || activeSessionId;
 
       if (intentResponse.data?.sessionId && !activeSessionId) {
         setActiveSessionId(intentResponse.data.sessionId);
       }
 
-      if (isCrudIntent(parsed.intent) || isActionIntent(parsed.intent)) {
+      // Telemetry: log missing fields on ACTION intents
+      if (parsed.intentType === 'ACTION' && parsed.missingFields?.length > 0) {
+        clientTelemetry.logMissingFields(parsed.intent, parsed.missingFields, currentPage);
+      }
+
+      if (isCrudIntent(parsed.intent) || isActionIntent(parsed.intent, parsed.intentType)) {
+        // If action intent but missing required fields, still show confirmation form
+        // (backend already populated missingFields — frontend should highlight them)
         setPendingIntent(parsed);
-        setMessages((prev) => [
-          ...prev,
+        const nextMessages = [
+          ...updatedMessages,
           {
             id: `intent-${Date.now()}`,
             role: "assistant",
             isIntent: true,
             intent: parsed.intent,
+            intentType: parsed.intentType,
             extractedFields: parsed.extractedFields,
             suggestedValues: parsed.suggestedValues,
+            missingFields: parsed.missingFields,
             confirmationPrompt: parsed.confirmationPrompt
           }
-        ]);
+        ];
+        setMessages(nextMessages);
+        await replaceEditedSessionHistory(resolvedSessionId, updatedMessages);
       } else if (parsed.intent === "ANSWER_QUESTION") {
-        setMessages((prev) => [
-          ...prev,
+        // Telemetry: if message looks like agent command but got ANSWER_QUESTION, log it
+        const agentVerbPattern = /\b(thêm|tạo|ghi|nhập|xóa|bỏ|hủy|sửa|chỉnh|đổi|cập nhật|xuất|tải|chuyển|gửi mail|gửi email|gửi qua email|gửi qua mail|add|delete|remove|update|export|transfer)\b/i;
+        if (agentVerbPattern.test(trimmedMessage)) {
+          clientTelemetry.logAgentCommandFallback(trimmedMessage, currentPage);
+        }
+        const nextMessages = [
+          ...updatedMessages,
           {
             id: `assistant-${Date.now()}`,
             role: "assistant",
@@ -204,10 +263,12 @@ const AIChat = () => {
             modelUsed: intentResponse.data?.modelUsed,
             modelLabel: activeModelLabel
           }
-        ]);
+        ];
+        setMessages(nextMessages);
+        await replaceEditedSessionHistory(resolvedSessionId, nextMessages);
       } else if (parsed.intent === "INVALID_REQUEST") {
-        setMessages((prev) => [
-          ...prev,
+        const nextMessages = [
+          ...updatedMessages,
           {
             id: `assistant-error-${Date.now()}`,
             role: "assistant",
@@ -215,18 +276,21 @@ const AIChat = () => {
             isError: true,
             provider: activeProvider
           }
-        ]);
+        ];
+        setMessages(nextMessages);
+        await replaceEditedSessionHistory(resolvedSessionId, updatedMessages);
       } else {
+        // Unrecognized intent — fall back to regular chat (only for genuine QUESTION-type intents)
         const { data } = await axiosConfig.post(API_ENDPOINTS.AI_CHAT, {
           provider: activeProvider,
           model: activeModel,
           sessionId: activeSessionId,
           saveHistory: true,
           messages: conversationHistory,
-        }, { signal });
+        }, { signal, _skipGlobalLoading: true });
         
-        setMessages((prev) => [
-          ...prev,
+        const nextMessages = [
+          ...updatedMessages,
           {
             id: `assistant-${Date.now()}`,
             role: "assistant",
@@ -235,11 +299,14 @@ const AIChat = () => {
             modelUsed: data.modelUsed,
             modelLabel: activeModelLabel
           }
-        ]);
+        ];
+        setMessages(nextMessages);
         
+        const fallbackSessionId = data.sessionId || activeSessionId;
         if (data.sessionId && !activeSessionId) {
           setActiveSessionId(data.sessionId);
         }
+        await replaceEditedSessionHistory(fallbackSessionId, nextMessages);
       }
       
       debouncedFetchSessions();
@@ -273,6 +340,10 @@ const AIChat = () => {
   };
 
   const executeExportAction = async (intent) => {
+    if (!isExportEmailIntent(intent)) {
+      throw new Error(`executeExportAction khong ho tro intent: ${intent}`);
+    }
+
     if (intent === "EXPORT_EXCEL_INCOME" || intent === "EXPORT_EXCEL_EXPENSE") {
       const endpoint = intent === "EXPORT_EXCEL_INCOME"
         ? API_ENDPOINTS.INCOME_EXCEL_DOWNLOAD
@@ -309,7 +380,7 @@ const AIChat = () => {
       let resultContent;
       let undoData = null;
 
-      if (isActionIntent(intent)) {
+      if (isExportEmailIntent(intent)) {
         resultContent = await executeExportAction(intent);
       } else {
         const { data } = await axiosConfig.post(API_ENDPOINTS.AI_CONFIRM_ACTION, {
@@ -360,6 +431,10 @@ const AIChat = () => {
   };
 
   const handleCancelConfirmation = () => {
+    // Telemetry: log when user cancels (may indicate wrong parse)
+    if (pendingIntent) {
+      clientTelemetry.logConfirmationCancelled(pendingIntent.intent, pendingIntent.extractedFields);
+    }
     setPendingIntent(null);
     setMessages((prev) => prev.map((m) => {
       if (m.isIntent) return { ...m, isConfirmation: true };
@@ -421,14 +496,18 @@ const AIChat = () => {
       await axiosConfig.delete(API_ENDPOINTS.AI_CHAT_DELETE_SESSION(sessionId));
       if (activeSessionId === sessionId) handleNewChat();
       fetchSessions();
-    } catch {}
+    } catch {
+      // Non-blocking: keep the current session list if delete fails.
+    }
   };
 
   const handleRenameSession = async (sessionId, newTitle) => {
     try {
       await axiosConfig.put(API_ENDPOINTS.AI_CHAT_RENAME_SESSION(sessionId), { title: newTitle });
       fetchSessions();
-    } catch {}
+    } catch {
+      // Non-blocking: keep the existing title if rename fails.
+    }
   };
 
   // Model change handlers
@@ -447,9 +526,104 @@ const AIChat = () => {
     setAgentModel(newModel);
   };
 
+  if (isFreePlan) {
+    return (
+      <Dashboard activeMenu="Trợ lý AI">
+        <div className="flex items-center justify-center min-h-[75vh] px-4 relative overflow-hidden">
+          {/* Glow orb background */}
+          <div className="absolute top-1/4 left-1/4 -translate-x-1/2 w-72 h-72 rounded-full bg-purple-600/15 blur-3xl pointer-events-none" />
+          <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 w-80 h-80 rounded-full bg-indigo-600/10 blur-3xl pointer-events-none" />
+
+          <div className="relative w-full max-w-lg bg-slate-900 border border-purple-500/30 text-white rounded-3xl p-6 md:p-8 shadow-2xl overflow-hidden animate-fade-in-up">
+            {/* Top Accent Gradient Border */}
+            <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-purple-500 via-pink-500 to-amber-500" />
+            
+            <div className="text-center">
+              {/* AI icon with animation */}
+              <div className="relative w-16 h-16 mx-auto mb-5 flex items-center justify-center rounded-2xl
+                bg-gradient-to-tr from-purple-600 to-indigo-500 shadow-xl shadow-purple-500/20 overflow-hidden">
+                <img src={aiIcon} alt="Nova Money AI" className="w-full h-full object-cover" />
+                <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-amber-400 animate-ping" />
+              </div>
+
+              {/* Badges */}
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold
+                bg-purple-500/10 border border-purple-500/30 text-purple-300 mb-4 uppercase tracking-wider">
+                <Sparkles size={12} className="text-amber-400" />
+                Trợ lý Đặc quyền
+              </div>
+
+              <h2 className="text-2xl font-extrabold text-white leading-tight">
+                Nova Money — Trợ lý AI
+              </h2>
+              
+              <p className="text-sm text-slate-300 mt-2 mb-6 leading-relaxed max-w-sm mx-auto">
+                Tính năng Trợ lý AI đặc quyền chỉ khả dụng từ gói hội viên <span className="font-semibold text-purple-400">BASIC</span> và <span className="font-semibold text-purple-400">PREMIUM</span>.
+              </p>
+
+              {/* AI Features Grid */}
+              <div className="bg-slate-800/40 rounded-2xl border border-white/5 p-4 md:p-5 text-left space-y-3.5 mb-7">
+                <div className="flex items-start gap-3">
+                  <div className="p-1.5 rounded-lg bg-purple-500/20 text-purple-400 shrink-0 mt-0.5">
+                    <MessageSquare size={14} />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-white">Trò chuyện & Tư vấn Tài chính</h4>
+                    <p className="text-xs text-slate-400 mt-0.5">Tâm sự chi tiêu, nhận lời khuyên thông minh cho cuộc sống cá nhân.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="p-1.5 rounded-lg bg-purple-500/20 text-purple-400 shrink-0 mt-0.5">
+                    <Sparkles size={14} />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-white">Chế độ Agent đắc lực (Premium)</h4>
+                    <p className="text-xs text-slate-400 mt-0.5">Tự động thêm, sửa, xoá giao dịch, quản lý hũ chi tiêu bằng ngôn ngữ tự nhiên.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="p-1.5 rounded-lg bg-purple-500/20 text-purple-400 shrink-0 mt-0.5">
+                    <TrendingUp size={14} />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-white">Báo cáo & Phân tích thông minh</h4>
+                    <p className="text-xs text-slate-400 mt-0.5">Nhận gợi ý tiết kiệm thông minh cá nhân hóa giúp bạn tối ưu hóa dòng tiền.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => navigate("/dashboard")}
+                  className="w-full sm:order-1 px-5 py-3 rounded-2xl text-sm font-medium
+                    bg-slate-800 hover:bg-slate-700 active:scale-98 transition duration-150 text-slate-300 hover:text-white"
+                >
+                  Quay lại Trang chủ
+                </button>
+                <button
+                  onClick={() => navigate("/payment")}
+                  className="w-full sm:order-2 px-5 py-3 rounded-2xl text-sm font-bold text-white
+                    bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 hover:from-purple-500 hover:via-pink-500 hover:to-amber-400
+                    shadow-lg shadow-purple-600/30 hover:shadow-purple-600/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-150
+                    flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Zap size={16} />
+                  Nâng cấp ngay
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Dashboard>
+    );
+  }
+
   return (
     <div className="flex h-screen overflow-hidden bg-white dark:bg-[#131314] text-slate-800 dark:text-slate-200 transition-colors duration-300 relative">
-      <div className="pointer-events-none absolute inset-0 dark:block hidden">
+      <div className="pointer-events-none absolute inset-0 dark:block hidden overflow-hidden">
         <div
           className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-3xl opacity-[0.15]"
           style={{
@@ -479,6 +653,7 @@ const AIChat = () => {
       />
 
       <ChatWindow
+        key={activeSessionId || "new-chat"}
         messages={messages}
         isSending={isSending}
         onSendMessage={handleSendMessage}

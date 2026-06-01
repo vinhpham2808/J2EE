@@ -1,6 +1,7 @@
 package com.example.moneymanager.service;
 
 import com.example.moneymanager.dto.MonthlyReportCardDTO;
+import com.example.moneymanager.dto.MonthlyReportAiAnalysisRequestDTO;
 import com.example.moneymanager.dto.MonthlyReportCardDTO.CategoryBreakdownItem;
 import com.example.moneymanager.entity.*;
 import com.example.moneymanager.repository.*;
@@ -15,11 +16,11 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional(readOnly = true)
 public class MonthlyReportCardService {
 
     private final ProfileService profileService;
@@ -28,6 +29,8 @@ public class MonthlyReportCardService {
     private final BudgetRepository budgetRepository;
     private final SavingGoalRepository savingGoalRepository;
     private final SavingGoalContributionRepository savingGoalContributionRepository;
+    private final SubscriptionService subscriptionService;
+    private final GptOssService gptOssService;
 
     /**
      * Get report card for the current month.
@@ -64,7 +67,6 @@ public class MonthlyReportCardService {
         BigDecimal prevExpense = getTotalExpense(profile.getId(), prevStart, prevEnd);
         BigDecimal prevSavings = prevIncome.subtract(prevExpense);
 
-        // Spending change vs previous month
         double spendingChangePercent = 0.0;
         if (prevExpense.compareTo(BigDecimal.ZERO) > 0) {
             spendingChangePercent = totalExpense.subtract(prevExpense)
@@ -76,18 +78,33 @@ public class MonthlyReportCardService {
         // --- Category breakdown ---
         List<CategoryBreakdownItem> categoryBreakdown = getCategoryBreakdown(profile.getId(), startOfMonth, endOfMonth, totalExpense);
 
-        // --- Budget tracking ---
+        // --- Budget tracking (batch query instead of N+1) ---
         List<BudgetEntity> budgets = budgetRepository.findByProfileIdAndMonthAndYear(profile.getId(), month, year);
         int totalBudgets = budgets.size();
         int budgetsOnTrack = 0;
+        
+        List<Object[]> spentByCategory = budgetRepository.getTotalSpentByCategoryForProfileAndMonth(
+                profile.getId(), month, year);
+        Map<Long, BigDecimal> spentMap = new java.util.HashMap<>();
+        for (Object[] row : spentByCategory) {
+            if (row[0] == null) continue;
+            Long categoryId = ((Number) row[0]).longValue();
+            Object val = row[1];
+            BigDecimal amount;
+            if (val instanceof BigDecimal) {
+                amount = (BigDecimal) val;
+            } else if (val instanceof Number) {
+                amount = new BigDecimal(val.toString());
+            } else {
+                amount = BigDecimal.ZERO;
+            }
+            spentMap.put(categoryId, amount);
+        }
+        
         for (BudgetEntity budget : budgets) {
-            BigDecimal spent = budgetRepository.getTotalSpentByProfileAndCategoryAndMonthAndYear(
-                    profile.getId(), budget.getCategory().getId(), month, year);
-            if (spent != null) {
-                double ratio = 0;
-                if (budget.getAmountLimit().compareTo(BigDecimal.ZERO) > 0) {
-                    ratio = spent.divide(budget.getAmountLimit(), 4, RoundingMode.HALF_UP).doubleValue();
-                }
+            BigDecimal spent = spentMap.getOrDefault(budget.getCategory().getId(), BigDecimal.ZERO);
+            if (budget.getAmountLimit().compareTo(BigDecimal.ZERO) > 0) {
+                double ratio = spent.divide(budget.getAmountLimit(), 4, RoundingMode.HALF_UP).doubleValue();
                 if (ratio < 1.0) {
                     budgetsOnTrack++;
                 }
@@ -136,20 +153,35 @@ public class MonthlyReportCardService {
                 .build();
     }
 
+    @Transactional(readOnly = true)
+    public String analyzeReportWithAi(MonthlyReportAiAnalysisRequestDTO request) {
+        ProfileEntity profile = profileService.getCurrentProfile();
+        subscriptionService.ensureCanUseDetailedAi(profile);
+
+        String prompt = request != null ? request.getPrompt() : null;
+        if (prompt == null || prompt.isBlank()) {
+            throw new RuntimeException("Nội dung phân tích AI không được để trống.");
+        }
+
+        String systemPrompt = "Bạn là chuyên gia phân tích hành vi tài chính cá nhân cho Money Manager. " +
+                "Luôn trả lời bằng tiếng Việt, chỉ dựa trên dữ liệu người dùng cung cấp, không bịa số liệu. " +
+                "Trả lời ngắn gọn kiểu executive summary, tối đa 3 bullet hoặc 3 đoạn ngắn. " +
+                "Bắt buộc chỉ gồm: 1) Nhận xét chính về mẫu chi tiêu, 2) Một điểm tốt hoặc rủi ro đáng chú ý nhất, 3) 1-2 khuyến nghị cụ thể cho tháng tới. " +
+                "Giọng điệu chuyên nghiệp, thẳng thắn, dễ đọc. Độ dài mục tiêu khoảng 90-140 từ, không viết lan man.";
+
+        return gptOssService.callWithPrompt(systemPrompt, prompt.trim(), 450);
+    }
+
     // ─── Private helpers ────────────────────────────────────────
 
     private BigDecimal getTotalIncome(Long profileId, LocalDate start, LocalDate end) {
-        return incomeRepository.findByProfileIdAndDateBetween(profileId, start, end)
-                .stream()
-                .map(IncomeEntity::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal total = incomeRepository.findTotalIncomeByProfileIdAndDateBetween(profileId, start, end);
+        return total != null ? total : BigDecimal.ZERO;
     }
 
     private BigDecimal getTotalExpense(Long profileId, LocalDate start, LocalDate end) {
-        return expenseRepository.findByProfileIdAndDateBetween(profileId, start, end)
-                .stream()
-                .map(ExpenseEntity::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal total = expenseRepository.findTotalExpenseByProfileIdAndDateBetween(profileId, start, end);
+        return total != null ? total : BigDecimal.ZERO;
     }
 
     private double calculateSavingsRate(BigDecimal savings, BigDecimal totalIncome) {
@@ -181,31 +213,34 @@ public class MonthlyReportCardService {
     }
 
     private List<CategoryBreakdownItem> getCategoryBreakdown(Long profileId, LocalDate start, LocalDate end, BigDecimal totalExpense) {
-        List<ExpenseEntity> expenses = expenseRepository.findByProfileIdAndDateBetween(profileId, start, end);
-
-        // Group by category
-        Map<String, List<ExpenseEntity>> grouped = expenses.stream()
-                .filter(e -> e.getCategory() != null)
-                .collect(Collectors.groupingBy(e -> e.getCategory().getName()));
+        // Aggregate query: tránh load toàn bộ entity, nhóm trực tiếp trong DB
+        List<Object[]> rows = expenseRepository.findCategoryTotalsByProfileIdAndDateBetween(profileId, start, end);
 
         List<CategoryBreakdownItem> items = new ArrayList<>();
-        for (Map.Entry<String, List<ExpenseEntity>> entry : grouped.entrySet()) {
-            BigDecimal amount = entry.getValue().stream()
-                    .map(ExpenseEntity::getAmount)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+        for (Object[] row : rows) {
+            String categoryName = (String) row[0];
+            String categoryIcon = (String) row[1];
+            Object val = row[2];
+            BigDecimal amount;
+            if (val instanceof BigDecimal) {
+                amount = (BigDecimal) val;
+            } else if (val instanceof Number) {
+                amount = new BigDecimal(val.toString());
+            } else {
+                amount = BigDecimal.ZERO;
+            }
             double percent = 0.0;
             if (totalExpense.compareTo(BigDecimal.ZERO) > 0) {
                 percent = amount.multiply(BigDecimal.valueOf(100))
                         .divide(totalExpense, 2, RoundingMode.HALF_UP)
                         .doubleValue();
             }
-            ExpenseEntity sample = entry.getValue().get(0);
             items.add(CategoryBreakdownItem.builder()
-                    .name(entry.getKey())
+                    .name(categoryName)
                     .amount(amount)
                     .percent(percent)
-                    .icon(sample.getCategory().getIcon())
-                    .color("#94A3B8") // default color
+                    .icon(categoryIcon)
+                    .color("#94A3B8")
                     .build());
         }
 
@@ -215,18 +250,17 @@ public class MonthlyReportCardService {
     }
 
     private int countCompletedGoalsThisMonth(Long profileId, LocalDate start, LocalDate end) {
-        List<SavingGoalEntity> allGoals = savingGoalRepository.findByProfileIdOrderByCreatedAtDesc(profileId);
-        int count = 0;
-        for (SavingGoalEntity goal : allGoals) {
-            if (goal.getStatus() == GoalStatus.COMPLETED) {
-                List<SavingGoalContributionEntity> contributions = savingGoalContributionRepository
-                        .findByGoalIdAndContributionDateBetween(goal.getId(), start, end);
-                if (!contributions.isEmpty()) {
-                    count++;
-                }
-            }
-        }
-        return count;
+        // Batch query: lấy danh sách goal COMPLETED, rồi dùng 1 query để tìm những goal có contribution trong tháng
+        List<SavingGoalEntity> completedGoals = savingGoalRepository.findByProfileIdAndStatus(profileId, GoalStatus.COMPLETED);
+        if (completedGoals.isEmpty()) return 0;
+
+        List<Long> completedGoalIds = completedGoals.stream()
+                .map(SavingGoalEntity::getId)
+                .toList();
+
+        java.util.Set<Long> goalIdsWithContributions = savingGoalContributionRepository
+                .findGoalIdsWithContributionsBetween(completedGoalIds, start, end);
+        return goalIdsWithContributions.size();
     }
 
     private List<String> generateBadges(double savingsRate, int budgetsOnTrack, int totalBudgets,

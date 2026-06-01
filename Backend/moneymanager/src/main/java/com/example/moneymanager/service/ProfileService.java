@@ -139,16 +139,20 @@ public class ProfileService {
     // ─── Forgot Password ─────────────────────────────────────────────
 
     public void forgotPassword(ForgotPasswordRequestDTO requestDTO) {
-        Optional<ProfileEntity> profileOpt = profileRepository.findByEmail(requestDTO.getEmail());
+        Optional<ProfileEntity> profileOpt = profileRepository.findByEmail(requestDTO.getEmail().trim());
 
-        // Silent success if email not found (prevents enumeration)
-        if (profileOpt.isEmpty()) return;
+        if (profileOpt.isEmpty()) {
+            throw new RuntimeException("Email này chưa được đăng ký trong hệ thống.");
+        }
 
         ProfileEntity profile = profileOpt.get();
 
-        // Skip inactive accounts and Google-only accounts silently
-        if (!Boolean.TRUE.equals(profile.getIsActive())) return;
-        if (profile.getPassword() == null && profile.getGoogleId() != null) return;
+        if (!Boolean.TRUE.equals(profile.getIsActive())) {
+            throw new RuntimeException("Tài khoản này chưa được kích hoạt.");
+        }
+        if (profile.getPassword() == null && profile.getGoogleId() != null) {
+            throw new RuntimeException("Tài khoản này đăng nhập bằng Google.");
+        }
 
         if (!otpService.canResend(profile)) {
             long waitSeconds = otpService.getResendWaitSeconds(profile);
@@ -201,13 +205,44 @@ public class ProfileService {
         }
     }
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.example.moneymanager.security.CurrentProfileContext currentProfileContext;
+
     // ─── Profile ─────────────────────────────────────────────────────
 
+    /**
+     * Lấy profile của user hiện tại.
+     * Ưu tiên dùng request-scope cache (CurrentProfileContext) để tránh double DB lookup:
+     * - Lần 1 đã query trong JwtRequestFilter → kết quả được đặt vào CurrentProfileContext
+     * - Lần 2+ trong service gọi getCurrentProfile() → dùng cache, KHÔNG query DB
+     * Fallback về DB nếu context chưa có (non-HTTP thread, scheduled job, test).
+     */
     public ProfileEntity getCurrentProfile() {
+        // 1. Thử lấy từ request-scope context (đã được set bởi JwtRequestFilter)
+        if (currentProfileContext != null && currentProfileContext.getCachedProfile() != null) {
+            ProfileEntity cached = currentProfileContext.getCachedProfile();
+            // Nếu chỉ có id+email (partial stub từ JwtRequestFilter), load full entity một lần
+            if (cached.getRole() == null) {
+                ProfileEntity full = profileRepository.findByEmail(cached.getEmail())
+                        .orElseThrow(() -> new UsernameNotFoundException(
+                                "Không tìm thấy tài khoản với email: " + cached.getEmail()));
+                currentProfileContext.setCachedProfile(full);
+                return full;
+            }
+            return cached;
+        }
+
+        // 2. Fallback: query DB theo SecurityContext (scheduled job, test context, v.v.)
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return profileRepository.findByEmail(authentication.getName())
+        ProfileEntity profile = profileRepository.findByEmail(authentication.getName())
                 .orElseThrow(() -> new UsernameNotFoundException(
                         "Không tìm thấy tài khoản với email: " + authentication.getName()));
+
+        // Cache lại nếu context tồn tại
+        if (currentProfileContext != null) {
+            currentProfileContext.setCachedProfile(profile);
+        }
+        return profile;
     }
 
     public ProfileDTO getPublicProfile(String email) {

@@ -2,7 +2,7 @@ import Dashboard from "../components/Dashboard.jsx";
 import { useUser } from "../hooks/useUser.jsx";
 import { Plus } from "lucide-react";
 import CategoryList from "../components/CategoryList.jsx";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import axiosConfig from "../util/axiosConfig.jsx";
 import { API_ENDPOINTS } from "../util/apiEndpoints.js";
 import toast from "react-hot-toast";
@@ -14,7 +14,6 @@ import { usePageTitle } from "../hooks/usePageTitle.js";
 const Category = () => {
   useUser();
   usePageTitle("Danh mục");
-  const [loading, setLoading] = useState(false);
   const [categoryData, setCategoryData] = useState([]);
   const [openAddCategoryModal, setOpenAddCategoryModal] = useState(false);
   const [openEditCategoryModal, setOpenEditCategoryModal] = useState(false);
@@ -22,21 +21,17 @@ const Category = () => {
   const [openDeleteAlert, setOpenDeleteAlert] = useState({ show: false, id: null, name: "" });
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const fetchCategoryDetails = async () => {
-    if (loading) return;
-    setLoading(true);
+  const fetchCategoryDetails = useCallback(async () => {
     try {
       const response = await axiosConfig.get(API_ENDPOINTS.GET_ALL_CATEGORIES);
       if (response.status === 200) setCategoryData(response.data);
     } catch (error) {
       console.error("Something went wrong. Please try again.", error);
-      toast.error(error.message);
-    } finally {
-      setLoading(false);
+      toast.error(error.response?.data?.message || "Không thể tải danh mục. Vui lòng thử lại.");
     }
-  };
+  }, []);
 
-  useEffect(() => { fetchCategoryDetails(); }, []);
+  useEffect(() => { fetchCategoryDetails(); }, [fetchCategoryDetails]);
 
   const handleAddCategory = async (category) => {
     const { name, type, icon } = category;
@@ -139,6 +134,7 @@ const Category = () => {
           <DeleteAlert
             content={`Bạn có chắc chắn muốn xoá danh mục "${openDeleteAlert.name}"?\n\n⚠️ Toàn bộ giao dịch (thu nhập / chi tiêu) thuộc danh mục này cũng sẽ bị xoá vĩnh viễn và không thể khôi phục.`}
             onDelete={confirmDeleteCategory}
+            onCancel={() => setOpenDeleteAlert({ show: false, id: null, name: "" })}
           />
         </Modal>
       </div>

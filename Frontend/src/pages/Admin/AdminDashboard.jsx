@@ -12,8 +12,8 @@ const formatDateTime = (value) => {
   return new Date(value).toLocaleString("vi-VN");
 };
 
-const StatCard = ({ title, value, subtitle, icon: Icon, colorClass, gradientClass }) => (
-  <div className="relative group overflow-hidden bg-white dark:bg-[#0F172A] rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-sm transition-[transform,box-shadow] duration-500 transform-gpu hover:shadow-xl hover:-translate-y-1">
+const StatCard = ({ title, value, subtitle, icon: Icon, gradientClass }) => (
+  <div className="relative group overflow-hidden bg-white dark:bg-[#0F172A] rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
     {/* Background Decorative Elements */}
     <div className={`absolute -right-8 -top-8 w-32 h-32 rounded-full opacity-10 bg-gradient-to-br ${gradientClass} transition-transform duration-700 group-hover:scale-[2.5] ease-out`} />
     <div className={`absolute -left-8 -bottom-8 w-24 h-24 rounded-full opacity-5 bg-gradient-to-tr ${gradientClass} transition-transform duration-700 group-hover:scale-[2] ease-out`} />
@@ -21,21 +21,21 @@ const StatCard = ({ title, value, subtitle, icon: Icon, colorClass, gradientClas
     <div className="relative z-10 p-6 sm:p-8">
       <div className="flex justify-between items-start">
         <div className="space-y-4">
-          <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-widest">{title}</h3>
+          <h3 className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{title}</h3>
           <div>
-            <p className="text-4xl font-extrabold text-slate-800 dark:text-white tracking-tight">
+            <p className="text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight leading-none">
               {value}
             </p>
             {subtitle && (
-              <p className="mt-2 text-sm font-medium text-emerald-500 dark:text-emerald-400 flex items-center gap-1.5">
-                <TrendingUp size={16} />
+              <p className="mt-2.5 text-xs font-semibold text-emerald-500 dark:text-emerald-400 flex items-center gap-1">
+                <TrendingUp size={14} />
                 {subtitle}
               </p>
             )}
           </div>
         </div>
-        <div className={`p-4 rounded-2xl bg-gradient-to-br ${gradientClass} text-white shadow-lg shadow-${colorClass.split('-')[1]}-500/30 transform transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3`}>
-          <Icon size={28} strokeWidth={2.5} />
+        <div className={`p-3.5 rounded-2xl bg-gradient-to-br ${gradientClass} text-white shadow-lg shadow-indigo-500/20 transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3`}>
+          <Icon size={24} strokeWidth={2.5} />
         </div>
       </div>
     </div>
@@ -81,7 +81,7 @@ const AdminDashboard = () => {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
       {/* Header Section */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 p-8 sm:p-10 shadow-2xl shadow-indigo-500/20">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-700 via-indigo-600 to-violet-600 p-8 sm:p-10 shadow-2xl shadow-indigo-500/20 animate-fade-in-up">
         <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-48 h-48 bg-white opacity-10 rounded-full blur-2xl" />
         
@@ -111,30 +111,26 @@ const AdminDashboard = () => {
           value={overview.totalUsers?.toLocaleString("vi-VN") || "0"}
           subtitle="+12% tháng này"
           icon={Users}
-          colorClass="text-blue-500"
-          gradientClass="from-blue-500 to-cyan-400"
+          gradientClass="from-indigo-500 to-cyan-500"
         />
         <StatCard
           title="Gói cước hoạt động"
           value={overview.activeSubscriptions?.toLocaleString("vi-VN") || "0"}
           subtitle="+5% tháng này"
           icon={Activity}
-          colorClass="text-indigo-500"
-          gradientClass="from-indigo-500 to-purple-500"
+          gradientClass="from-indigo-600 to-violet-500"
         />
         <StatCard
           title="Tổng doanh thu"
           value={overview.totalPayments?.toLocaleString("vi-VN") || "0"}
           icon={Wallet}
-          colorClass="text-amber-500"
-          gradientClass="from-amber-500 to-orange-400"
+          gradientClass="from-violet-600 to-fuchsia-500"
         />
         <StatCard
           title="Giao dịch thành công"
           value={overview.paidPayments?.toLocaleString("vi-VN") || "0"}
           icon={CreditCard}
-          colorClass="text-emerald-500"
-          gradientClass="from-emerald-500 to-teal-400"
+          gradientClass="from-indigo-700 to-indigo-500"
         />
       </div>
 
@@ -199,7 +195,7 @@ const AdminDashboard = () => {
                         <span className={`inline-flex px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase
                           ${isSuccess 
                             ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' 
-                            : 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400'}`}
+                            : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-400'}`}
                         >
                           {payment.status || "PENDING"}
                         </span>
@@ -223,17 +219,17 @@ const AdminDashboard = () => {
 
         {/* Quick Actions */}
         <div className="flex flex-col gap-6">
-          <div className="bg-gradient-to-br from-indigo-900 to-slate-900 rounded-3xl p-8 shadow-lg relative overflow-hidden group">
-            <div className="absolute right-0 top-0 w-32 h-32 bg-indigo-500/20 rounded-full blur-3xl -mr-10 -mt-10 transition-transform duration-500 group-hover:scale-150" />
+          <div className="bg-gradient-to-br from-indigo-850 to-slate-900 rounded-3xl p-8 shadow-lg relative overflow-hidden group border border-indigo-500/10">
+            <div className="absolute right-0 top-0 w-32 h-32 bg-indigo-600/20 rounded-full blur-3xl -mr-10 -mt-10 transition-transform duration-500 group-hover:scale-150" />
             <div className="relative z-10">
-              <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center mb-6 border border-white/20">
-                <Zap className="text-amber-400" size={24} />
+              <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center mb-6 border border-white/20 shadow-inner">
+                <Zap className="text-indigo-400" size={24} />
               </div>
               <h3 className="text-2xl font-bold text-white mb-2">Quản lý Thanh toán</h3>
               <p className="text-indigo-200 text-sm mb-6 line-clamp-2">Theo dõi, kiểm tra và xác nhận các giao dịch thanh toán từ người dùng.</p>
               <button
                 onClick={() => navigate("/admin/payments")}
-                className="w-full py-3 px-4 bg-white text-indigo-900 font-bold rounded-xl hover:bg-indigo-50 transition-colors flex items-center justify-center gap-2"
+                className="w-full py-3 px-4 bg-white hover:bg-slate-100 text-indigo-900 font-bold rounded-xl transition-all hover:shadow-lg hover:shadow-white/10 active:scale-[0.98] flex items-center justify-center gap-2"
               >
                 Mở Quản lý
                 <ArrowRight size={18} />

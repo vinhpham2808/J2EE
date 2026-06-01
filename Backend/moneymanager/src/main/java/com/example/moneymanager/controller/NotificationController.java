@@ -17,8 +17,13 @@ public class NotificationController {
     private final NotificationService notificationService;
 
     @GetMapping
-    public ResponseEntity<List<NotificationDTO>> getNotifications() {
-        return ResponseEntity.ok(notificationService.getNotificationsForCurrentUser());
+    public ResponseEntity<List<NotificationDTO>> getNotifications(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) {
+        if (page == null || size == null) {
+            return ResponseEntity.ok(notificationService.getNotificationsForCurrentUser());
+        }
+        return ResponseEntity.ok(notificationService.getNotificationsForCurrentUser(page, size));
     }
 
     @GetMapping("/unread-count")
@@ -38,4 +43,17 @@ public class NotificationController {
         notificationService.markAllAsRead();
         return ResponseEntity.ok(Map.of("message", "Đã đánh dấu tất cả là đã đọc"));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteNotification(@PathVariable Long id) {
+        notificationService.deleteNotification(id);
+        return ResponseEntity.ok(Map.of("message", "Xóa thông báo thành công"));
+    }
+
+    @PostMapping("/delete-bulk")
+    public ResponseEntity<?> deleteMultipleNotifications(@RequestBody List<Long> ids) {
+        notificationService.deleteMultipleNotifications(ids);
+        return ResponseEntity.ok(Map.of("message", "Xóa các thông báo thành công"));
+    }
+
 }

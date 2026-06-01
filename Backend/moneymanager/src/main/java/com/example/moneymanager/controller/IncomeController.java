@@ -31,7 +31,12 @@ public class IncomeController {
     public ResponseEntity<List<IncomeDTO>> getIncomes(
             @RequestParam(required = false) Integer month,
             @RequestParam(required = false) Integer year,
-            @RequestParam(required = false) Boolean all) {
+            @RequestParam(required = false) Boolean all,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) {
+        if (page != null && size != null) {
+            return ResponseEntity.ok(incomeService.getIncomesForCurrentUser(month, year, all, page, size));
+        }
         List<IncomeDTO> incomes = incomeService.getIncomesForCurrentUser(month, year, all);
         return ResponseEntity.ok(incomes);
     }

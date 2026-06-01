@@ -23,11 +23,12 @@ public class SpamProtectionService {
         try {
             return doCheckSpam(email);
         } catch (Exception e) {
-            // Graceful fallback: nếu Redis không kết nối được, cho phép request đi qua
-            // thay vì crash toàn bộ chức năng Excel/Email
-            log.warn("Redis unavailable for spam check (email={}). Allowing request through. Error: {}",
+            // Fail-closed: khi Redis không kết nối được, chặn request để bảo vệ hệ thống
+            // thay vì mở rộng cho spam qua. Alert ops qua error log.
+            log.error("CRITICAL: Redis unavailable for spam check (email={}). Blocking request for safety. Error: {}",
                     email, e.getMessage());
-            return new SpamCheckResult(true, null, "OK");
+            return new SpamCheckResult(false, LocalDateTime.now().plusMinutes(5), 
+                    "Hệ thống đang bảo trì. Vui lòng thử lại sau ít phút.");
         }
     }
 

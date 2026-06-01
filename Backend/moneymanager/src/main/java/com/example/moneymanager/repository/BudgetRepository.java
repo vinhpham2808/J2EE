@@ -16,8 +16,13 @@ public interface BudgetRepository extends JpaRepository<BudgetEntity, Long> {
             Long profileId, Long categoryId, Integer month, Integer year
     );
 
-    // Lấy tất cả hạn mức của profile trong tháng/năm
-    List<BudgetEntity> findByProfileIdAndMonthAndYear(Long profileId, Integer month, Integer year);
+    // Lấy tất cả hạn mức của profile trong tháng/năm kèm category (tránh N+1 và LazyInitializationException)
+    @Query("SELECT b FROM BudgetEntity b JOIN FETCH b.category WHERE b.profile.id = :profileId AND b.month = :month AND b.year = :year")
+    List<BudgetEntity> findByProfileIdAndMonthAndYear(
+            @Param("profileId") Long profileId,
+            @Param("month") Integer month,
+            @Param("year") Integer year
+    );
 
     // Lấy tất cả hạn mức của profile
     List<BudgetEntity> findByProfileIdOrderByYearDescMonthDesc(Long profileId);
@@ -40,7 +45,7 @@ public interface BudgetRepository extends JpaRepository<BudgetEntity, Long> {
 
     // Batch: lấy tổng chi tiêu cho tất cả danh mục của profile trong tháng/năm (tránh N+1)
     @Query("""
-            SELECT e.category.id, COALESCE(SUM(e.amount), 0)
+            SELECT e.category.id, SUM(e.amount)
             FROM ExpenseEntity e
             WHERE e.profile.id = :profileId
               AND MONTH(e.date) = :month

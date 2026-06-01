@@ -2,7 +2,7 @@ import {useEffect, useState} from "react";
 import EmojiPickerPopup from "./EmojiPickerPopup.jsx";
 import Input from "./Input.jsx";
 import {LoaderCircle, ChevronDown, ChevronUp} from "lucide-react";
-import { formatCurrency, parseCurrency } from "../util/helper.js";
+import { formatCurrency } from "../util/helper.js";
 import axiosConfig from "../util/axiosConfig.jsx";
 import { API_ENDPOINTS } from "../util/apiEndpoints.js";
 import { hasDisplayImage } from "../util/imageDisplay.js";
@@ -10,14 +10,20 @@ import { hasDisplayImage } from "../util/imageDisplay.js";
 const fmt = (n) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(n ?? 0);
 
-const AddIncomeForm = ({onAddIncome, categories}) => {
+const AddIncomeForm = ({onAddIncome, categories, initialDate = ""}) => {
     const [income, setIncome] = useState({
         name: '',
         amount: '',
-        date: '',
+        date: initialDate || '',
         icon: '',
         categoryId: ''
-    })
+    });
+
+    useEffect(() => {
+        if (initialDate) {
+            setIncome((prev) => ({ ...prev, date: initialDate }));
+        }
+    }, [initialDate]);
     const [loading, setLoading] = useState(false);
     const [jars, setJars] = useState([]);
     const [allocations, setAllocations] = useState([]);

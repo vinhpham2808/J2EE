@@ -9,6 +9,7 @@ import {
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from "react-native";
 import { BarChart, LineChart } from "react-native-chart-kit";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -24,9 +25,6 @@ import {
   fetchCategoryTrend,
   fetchInsights,
 } from "../services/forecastService";
-
-const SCREEN_WIDTH = Dimensions.get("window").width;
-const CHART_WIDTH = Math.max(SCREEN_WIDTH - 48, 300);
 
 // ─── Constants ───────────────────────────────────────────────
 const TREND_CONFIG = {
@@ -197,6 +195,8 @@ export default function ForecastScreen() {
   const insets = useSafeAreaInsets();
   const { user } = useContext(AuthContext);
   const isPremium = String(user?.subscriptionPlan || "").toUpperCase() === "PREMIUM";
+  const { width: screenWidth } = useWindowDimensions();
+  const chartWidth = Math.max(screenWidth - 48, 300);
 
   const now = new Date();
   const currentMonth = now.getMonth() + 1; // 1-12
@@ -547,7 +547,7 @@ export default function ForecastScreen() {
               <View style={styles.chartCard}>
                 <BarChart
                   data={barChartData}
-                  width={CHART_WIDTH}
+                  width={chartWidth}
                   height={220}
                   chartConfig={barChartConfig}
                   style={styles.chart}
@@ -619,7 +619,7 @@ export default function ForecastScreen() {
                 <View style={styles.chartCard}>
                   <LineChart
                     data={lineChartData}
-                    width={CHART_WIDTH}
+                    width={chartWidth}
                     height={220}
                     chartConfig={lineChartConfig}
                     style={styles.chart}

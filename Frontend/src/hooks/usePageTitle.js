@@ -13,5 +13,5 @@ export const usePageTitle = (pageTitle, suffix = "Money Manager") => {
     return () => {
       document.title = "Money Manager";
     };
-  }, [pageTitle]);
+  }, [pageTitle, suffix]);
 };

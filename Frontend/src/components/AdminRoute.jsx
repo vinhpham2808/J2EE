@@ -1,18 +1,13 @@
 import { useContext } from "react";
-import { Navigate, Outlet, Link } from "react-router-dom";
+import { Outlet, Link } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
 import { useUser } from "../hooks/useUser.jsx";
 import { ShieldAlert } from "lucide-react";
 
 const AdminRoute = () => {
   const { user } = useContext(AppContext);
-  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
 
   useUser();
-
-  if (!token) {
-    return <Navigate to="/login" replace />;
-  }
 
   if (!user) {
     return (

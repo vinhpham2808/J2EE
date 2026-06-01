@@ -1,8 +1,9 @@
 import Dashboard from "../components/Dashboard.jsx";
 import { useUser } from "../hooks/useUser.jsx";
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import axiosConfig from "../util/axiosConfig.jsx";
 import { API_ENDPOINTS } from "../util/apiEndpoints.js";
+import { safeOpenExternal } from "../util/safeNavigation.js";
 import toast from "react-hot-toast";
 import CustomSelect from "../components/CustomSelect.jsx";
 import IncomeList from "../components/IncomeList.jsx";
@@ -11,8 +12,11 @@ import AddIncomeForm from "../components/AddIncomeForm.jsx";
 import EditIncomeForm from "../components/EditIncomeForm.jsx";
 import DeleteAlert from "../components/DeleteAlert.jsx";
 import IncomeOverview from "../components/IncomeOverview.jsx";
+import TransactionCalendar from "../components/TransactionCalendar.jsx";
 import { AppContext } from "../context/AppContext.jsx";
 import { usePageTitle } from "../hooks/usePageTitle.js";
+import DateInput from "../components/DateInput.jsx";
+import { getMonthFilterValue, getTodayIsoDate, isIsoDateAfter } from "../util/dateInput.js";
 
 const Income = () => {
   useUser();
@@ -20,25 +24,27 @@ const Income = () => {
   const { user } = useContext(AppContext);
   const [incomeData, setIncomeData] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [filterType, setFilterType] = useState("current");
-  const [selectedMonth, setSelectedMonth] = useState("");
+  const [filterType] = useState("current");
+  const [selectedMonthDate] = useState("");
   const [openAddIncomeModal, setOpenAddIncomeModal] = useState(false);
   const [openEditIncomeModal, setOpenEditIncomeModal] = useState(false);
   const [selectedIncome, setSelectedIncome] = useState(null);
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState(() => getTodayIsoDate());
+  const handleSelectCalendarDate = (date) => {
+    setSelectedCalendarDate(date);
+    setOpenAddIncomeModal(true);
+  };
   const [openDeleteAlert, setOpenDeleteAlert] = useState({ show: false, data: null });
 
   const exportUpgradeMessage = "Tính năng xuất báo cáo chỉ có từ gói Cơ Bản. Vui lòng nâng cấp để tiếp tục.";
   const exportLocked = user?.canExportReports === false;
 
-  const fetchIncomeDetails = async () => {
-    if (loading) return;
-    setLoading(true);
+  const fetchIncomeDetails = useCallback(async () => {
     try {
       let url = API_ENDPOINTS.GET_ALL_INCOMES;
       if (filterType === "all") url += "?all=true";
-      else if (filterType === "specific" && selectedMonth) {
-        const [year, month] = selectedMonth.split("-");
+      else if (filterType === "specific" && selectedMonthDate) {
+        const [year, month] = getMonthFilterValue(selectedMonthDate).split("-");
         url += `?month=${month}&year=${year}`;
       }
       const response = await axiosConfig.get(url);
@@ -46,10 +52,8 @@ const Income = () => {
     } catch (error) {
       console.error("Failed to fetch income details:", error);
       toast.error(error.response?.data?.message || "Lấy chi tiết thu nhập thất bại");
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [filterType, selectedMonthDate]);
 
   const fetchIncomeCategories = async () => {
     try {
@@ -65,8 +69,8 @@ const Income = () => {
     if (!name.trim()) { toast.error("Vui lòng nhập tên"); return; }
     if (!amount || isNaN(amount) || Number(amount) <= 0) { toast.error("Số tiền phải lớn hơn 0"); return; }
     if (!date) { toast.error("Vui lòng chọn ngày"); return; }
-    const today = new Date().toISOString().split("T")[0];
-    if (date > today) { toast.error("Ngày không được chọn ở tương lai."); return; }
+    const today = getTodayIsoDate();
+    if (isIsoDateAfter(date, today)) { toast.error("Ngày không được chọn ở tương lai."); return; }
     if (!categoryId) { toast.error("Vui lòng chọn danh mục"); return; }
     try {
       const payload = { name, amount: Number(amount), date, icon, categoryId };
@@ -90,8 +94,8 @@ const Income = () => {
     if (!name.trim()) { toast.error("Vui lòng nhập tên"); return; }
     if (!amount || isNaN(amount) || Number(amount) <= 0) { toast.error("Số tiền phải lớn hơn 0"); return; }
     if (!date) { toast.error("Vui lòng chọn ngày"); return; }
-    const today = new Date().toISOString().split("T")[0];
-    if (date > today) { toast.error("Ngày không được chọn ở tương lai."); return; }
+    const today = getTodayIsoDate();
+    if (isIsoDateAfter(date, today)) { toast.error("Ngày không được chọn ở tương lai."); return; }
     if (!categoryId) { toast.error("Vui lòng chọn danh mục"); return; }
     try {
       const payload = { name, amount: Number(amount), date, icon, categoryId };
@@ -128,15 +132,14 @@ const Income = () => {
       const now = new Date();
       let payload = { month: now.getMonth() + 1, year: now.getFullYear() };
       
-      if (filterType === "specific" && selectedMonth) {
-        const [year, month] = selectedMonth.split("-");
+      if (filterType === "specific" && selectedMonthDate) {
+        const [year, month] = getMonthFilterValue(selectedMonthDate).split("-");
         payload = { month: Number(month), year: Number(year) };
       }
 
       const response = await axiosConfig.post(API_ENDPOINTS.GENERATE_INCOME_REPORT, payload);
       
-      if (response.data && response.data.presignedUrl) {
-        window.open(response.data.presignedUrl, "_blank");
+      if (response.data && response.data.presignedUrl && safeOpenExternal(response.data.presignedUrl)) {
         toast.success("Đã mở link tải báo cáo Excel!");
       } else {
         throw new Error("Không lấy được link tải báo cáo");
@@ -149,7 +152,7 @@ const Income = () => {
           try {
             const data = JSON.parse(reader.result);
             toast.error(data.message || "Bạn thao tác quá nhanh.");
-          } catch (e) {
+          } catch {
             toast.error("Bạn đã bị giới hạn tính năng này.");
           }
         };
@@ -172,40 +175,25 @@ const Income = () => {
 
   useEffect(() => { fetchIncomeCategories(); }, []);
   useEffect(() => {
-    if (filterType === "specific" && !selectedMonth) return;
+    if (filterType === "specific" && !selectedMonthDate) return;
     fetchIncomeDetails();
-  }, [filterType, selectedMonth]);
+  }, [fetchIncomeDetails, filterType, selectedMonthDate]);
 
   return (
     <Dashboard activeMenu="Income">
-      <div className="space-y-6">
-        {/* Filter bar */}
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 p-4 rounded-2xl
-          bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10">
-          <h3 className="text-base font-bold text-slate-900 dark:text-white">Khung thời gian</h3>
-          <div className="flex gap-3 items-center">
-            <CustomSelect
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
-              options={[
-                { value: "current", label: "Tháng này" },
-                { value: "all", label: "Tất cả thời gian" },
-                { value: "specific", label: "Chọn tháng" },
-              ]}
-              className="form-input mt-0 py-2 px-3"
-            />
-            {filterType === "specific" && (
-              <input
-                type="month"
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="form-input mt-0 py-2 px-3"
-              />
-            )}
-          </div>
-        </div>
+      <div className="space-y-4 sm:space-y-6">
 
-        <IncomeOverview transactions={incomeData} onAddIncome={() => setOpenAddIncomeModal(true)} />
+        <IncomeOverview onAddIncome={() => setOpenAddIncomeModal(true)} />
+
+        <TransactionCalendar
+          key={`income-calendar-${filterType}-${selectedMonthDate || "current"}`}
+          transactions={incomeData}
+          type="income"
+          initialMonth={filterType === "specific" && selectedMonthDate ? selectedMonthDate : undefined}
+          onEdit={(income) => { setSelectedIncome(income); setOpenEditIncomeModal(true); }}
+          onDelete={(id) => setOpenDeleteAlert({ show: true, data: id })}
+          onSelectDate={handleSelectCalendarDate}
+        />
 
         <IncomeList
           transactions={incomeData}
@@ -218,7 +206,7 @@ const Income = () => {
         />
 
         <Modal isOpen={openAddIncomeModal} onClose={() => setOpenAddIncomeModal(false)} title="Thêm thu nhập">
-          <AddIncomeForm onAddIncome={(income) => handleAddIncome(income)} categories={categories} />
+          <AddIncomeForm onAddIncome={(income) => handleAddIncome(income)} categories={categories} initialDate={selectedCalendarDate} />
         </Modal>
 
         <Modal isOpen={openEditIncomeModal} onClose={() => { setOpenEditIncomeModal(false); setSelectedIncome(null); }} title="Chỉnh sửa thu nhập">
@@ -232,7 +220,11 @@ const Income = () => {
         </Modal>
 
         <Modal isOpen={openDeleteAlert.show} onClose={() => setOpenDeleteAlert({ show: false, data: null })} title="Xóa thu nhập">
-          <DeleteAlert content="Bạn có chắc chắn muốn xóa chi tiết thu nhập này?" onDelete={() => deleteIncome(openDeleteAlert.data)} />
+          <DeleteAlert 
+            content="Bạn có chắc chắn muốn xóa chi tiết thu nhập này?" 
+            onDelete={() => deleteIncome(openDeleteAlert.data)} 
+            onCancel={() => setOpenDeleteAlert({ show: false, data: null })}
+          />
         </Modal>
       </div>
     </Dashboard>

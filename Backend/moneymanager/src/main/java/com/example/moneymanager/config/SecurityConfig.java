@@ -38,6 +38,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
+                .logout(logout -> logout.disable())
                 .headers(h -> h
                         .frameOptions(fo -> fo.deny())
                         .contentTypeOptions(Customizer.withDefaults())
@@ -52,11 +53,11 @@ public class SecurityConfig {
                                 "/status",
                                 "/health",
                                 "/register",
-                                "/complete-profile",
                                 "/activate",
                                 "/verify-activation",
                                 "/otp/resend",
                                 "/login",
+                                "/logout",
                                 "/forgot-password",
                                 "/verify-reset-otp",
                                 "/reset-password",
@@ -83,7 +84,8 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         List<String> allowedOrigins = new ArrayList<>(List.of(
                 "http://localhost:5173",
-                "http://localhost:3000"
+                "http://localhost:3000",
+                "http://localhost:8081"
         ));
         // Add production frontend URL if it's different from localhost
         if (frontendUrl != null && !frontendUrl.isBlank()
@@ -92,7 +94,7 @@ public class SecurityConfig {
         }
         configuration.setAllowedOriginPatterns(allowedOrigins);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "x-client-platform"));
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

@@ -59,7 +59,7 @@ public class PaymentService {
         CreatePaymentLinkRequest paymentRequest = CreatePaymentLinkRequest.builder()
                 .orderCode(orderCode)
                 .amount(plan.amount())
-                .description(plan.paymentDescription())
+                .description(sanitizeDescription(plan.paymentDescription()))
                 .returnUrl(returnUrl)
                 .cancelUrl(cancelUrl)
                 .build();
@@ -91,6 +91,18 @@ public class PaymentService {
     public CreatePaymentResponseDTO getPaymentByOrderCode(Long orderCode) {
         PaymentEntity paymentEntity = findOwnedPayment(orderCode);
         return toDTO(paymentEntity);
+    }
+
+    public java.util.List<CreatePaymentResponseDTO> getPaymentsForCurrentUser() {
+        ProfileEntity currentProfile = profileService.getCurrentProfile();
+        java.util.List<PaymentEntity> payments = paymentRepository.findByProfileIdOrderByCreatedAtDesc(currentProfile.getId());
+        return payments.stream().map(this::toDTO).toList();
+    }
+
+    @Transactional
+    public void deletePayment(Long orderCode) {
+        PaymentEntity payment = findOwnedPayment(orderCode);
+        paymentRepository.delete(payment);
     }
 
     @Transactional
@@ -170,11 +182,21 @@ public class PaymentService {
         }
     }
 
+    private static final int ORDERCODE_MAX_ATTEMPTS = 5;
+    private static final java.security.SecureRandom ORDERCODE_SECURE_RANDOM = new java.security.SecureRandom();
+
     private long generateOrderCode() {
-        // Use current second * 1000 + random(0-999) — unique within JVM per second slot
-        long base = (System.currentTimeMillis() / 1000L) * 1000L;
-        long suffix = java.util.concurrent.ThreadLocalRandom.current().nextLong(1000L);
-        return base + suffix;
+        for (int attempt = 1; attempt <= ORDERCODE_MAX_ATTEMPTS; attempt++) {
+            // PayOS requires orderCode <= 9007199254740991 (Number.MAX_SAFE_INTEGER in JS)
+            // A secure random number in range [1, 9007199254740991] provides maximum entropy
+            // and completely eliminates collision risk for sequential/concurrent generations.
+            long candidate = (ORDERCODE_SECURE_RANDOM.nextLong() & Long.MAX_VALUE) % 9007199254740991L + 1;
+            if (!paymentRepository.existsByOrderCode(candidate)) {
+                return candidate;
+            }
+            log.warn("orderCode collision on attempt {}/{}", attempt, ORDERCODE_MAX_ATTEMPTS);
+        }
+        throw new PaymentException("Không thể sinh mã giao dịch duy nhất sau nhiều lần thử. Vui lòng thử lại sau.");
     }
 
     private PaymentEntity findOwnedPayment(Long orderCode) {
@@ -186,6 +208,14 @@ public class PaymentService {
             throw new RuntimeException("Bạn không có quyền truy cập giao dịch thanh toán này.");
         }
 
+        return paymentEntity;
+    }
+
+    public PaymentEntity findOwnedPaidPayment(Long orderCode) {
+        PaymentEntity paymentEntity = findOwnedPayment(orderCode);
+        if (!STATUS_PAID.equalsIgnoreCase(paymentEntity.getStatus())) {
+            throw new RuntimeException("Giao dịch thanh toán chưa được hoàn tất.");
+        }
         return paymentEntity;
     }
 
@@ -251,6 +281,22 @@ public class PaymentService {
             case STATUS_PROCESSING -> STATUS_PROCESSING;
             default -> STATUS_PENDING;
         };
+    }
+
+    private String sanitizeDescription(String input) {
+        if (input == null) return "Thanh toan";
+        String decomposed = java.text.Normalizer.normalize(input, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}+", "");
+        String result = decomposed
+                .replace("đ", "d")
+                .replace("Đ", "D")
+                .replaceAll("[^a-zA-Z0-9 ]", " ")
+                .replaceAll("\\s+", " ")
+                .trim();
+        if (result.length() > 25) {
+            result = result.substring(0, 25).trim();
+        }
+        return result.isEmpty() ? "Thanh toan" : result;
     }
 
     private CreatePaymentResponseDTO toDTO(PaymentEntity entity) {

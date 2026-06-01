@@ -11,6 +11,7 @@ import {
 } from "../utils/accountActivation";
 import appLogo from "../assets/applogo.png";
 import { COLORS } from "../constants/colors";
+import { scale, clampScale } from "../utils/dimensions";
 
 export default function ForgotPasswordScreen() {
   const navigation = useNavigation();
@@ -115,72 +116,72 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: -120,
     left: -100,
-    width: 300,
-    height: 300,
-    borderRadius: 150,
+    width: scale(300),
+    height: scale(300),
+    borderRadius: scale(150),
     backgroundColor: COLORS.PRIMARY_GLOW
   },
   bgGlowBottom: {
     position: "absolute",
     right: -140,
     bottom: -120,
-    width: 320,
-    height: 320,
-    borderRadius: 160,
+    width: scale(320),
+    height: scale(320),
+    borderRadius: scale(160),
     backgroundColor: COLORS.PRIMARY_GLOW
   },
   content: {
     flexGrow: 1,
     justifyContent: "center",
-    paddingHorizontal: 16,
-    paddingTop: 70,
-    paddingBottom: 30
+    paddingHorizontal: scale(16),
+    paddingTop: scale(70),
+    paddingBottom: scale(30)
   },
   brandRow: {
     alignSelf: "center",
-    marginBottom: 20
+    marginBottom: scale(20)
   },
   brandLogo: {
-    width: 220,
-    height: 72
+    width: 90,
+    height: 90
   },
   title: {
     color: COLORS.DARK_TEXT,
-    fontSize: 24,
+    fontSize: clampScale(24, 20, 28),
     fontWeight: "700",
     textAlign: "center"
   },
   subtitle: {
-    marginTop: 8,
+    marginTop: scale(8),
     color: COLORS.DARK_TEXT_SECONDARY,
-    fontSize: 13,
+    fontSize: clampScale(13, 11, 15),
     textAlign: "center"
   },
   formCard: {
-    marginTop: 24,
-    borderRadius: 16,
+    marginTop: scale(24),
+    borderRadius: scale(16),
     borderWidth: 1,
     borderColor: COLORS.DARK_BORDER_LIGHT,
     backgroundColor: COLORS.DARK_CARD,
-    padding: 14
+    padding: scale(14)
   },
   inputWrap: {
-    borderRadius: 10,
+    borderRadius: scale(10),
     borderWidth: 1,
     borderColor: COLORS.DARK_BORDER,
     backgroundColor: COLORS.DARK_INPUT_BG,
-    marginBottom: 10
+    marginBottom: scale(10)
   },
   input: {
-    paddingVertical: 12,
-    paddingHorizontal: 12,
+    paddingVertical: scale(12),
+    paddingHorizontal: scale(12),
     color: COLORS.DARK_TEXT
   },
   actionButton: {
-    marginTop: 4,
-    borderRadius: 10,
+    marginTop: scale(4),
+    borderRadius: scale(10),
     backgroundColor: COLORS.PRIMARY,
-    paddingVertical: 12,
+    paddingVertical: scale(12),
     alignItems: "center"
   },
   actionButtonDisabled: {
@@ -188,16 +189,16 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     color: COLORS.DARK_TEXT,
-    fontSize: 15,
+    fontSize: clampScale(15, 13, 17),
     fontWeight: "800"
   },
   backButton: {
-    marginTop: 12,
+    marginTop: scale(12),
     alignItems: "center"
   },
   backButtonText: {
     color: COLORS.PRIMARY_LIGHT,
-    fontSize: 12,
+    fontSize: clampScale(12, 10, 14),
     fontWeight: "700"
   }
 });

@@ -56,10 +56,24 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, String>> handleRuntime(RuntimeException ex) {
+        String msg = ex.getMessage();
+        boolean isSystemError = msg != null && (
+                msg.startsWith("Failed to") || 
+                msg.toLowerCase().contains("failed to") ||
+                msg.toLowerCase().contains("error") ||
+                msg.toLowerCase().contains("exception")
+        ) || ex.getClass() != RuntimeException.class;
+
+        if (isSystemError) {
+            log.error("System runtime error: {}", msg, ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Lỗi hệ thống. Vui lòng thử lại sau."));
+        }
+
         // RuntimeExceptions are intentionally thrown with user-facing messages
-        log.warn("Business error: {}", ex.getMessage());
+        log.warn("Business error: {}", msg);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(Map.of("message", ex.getMessage() != null ? ex.getMessage() : "L\u1ED7i h\u1EC7 th\u1ED1ng."));
+                .body(Map.of("message", msg != null ? msg : "Lỗi hệ thống."));
     }
 
     @ExceptionHandler(Exception.class)

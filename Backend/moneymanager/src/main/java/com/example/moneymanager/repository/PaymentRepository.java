@@ -12,6 +12,8 @@ public interface PaymentRepository extends JpaRepository<PaymentEntity, Long> {
 
     Optional<PaymentEntity> findByOrderCode(Long orderCode);
 
+    boolean existsByOrderCode(Long orderCode);
+
     Optional<PaymentEntity> findByPaymentLinkId(String paymentLinkId);
 
     List<PaymentEntity> findByStatusIn(List<String> statuses);
@@ -23,6 +25,8 @@ public interface PaymentRepository extends JpaRepository<PaymentEntity, Long> {
     List<PaymentEntity> findByStatusWithProfileOrderByCreatedAtDesc(@Param("status") String status);
 
     long countByStatusIgnoreCase(String status);
+
+    List<PaymentEntity> findByProfileIdOrderByCreatedAtDesc(Long profileId);
 
     void deleteByProfileId(Long profileId);
 }

@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect, useContext } from "react";
-import { ShieldCheck, User, LogOut, X, Menu, Bell } from "lucide-react";
+import { ShieldCheck, User, LogOut, X, Menu, Bell, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContext.jsx";
 import Sidebar from "./Sidebar.jsx";
 import ThemeToggle from "./ThemeToggle.jsx";
 import NotificationDropdown from "./NotificationDropdown.jsx";
+import axiosConfig from "../util/axiosConfig";
+import { API_ENDPOINTS } from "../util/apiEndpoints";
 
 const Menubar = ({ activeMenu }) => {
   const [openSideMenu, setOpenSideMenu] = useState(false);
@@ -32,12 +34,16 @@ const Menubar = ({ activeMenu }) => {
     navigate("/profile");
   };
 
-  const handleLogout = () => {
-    localStorage.clear();
-    sessionStorage.clear();
-    clearUser();
+  const handleLogout = async () => {
     setShowDropdown(false);
-    navigate("/login");
+    try {
+      await axiosConfig.post(API_ENDPOINTS.LOGOUT);
+    } catch (err) {
+      console.error("Logout error:", err);
+    } finally {
+      clearUser();
+      navigate("/login");
+    }
   };
 
   return (
@@ -54,15 +60,19 @@ const Menubar = ({ activeMenu }) => {
           {openSideMenu ? <X size={20} /> : <Menu size={20} />}
         </button>
 
-        <div className="relative hidden sm:block w-full max-w-xs">
+        <div className="relative hidden sm:block w-full max-w-xs group">
           <input
-            className="w-full rounded-xl px-4 py-2 text-sm outline-none
-              bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10
+            className="w-full rounded-xl pl-9 pr-4 py-2 text-sm outline-none transition-all duration-300
+              bg-slate-100/50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/8
+              border border-slate-200 dark:border-white/10
               text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500
-              focus:border-violet-500 dark:focus:border-amber-500 transition-colors"
+              focus:bg-white dark:focus:bg-slate-900/60 focus:border-violet-500 dark:focus:border-amber-500
+              focus:ring-1 focus:ring-violet-500/20 dark:focus:ring-amber-500/20
+              focus:shadow-[0_0_15px_rgba(139,92,246,0.1)] dark:focus:shadow-[0_0_15px_rgba(245,158,11,0.1)]"
             placeholder="Tìm kiếm..."
             type="text"
           />
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-violet-500 dark:group-focus-within:text-amber-500 transition-colors pointer-events-none" />
         </div>
       </div>
 
@@ -105,8 +115,8 @@ const Menubar = ({ activeMenu }) => {
                         {user?.fullName || "Người dùng"}
                       </p>
                       {user?.role === "admin" && (
-                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[9px] font-bold uppercase tracking-wide border border-amber-500/20 shrink-0">
-                          <ShieldCheck size={9} />
+                        <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[11px] font-extrabold uppercase tracking-wide border border-amber-500/20 shrink-0">
+                          <ShieldCheck size={11} />
                           Admin
                         </span>
                       )}

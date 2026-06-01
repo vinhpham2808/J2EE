@@ -4,6 +4,7 @@ import CustomSelect from "./CustomSelect.jsx";
 import toast from "react-hot-toast";
 import axiosConfig from "../util/axiosConfig.jsx";
 import { API_ENDPOINTS } from "../util/apiEndpoints.js";
+import { getTodayIsoDate } from "../util/dateInput.js";
 
 const STORAGE_KEY = "quick_expense_templates";
 
@@ -312,18 +313,9 @@ const QuickExpenseTemplates = ({ categories = [], onAddExpense }) => {
       .catch(() => {});
   }, []);
 
-  const handleUse = useCallback((template) => {
-    if (loadingId) return;
-    if (jars.length > 0) {
-      setPendingTemplate(template);
-    } else {
-      submitExpense(template, null);
-    }
-  }, [loadingId, jars]);
-
   const submitExpense = useCallback(async (template, selectedJarId) => {
     setLoadingId(template.id);
-    const today = new Date().toISOString().split("T")[0];
+    const today = getTodayIsoDate();
     const categoryId = template.categoryId || (categories[0]?.id ?? null);
     try {
       await onAddExpense({
@@ -338,6 +330,15 @@ const QuickExpenseTemplates = ({ categories = [], onAddExpense }) => {
       setLoadingId(null);
     }
   }, [categories, onAddExpense]);
+
+  const handleUse = useCallback((template) => {
+    if (loadingId) return;
+    if (jars.length > 0) {
+      setPendingTemplate(template);
+    } else {
+      submitExpense(template, null);
+    }
+  }, [jars, loadingId, submitExpense]);
 
   const handleJarPickerConfirm = useCallback((jarId) => {
     const template = pendingTemplate;

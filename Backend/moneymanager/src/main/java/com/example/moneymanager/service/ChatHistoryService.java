@@ -1,5 +1,6 @@
 package com.example.moneymanager.service;
 
+import com.example.moneymanager.dto.AIChatMessageDTO;
 import com.example.moneymanager.dto.ChatSessionDTO;
 import com.example.moneymanager.exception.ForbiddenException;
 import com.example.moneymanager.model.ChatMessage;
@@ -74,6 +75,48 @@ public class ChatHistoryService {
         });
 
         return saved;
+    }
+
+    public void replaceSessionMessages(String sessionId, Long currentUserId, List<AIChatMessageDTO> messages) {
+        ChatSession session = sessionRepository.findById(sessionId)
+                .orElseThrow(() -> new RuntimeException("Session not found: " + sessionId));
+        if (!session.getUserId().equals(currentUserId)) {
+            throw new ForbiddenException("Access denied to session: " + sessionId);
+        }
+
+        List<AIChatMessageDTO> sanitizedMessages = messages == null ? List.of() : messages.stream()
+                .filter(message -> message != null
+                        && ("user".equals(message.getRole()) || "assistant".equals(message.getRole()))
+                        && message.getContent() != null
+                        && !message.getContent().isBlank())
+                .toList();
+
+        if (sanitizedMessages.isEmpty()) {
+            throw new IllegalArgumentException("Danh sach tin nhan khong hop le.");
+        }
+
+        messageRepository.deleteBySessionId(sessionId);
+        messageRepository.saveAll(sanitizedMessages.stream()
+                .map(message -> ChatMessage.builder()
+                        .sessionId(sessionId)
+                        .role(message.getRole())
+                        .content(message.getContent())
+                        .build())
+                .toList());
+
+        session.setTitle(buildSessionTitle(sanitizedMessages, session.getTitle()));
+        session.setUpdatedAt(Instant.now());
+        sessionRepository.save(session);
+    }
+
+    private String buildSessionTitle(List<AIChatMessageDTO> messages, String fallbackTitle) {
+        return messages.stream()
+                .filter(message -> "user".equals(message.getRole()))
+                .map(AIChatMessageDTO::getContent)
+                .filter(content -> content != null && !content.isBlank())
+                .findFirst()
+                .map(content -> content.length() > 50 ? content.substring(0, 50) + "..." : content)
+                .orElse(fallbackTitle);
     }
 
     public void renameSession(String sessionId, String newTitle, Long currentUserId) {

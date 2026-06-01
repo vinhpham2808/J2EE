@@ -4,7 +4,7 @@ import InfoCard from "../components/InfoCard.jsx";
 import {
   Coins, PiggyBank, Target, Wallet, WalletCards, Sparkles,
   ChevronDown, ChevronUp, TrendingUp, AlertTriangle, PieChart,
-  Settings2, Lightbulb,
+  Settings2, Lightbulb, X, Crown, CheckCircle2,
 } from "lucide-react";
 import { addThousandsSeparator } from "../util/util.js";
 import { useNavigate } from "react-router-dom";
@@ -35,25 +35,52 @@ import { useWidgetConfig } from "../hooks/useWidgetConfig.js";
 import WidgetWrapper from "../components/dashboard/WidgetWrapper.jsx";
 import WidgetSettingsPanel from "../components/dashboard/WidgetSettingsPanel.jsx";
 import { usePageTitle } from "../hooks/usePageTitle.js";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { useTheme } from "../context/ThemeContext.jsx";
 
 const Home = () => {
   useUser();
+  const { theme } = useTheme();
   usePageTitle("Tổng quan");
   const navigate = useNavigate();
 
   const [dashboardData, setDashboardData] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [aiInsight, setAiInsight] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [showDetailedInsight, setShowDetailedInsight] = useState(false);
   const [detailedInsight, setDetailedInsight] = useState(null);
   const [detailedLoading, setDetailedLoading] = useState(false);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
 
   const { user } = useContext(AppContext);
 
   // Widget customization
   const { widgetConfig, sortedWidgetIds, toggleWidget, reorderWidgets, resetConfig } = useWidgetConfig(user?.id);
   const [settingsOpen, setSettingsOpen] = useState(false);
+
+  const chartData = useMemo(() => {
+    if (!dashboardData?.monthlyHistory) return [];
+    return dashboardData.monthlyHistory.map((item) => ({
+      name: item.month,
+      income: Number(item.income || 0),
+      expense: Number(item.expense || 0),
+    }));
+  }, [dashboardData?.monthlyHistory]);
+
+  const formatYAxis = useCallback((value) => {
+    if (value === 0) return "0";
+    const abs = Math.abs(value);
+    if (abs >= 1_000_000_000) {
+      return `${(value / 1_000_000_000).toFixed(1)}B`;
+    }
+    if (abs >= 1_000_000) {
+      return `${(value / 1_000_000).toFixed(1)}M`;
+    }
+    if (abs >= 1_000) {
+      return `${(value / 1_000).toFixed(1)}K`;
+    }
+    return value.toString();
+  }, []);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -74,27 +101,24 @@ const Home = () => {
   const AI_INSIGHT_ENDPOINT = "/dashboard/ai-insight";
   const AI_DETAILED_INSIGHT_ENDPOINT = "/dashboard/ai-insight/detailed";
 
-  const getToken = () => localStorage.getItem("token") || sessionStorage.getItem("token");
-
-  const fetchDashboardData = async () => {
-    if (loading) return;
-    setLoading(true);
+  const fetchDashboardData = useCallback(async () => {
     try {
       const response = await axiosConfig.get(API_ENDPOINTS.DASHBOARD_DATA);
       if (response.status === 200) setDashboardData(response.data);
     } catch (error) {
       console.error("Something went wrong while fetching dashboard data:", error);
-      toast.error("Không thể tải dữ liệu thống kê!");
-    } finally {
-      setLoading(false);
+      if (!error.response && error.request) {
+        // Network connection error is already handled by useUser
+        return;
+      }
+      toast.error("Không thể tải dữ liệu thống kê!", { id: "dashboard-data-error" });
     }
-  };
+  }, []);
 
-  const fetchAiInsight = async () => {
-    if (aiLoading) return;
+  const fetchAiInsight = useCallback(async () => {
     setAiLoading(true);
     try {
-      const response = await axiosConfig.get(AI_INSIGHT_ENDPOINT);
+      const response = await axiosConfig.get(AI_INSIGHT_ENDPOINT, { _skipGlobalLoading: true });
       if (response.status === 200) {
         if (response.data.error) {
           setAiInsight(response.data.insight || "Đang cập nhật dữ liệu...");
@@ -116,19 +140,19 @@ const Home = () => {
     } finally {
       setAiLoading(false);
     }
-  };
+  }, []);
 
   const fetchDetailedInsight = async () => {
     if (detailedLoading) return;
     setDetailedLoading(true);
     try {
-      const response = await axiosConfig.get(AI_DETAILED_INSIGHT_ENDPOINT);
+      const response = await axiosConfig.get(AI_DETAILED_INSIGHT_ENDPOINT, { _skipGlobalLoading: true });
       if (response.status === 200) {
         if (response.data.error) {
           toast.error(response.data.message || "Không thể tải phân tích chi tiết");
           setDetailedInsight(null);
         } else if (response.data.status === "insufficient_data") {
-          toast.custom((t) => (
+          toast.custom(() => (
             <div className="bg-amber-100 text-amber-800 p-4 rounded-xl shadow-lg max-w-md">
               <p className="font-semibold">⚠️ Chưa đủ dữ liệu</p>
               <p className="text-sm mt-1">{response.data.message || "Hãy thêm nhiều giao dịch hơn!"}</p>
@@ -158,7 +182,7 @@ const Home = () => {
   const toggleDetailedInsight = () => {
     if (!showDetailedInsight) {
       if (user?.canUseDetailedAi === false) {
-        toast.error("Tính năng phân tích chuyên sâu chỉ dành cho hội viên. Vui lòng nâng cấp tài khoản!");
+        setShowPremiumModal(true);
         return;
       }
       if (!detailedInsight && !detailedLoading) fetchDetailedInsight();
@@ -167,23 +191,18 @@ const Home = () => {
   };
 
   useEffect(() => {
-    const token = getToken();
-    if (!token) {
-      setAiInsight("Vui lòng đăng nhập để sử dụng tính năng AI!");
-    } else {
-      fetchDashboardData();
-      fetchAiInsight();
-    }
-  }, []);
+    fetchDashboardData();
+    fetchAiInsight();
+  }, [fetchAiInsight, fetchDashboardData]);
 
-  const formatCurrency = (amount) => {
+  const formatCurrency = useCallback((amount) => {
     if (!amount && amount !== 0) return "0 VND";
     const num = typeof amount === "object" ? 0 : Number(amount);
     if (isNaN(num)) return "0 VND";
     return addThousandsSeparator(Math.floor(num)) + " VND";
-  };
+  }, []);
 
-  const formatCompact = (amount) => {
+  const formatCompact = useCallback((amount) => {
     if (!amount && amount !== 0) return "0 VND";
     const num = typeof amount === "object" ? 0 : Number(amount);
     if (isNaN(num)) return "0 VND";
@@ -198,17 +217,9 @@ const Home = () => {
       return `${sign}${val} tr VND`;
     }
     return `${sign}${addThousandsSeparator(Math.floor(abs))} VND`;
-  };
+  }, []);
 
-  const getRiskColor = (riskLevel) => {
-    switch (riskLevel) {
-      case "CAO": return "text-red-400 bg-red-500/10 border border-red-500/30";
-      case "TRUNG_BÌNH": return "text-amber-400 bg-amber-500/10 border border-amber-500/30";
-      default: return "text-emerald-400 bg-emerald-500/10 border border-emerald-500/30";
-    }
-  };
-
-  const safeNumber = (value) => (!value && value !== 0 ? 0 : value);
+  const safeNumber = useCallback((value) => (!value && value !== 0 ? 0 : value), []);
 
   // ─── Widget Renderers ──────────────────────────────────────
   const WIDGET_RENDERERS = useMemo(
@@ -223,45 +234,147 @@ const Home = () => {
           <InfoCard onClick={() => navigate("/saving-goals")} icon={<PieChart size={22} />} label="Hoàn thành" value={safeNumber(dashboardData?.savingGoalCompletedCount)} color="bg-emerald-500/10 text-emerald-400" />
         </section>
       ),
-      monthly_history: () => (
-        <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 p-6 h-95 flex flex-col">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">Tổng quan thu chi</h3>
-            <div className="flex gap-4 text-[11px] font-semibold uppercase tracking-widest text-slate-400">
-              <span className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-emerald-400" />Thu nhập
-              </span>
-              <span className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-red-400" />Chi tiêu
-              </span>
-            </div>
-          </div>
-          <div className="flex-1 overflow-x-auto">
-            <div className="flex items-end justify-between px-4 pb-2 min-w-[340px] h-full">
-              {dashboardData?.monthlyHistory?.map((h, i) => {
-                const maxVal = Math.max(...dashboardData.monthlyHistory.map((m) => Math.max(Number(m.income), Number(m.expense))), 1);
-                const incomeH = (Number(h.income) / maxVal) * 100;
-                const expenseH = (Number(h.expense) / maxVal) * 100;
-                return (
-                  <div key={i} className="w-16 h-full flex items-end gap-1.5 justify-center relative group">
-                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-white/90 dark:text-slate-900 text-white text-[10px] px-2 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-20 whitespace-nowrap text-center shadow-lg">
-                      Thu: {formatCurrency(h.income)}<br />Chi: {formatCurrency(h.expense)}
-                    </div>
-                    <div className="w-5 bg-emerald-400/30 dark:bg-emerald-400/20 rounded-t-md hover:bg-emerald-400 transition" style={{ height: `${Math.max(incomeH, 2)}%` }} />
-                    <div className="w-5 bg-red-400/30 dark:bg-red-400/20 rounded-t-md hover:bg-red-400 transition" style={{ height: `${Math.max(expenseH, 2)}%` }} />
-                    <span className="absolute -bottom-6 text-[10px] text-slate-400 font-semibold">{h.month}</span>
-                  </div>
-                );
-              })}
-              {(!dashboardData?.monthlyHistory || dashboardData.monthlyHistory.length === 0) && (
-                <div className="w-full h-full flex items-center justify-center text-slate-400 text-sm">
-                  Đang tổng hợp dữ liệu lịch sử...
+      monthly_history: () => {
+        const isDark = theme === "dark";
+        const gridStroke = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)";
+        const tickColor = isDark ? "rgba(255, 255, 255, 0.4)" : "rgba(0, 0, 0, 0.4)";
+        const tooltipBg = isDark ? "#0B0F19" : "#ffffff";
+        const tooltipBorder = isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)";
+        const tooltipColor = isDark ? "#ffffff" : "#1e293b";
+        const tooltipCursor = isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)";
+
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+            {/* Card 1: Expenses */}
+            <div className="rounded-3xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0B0F19] p-4 sm:p-6 shadow-sm flex flex-col justify-between h-[260px] sm:h-[300px]">
+              <div className="flex items-center justify-between mb-2 sm:mb-4">
+                <div>
+                  <h3 className="text-[10px] sm:text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Biểu đồ</h3>
+                  <h4 className="text-sm sm:text-base font-extrabold text-slate-800 dark:text-white">Chi tiêu</h4>
                 </div>
-              )}
+                <div className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-[#FA5C5C] shadow-[0_0_8px_rgba(250,92,92,0.5)]" />
+              </div>
+              
+              <div className="flex-1 w-full min-h-0">
+                {(!dashboardData?.monthlyHistory || dashboardData.monthlyHistory.length === 0) ? (
+                  <div className="w-full h-full flex items-center justify-center text-slate-500 text-xs">
+                    Đang tổng hợp dữ liệu...
+                  </div>
+                ) : (
+                  <ResponsiveContainer key={theme} width="100%" height="100%">
+                    <BarChart data={chartData} margin={{ top: 15, right: 10, left: 10, bottom: 5 }}>
+                      <defs>
+                        <linearGradient id="expenseGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#FF7575" stopOpacity={1} />
+                          <stop offset="100%" stopColor="#E33C3C" stopOpacity={1} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={gridStroke} />
+                      <XAxis
+                        dataKey="name"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: tickColor, fontSize: 10, fontWeight: 600 }}
+                        dy={5}
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        tickFormatter={formatYAxis}
+                        tick={{ fill: tickColor, fontSize: 10, fontWeight: 600 }}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: tooltipBg,
+                          borderColor: tooltipBorder,
+                          borderRadius: "12px",
+                          color: tooltipColor,
+                          fontSize: "11px",
+                          boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+                        }}
+                        formatter={(value) => [formatCurrency(Number(value)), "Chi tiêu"]}
+                        labelFormatter={(label) => `Tháng: ${label}`}
+                        cursor={{ fill: tooltipCursor }}
+                      />
+                      <Bar
+                        dataKey="expense"
+                        fill="url(#expenseGrad)"
+                        radius={[6, 6, 0, 0]}
+                        barSize={18}
+                        className="cursor-pointer"
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </div>
+
+            {/* Card 2: Income */}
+            <div className="rounded-3xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0B0F19] p-4 sm:p-6 shadow-sm flex flex-col justify-between h-[260px] sm:h-[300px]">
+              <div className="flex items-center justify-between mb-2 sm:mb-4">
+                <div>
+                  <h3 className="text-[10px] sm:text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Biểu đồ</h3>
+                  <h4 className="text-sm sm:text-base font-extrabold text-slate-800 dark:text-white">Thu nhập</h4>
+                </div>
+                <div className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-[#10B981] shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+              </div>
+
+              <div className="flex-1 w-full min-h-0">
+                {(!dashboardData?.monthlyHistory || dashboardData.monthlyHistory.length === 0) ? (
+                  <div className="w-full h-full flex items-center justify-center text-slate-500 text-xs">
+                    Đang tổng hợp dữ liệu...
+                  </div>
+                ) : (
+                  <ResponsiveContainer key={theme} width="100%" height="100%">
+                    <BarChart data={chartData} margin={{ top: 15, right: 10, left: 10, bottom: 5 }}>
+                      <defs>
+                        <linearGradient id="incomeGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#4EFAAF" stopOpacity={1} />
+                          <stop offset="100%" stopColor="#10B981" stopOpacity={1} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={gridStroke} />
+                      <XAxis
+                        dataKey="name"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: tickColor, fontSize: 10, fontWeight: 600 }}
+                        dy={5}
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        tickFormatter={formatYAxis}
+                        tick={{ fill: tickColor, fontSize: 10, fontWeight: 600 }}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: tooltipBg,
+                          borderColor: tooltipBorder,
+                          borderRadius: "12px",
+                          color: tooltipColor,
+                          fontSize: "11px",
+                          boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+                        }}
+                        formatter={(value) => [formatCurrency(Number(value)), "Thu nhập"]}
+                        labelFormatter={(label) => `Tháng: ${label}`}
+                        cursor={{ fill: tooltipCursor }}
+                      />
+                      <Bar
+                        dataKey="income"
+                        fill="url(#incomeGrad)"
+                        radius={[6, 6, 0, 0]}
+                        barSize={18}
+                        className="cursor-pointer"
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      ),
+        );
+      },
       recent_transactions: () => (
         <RecentTransactions transactions={dashboardData?.recentTransactions || []} onMore={() => navigate("/expense")} />
       ),
@@ -364,7 +477,7 @@ const Home = () => {
           </div>
         ),
     }),
-    [dashboardData, navigate, formatCurrency, formatCompact, safeNumber]
+    [dashboardData, navigate, formatCurrency, formatCompact, safeNumber, chartData, formatYAxis, theme]
   );
 
   return (
@@ -467,77 +580,118 @@ const Home = () => {
             }`}>
               <div className="border-t border-slate-200 dark:border-white/10 pt-6">
                 {detailedLoading ? (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-center py-6">
-                      <div className="flex flex-col items-center gap-3">
-                        <div className="w-10 h-10 rounded-full border-[3px] border-violet-200 dark:border-violet-500/30 border-t-violet-600 dark:border-t-violet-400 animate-spin" />
-                        <p className="text-sm text-slate-500 dark:text-slate-400">Nova Money đang phân tích chuyên sâu dữ liệu của bạn, vui lòng chờ nhé...</p>
-                      </div>
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-3 bg-violet-500/[0.04] border border-violet-500/10 rounded-2xl p-4 animate-pulse">
+                      <div className="w-5 h-5 rounded-full border-2 border-violet-200 dark:border-violet-500/30 border-t-violet-600 dark:border-t-violet-400 animate-spin shrink-0" />
+                      <p className="text-[13px] font-semibold text-violet-600 dark:text-violet-400">
+                        Nova Money đang phân tích chuyên sâu dữ liệu của bạn, vui lòng chờ giây lát...
+                      </p>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] p-5 animate-pulse">
-                        <div className="h-4 bg-slate-200 dark:bg-white/10 rounded-full w-1/3 mb-4" />
-                        <div className="h-3 bg-slate-200 dark:bg-white/10 rounded-full w-1/4 mb-3" />
-                        <div className="h-3 bg-slate-200 dark:bg-white/10 rounded-full w-3/4 mb-2" />
-                        <div className="h-3 bg-slate-200 dark:bg-white/10 rounded-full w-2/3" />
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-pulse">
+                      {/* Left Card Skeleton */}
+                      <div className="rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white/40 dark:bg-white/[0.02] p-5 sm:p-6 flex flex-col justify-between min-h-[280px]">
+                        <div>
+                          <div className="flex items-center gap-2.5 mb-6">
+                            <div className="w-9 h-9 rounded-xl bg-slate-200 dark:bg-white/10 shrink-0" />
+                            <div className="space-y-1.5 w-1/3">
+                              <div className="h-3.5 bg-slate-200 dark:bg-white/10 rounded-md w-full" />
+                              <div className="h-2.5 bg-slate-200 dark:bg-white/10 rounded-md w-2/3" />
+                            </div>
+                          </div>
+                          <div className="h-6 bg-slate-200 dark:bg-white/10 rounded-full w-24 mb-5" />
+                          <div className="space-y-2 mb-6">
+                            <div className="h-3 bg-slate-200 dark:bg-white/10 rounded-md w-full" />
+                            <div className="h-3 bg-slate-200 dark:bg-white/10 rounded-md w-5/6" />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-200 dark:border-white/10">
+                          <div className="bg-white/90 dark:bg-[#0f172a]/60 rounded-2xl p-4 border border-slate-200/60 dark:border-white/5 space-y-2">
+                            <div className="h-2.5 bg-slate-200 dark:bg-white/10 rounded-md w-1/2" />
+                            <div className="h-4 bg-slate-200 dark:bg-white/10 rounded-md w-3/4" />
+                          </div>
+                          <div className="bg-white/90 dark:bg-[#0f172a]/60 rounded-2xl p-4 border border-slate-200/60 dark:border-white/5 space-y-2">
+                            <div className="h-2.5 bg-slate-200 dark:bg-white/10 rounded-md w-1/2" />
+                            <div className="h-4 bg-slate-200 dark:bg-white/10 rounded-md w-3/4" />
+                          </div>
+                        </div>
                       </div>
-                      <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] p-5 animate-pulse md:col-span-2">
-                        <div className="h-4 bg-slate-200 dark:bg-white/10 rounded-full w-1/4 mb-4" />
-                        <div className="h-3 bg-slate-200 dark:bg-white/10 rounded-full w-full mb-2" />
-                        <div className="h-3 bg-slate-200 dark:bg-white/10 rounded-full w-5/6 mb-2" />
-                        <div className="h-3 bg-slate-200 dark:bg-white/10 rounded-full w-4/6" />
+
+                      {/* Right Card Skeleton */}
+                      <div className="rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white/40 dark:bg-white/[0.02] p-5 sm:p-6 flex flex-col justify-between min-h-[280px]">
+                        <div>
+                          <div className="flex items-center gap-2.5 mb-6">
+                            <div className="w-9 h-9 rounded-xl bg-slate-200 dark:bg-white/10 shrink-0" />
+                            <div className="space-y-1.5 w-1/3">
+                              <div className="h-3.5 bg-slate-200 dark:bg-white/10 rounded-md w-full" />
+                              <div className="h-2.5 bg-slate-200 dark:bg-white/10 rounded-md w-2/3" />
+                            </div>
+                          </div>
+                          <div className="bg-slate-100/50 dark:bg-[#0f172a]/45 border border-slate-200/40 dark:border-white/5 rounded-2xl p-4 space-y-3 mt-2 min-h-[160px]">
+                            <div className="h-3 bg-slate-200 dark:bg-white/10 rounded-md w-full" />
+                            <div className="h-3 bg-slate-200 dark:bg-white/10 rounded-md w-5/6" />
+                            <div className="h-3 bg-slate-200 dark:bg-white/10 rounded-md w-11/12" />
+                            <div className="h-3 bg-slate-200 dark:bg-white/10 rounded-md w-4/5" />
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 ) : detailedInsight ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {detailedInsight.forecast && (
-                      <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] p-5 hover:border-violet-300 dark:hover:border-violet-500/30 transition-colors">
-                        <div className="flex items-center gap-2.5 mb-4">
-                          <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-500/10 flex items-center justify-center">
-                            <TrendingUp size={18} className="text-emerald-600 dark:text-emerald-400" />
+                      <div className="rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white/40 dark:bg-white/[0.02] backdrop-blur-md p-5 sm:p-6 shadow-sm hover:shadow-md hover:border-violet-500/20 dark:hover:border-violet-500/30 transition-all duration-300 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center gap-2.5 mb-4">
+                            <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-500/10 flex items-center justify-center">
+                              <TrendingUp size={18} className="text-emerald-600 dark:text-emerald-400" />
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-slate-800 dark:text-white text-sm">Dự báo dòng tiền</h4>
+                              <p className="text-xs text-slate-400">Tháng tiếp theo</p>
+                            </div>
                           </div>
-                          <div>
-                            <h4 className="font-semibold text-slate-800 dark:text-white text-sm">Dự báo dòng tiền</h4>
-                            <p className="text-xs text-slate-400">Tháng tiếp theo</p>
+                          <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold mb-4 border ${
+                            detailedInsight.forecast.riskLevel === "CAO"
+                              ? "bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border-red-200 dark:border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.05)]"
+                              : detailedInsight.forecast.riskLevel === "TRUNG_BÌNH"
+                                ? "bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.05)]"
+                                : "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.05)]"
+                          }`}>
+                            <AlertTriangle size={11} />
+                            {detailedInsight.forecast.riskLevel === "CAO" ? "Rủi ro cao" : detailedInsight.forecast.riskLevel === "TRUNG_BÌNH" ? "Rủi ro trung bình" : "Rủi ro thấp"}
                           </div>
+                          <p className="text-[13.5px] text-slate-650 dark:text-slate-350 mb-6 leading-relaxed font-medium">{detailedInsight.forecast.riskMessage}</p>
                         </div>
-                        <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold mb-4 ${
-                          detailedInsight.forecast.riskLevel === "CAO"
-                            ? "bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/20"
-                            : detailedInsight.forecast.riskLevel === "TRUNG_BÌNH"
-                              ? "bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20"
-                              : "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20"
-                        }`}>
-                          <AlertTriangle size={12} />
-                          {detailedInsight.forecast.riskLevel === "CAO" ? "Rủi ro cao" : detailedInsight.forecast.riskLevel === "TRUNG_BÌNH" ? "Rủi ro trung bình" : "Rủi ro thấp"}
-                        </div>
-                        <p className="text-sm text-slate-600 dark:text-slate-300 mb-4 leading-relaxed">{detailedInsight.forecast.riskMessage}</p>
-                        <div className="grid grid-cols-2 gap-3 pt-4 border-t border-slate-200 dark:border-white/10">
-                          <div className="bg-white dark:bg-white/[0.03] rounded-xl p-3 border border-slate-200 dark:border-white/5">
-                            <p className="text-xs text-slate-400 mb-1">Thu nhập dự kiến</p>
-                            <p className="text-emerald-600 dark:text-emerald-400 font-bold text-sm">{formatCurrency(detailedInsight.forecast.predictedNextMonthIncome)}</p>
+                        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-200 dark:border-white/10">
+                          <div className="bg-white/90 dark:bg-[#0f172a]/60 rounded-2xl p-4 border border-slate-200/60 dark:border-white/5 shadow-xs hover:translate-y-[-1px] transition-all duration-200">
+                            <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Thu nhập dự kiến</p>
+                            <p className="text-emerald-600 dark:text-emerald-400 font-extrabold text-[15px] sm:text-[17px] tracking-tight">{formatCurrency(detailedInsight.forecast.predictedNextMonthIncome)}</p>
                           </div>
-                          <div className="bg-white dark:bg-white/[0.03] rounded-xl p-3 border border-slate-200 dark:border-white/5">
-                            <p className="text-xs text-slate-400 mb-1">Chi tiêu dự kiến</p>
-                            <p className="text-red-500 font-bold text-sm">{formatCurrency(detailedInsight.forecast.predictedNextMonthExpense)}</p>
+                          <div className="bg-white/90 dark:bg-[#0f172a]/60 rounded-2xl p-4 border border-slate-200/60 dark:border-white/5 shadow-xs hover:translate-y-[-1px] transition-all duration-200">
+                            <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Chi tiêu dự kiến</p>
+                            <p className="text-red-500 font-extrabold text-[15px] sm:text-[17px] tracking-tight">{formatCurrency(detailedInsight.forecast.predictedNextMonthExpense)}</p>
                           </div>
                         </div>
                       </div>
                     )}
                     {detailedInsight.detailedAdvice && (
-                      <div className={`rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] p-5 hover:border-violet-300 dark:hover:border-violet-500/30 transition-colors ${detailedInsight.forecast ? "" : "md:col-span-2"}`}>
-                        <div className="flex items-center gap-2.5 mb-4">
-                          <div className="w-9 h-9 rounded-xl bg-violet-100 dark:bg-violet-500/10 flex items-center justify-center">
-                            <Sparkles size={18} className="text-violet-600 dark:text-violet-400" />
+                      <div className={`rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white/40 dark:bg-white/[0.02] backdrop-blur-md p-5 sm:p-6 shadow-sm hover:shadow-md hover:border-violet-500/20 dark:hover:border-violet-500/30 transition-all duration-300 flex flex-col justify-between ${detailedInsight.forecast ? "" : "lg:col-span-2"}`}>
+                        <div>
+                          <div className="flex items-center gap-2.5 mb-4">
+                            <div className="w-9 h-9 rounded-xl bg-violet-100 dark:bg-violet-500/10 flex items-center justify-center">
+                              <Sparkles size={18} className="text-violet-600 dark:text-violet-400" />
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-slate-800 dark:text-white text-sm">Lời khuyên chiến lược</h4>
+                              <p className="text-xs text-slate-400">Từ phân tích AI</p>
+                            </div>
                           </div>
-                          <div>
-                            <h4 className="font-semibold text-slate-800 dark:text-white text-sm">Lời khuyên chiến lược</h4>
-                            <p className="text-xs text-slate-400">Từ phân tích AI</p>
+                          
+                          <div className="bg-slate-100/50 dark:bg-[#0f172a]/45 border border-slate-200/40 dark:border-white/5 rounded-2xl p-4 max-h-[220px] overflow-y-auto custom-scrollbar shadow-inner mt-2">
+                            <div className="text-[13.5px] font-medium leading-relaxed text-slate-650 dark:text-slate-350 whitespace-pre-wrap">
+                              {detailedInsight.detailedAdvice}
+                            </div>
                           </div>
-                        </div>
-                        <div className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed border-l-[3px] border-violet-400 pl-4 max-h-64 overflow-y-auto whitespace-pre-wrap">
-                          {detailedInsight.detailedAdvice}
                         </div>
                       </div>
                     )}
@@ -586,6 +740,122 @@ const Home = () => {
         onToggle={toggleWidget}
         onReset={resetConfig}
       />
+
+      {/* Paywall Modal Premium */}
+      {showPremiumModal && (
+        <div 
+          onClick={() => setShowPremiumModal(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md transition-all duration-300"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="relative p-6 w-full max-w-lg mx-4 rounded-3xl shadow-2xl overflow-hidden
+              bg-slate-900 border border-purple-500/30 text-white animate-fade-in-up"
+          >
+            {/* Ambient Background Glows */}
+            <div className="absolute -top-24 -left-24 w-48 h-48 rounded-full bg-purple-600/25 blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-24 -right-24 w-48 h-48 rounded-full bg-indigo-600/20 blur-3xl pointer-events-none" />
+            
+            {/* Elegant Top Border Line */}
+            <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-purple-500 via-pink-500 to-amber-500" />
+            
+            {/* Close Button */}
+            <button
+              type="button"
+              onClick={() => setShowPremiumModal(false)}
+              className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-xl transition-all cursor-pointer
+                text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 hover:scale-105 active:scale-95"
+            >
+              <X size={18} />
+            </button>
+            
+            {/* Content */}
+            <div className="text-center mt-4">
+              {/* Icon Container with beautiful animations */}
+              <div className="relative w-16 h-16 mx-auto mb-5 flex items-center justify-center rounded-2xl
+                bg-gradient-to-tr from-purple-600 to-pink-500 shadow-xl shadow-purple-500/20">
+                <Crown className="w-8 h-8 text-white animate-pulse" />
+                <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-amber-400 animate-ping" />
+              </div>
+              
+              {/* Badges */}
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold
+                bg-purple-500/10 border border-purple-500/30 text-purple-300 mb-3 uppercase tracking-wider">
+                <Sparkles size={12} className="text-amber-400" />
+                Tính Năng Premium
+              </div>
+              
+              <h3 className="text-2xl font-extrabold text-white leading-tight">
+                Mở khóa Phân tích Chuyên sâu (AI)
+              </h3>
+              
+              <p className="text-sm text-slate-300 mt-2 mb-6 leading-relaxed max-w-sm mx-auto">
+                Nhận các nhận định tài chính chuyên nghiệp, cá nhân hóa dòng tiền của bạn từ Trợ lý AI nâng cao.
+              </p>
+              
+              {/* Premium Features Checklist */}
+              <div className="bg-slate-800/40 rounded-2xl border border-white/5 p-4 text-left space-y-3.5 mb-7">
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full bg-purple-500/20 flex items-center justify-center mt-0.5 text-purple-400 flex-shrink-0">
+                    <CheckCircle2 size={13} className="stroke-[3]" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-white">Phân tích xu hướng chi tiêu</h4>
+                    <p className="text-xs text-slate-400 mt-0.5">AI tự động bóc tách các thói quen tiêu dùng và đề xuất tối ưu thông minh.</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full bg-purple-500/20 flex items-center justify-center mt-0.5 text-purple-400 flex-shrink-0">
+                    <CheckCircle2 size={13} className="stroke-[3]" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-white">Dự toán dòng tiền thông minh</h4>
+                    <p className="text-xs text-slate-400 mt-0.5">Dự báo ngân sách tháng tới giúp bạn luôn chủ động trước mọi chi phí phát sinh.</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full bg-purple-500/20 flex items-center justify-center mt-0.5 text-purple-400 flex-shrink-0">
+                    <CheckCircle2 size={13} className="stroke-[3]" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-white">Cảnh báo rủi ro & Lời khuyên chiến lược</h4>
+                    <p className="text-xs text-slate-400 mt-0.5">Nhận biết thâm hụt sớm và nhận lời khuyên tài chính từ chuyên gia ảo.</p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowPremiumModal(false)}
+                  className="w-full sm:order-1 px-5 py-3 rounded-2xl text-sm font-medium
+                    bg-slate-800 hover:bg-slate-750 active:scale-98 transition duration-150 text-slate-300 hover:text-white"
+                >
+                  Trải nghiệm sau
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPremiumModal(false);
+                    navigate("/payment");
+                  }}
+                  className="w-full sm:order-2 px-5 py-3 rounded-2xl text-sm font-bold text-white
+                    bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 hover:from-purple-500 hover:via-pink-500 hover:to-amber-400
+                    shadow-lg shadow-purple-600/30 hover:shadow-purple-600/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-150
+                    flex items-center justify-center gap-1.5"
+                >
+                  <Sparkles size={16} />
+                  Nâng cấp Premium ngay
+                </button>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+      )}
     </Dashboard>
   );
 };

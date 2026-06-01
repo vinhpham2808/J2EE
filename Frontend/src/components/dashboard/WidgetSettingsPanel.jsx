@@ -99,7 +99,7 @@ const WidgetSettingsPanel = ({
               Sắp xếp &amp; Hiển thị
             </h3>
             <div className="space-y-2">
-              {sortedWidgetIds.map((widgetId, index) => {
+              {sortedWidgetIds.map((widgetId) => {
                 const reg = WIDGET_REGISTRY[widgetId];
                 const Icon = reg?.icon;
                 const config = widgetConfig[widgetId];

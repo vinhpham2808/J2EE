@@ -1,8 +1,8 @@
 package com.example.moneymanager.service;
 
+import com.example.moneymanager.config.GptOssKeyRotator;
 import com.example.moneymanager.config.GptOssProperties;
 import com.example.moneymanager.dto.AssistantChatResponseDTO;
-import java.util.List;
 import com.example.moneymanager.util.OpenRouterResponseParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,23 +18,52 @@ import org.springframework.web.client.RestClient;
 @RequiredArgsConstructor
 public class GptOssService {
 
+    private static final int MAX_ATTEMPTS = 3;
+    private static final long BASE_RETRY_DELAY_MS = 400L;
+
     private final RestClient gptOssRestClient;
     private final GptOssProperties gptOssProperties;
+    private final GptOssKeyRotator gptOssKeyRotator;
     private final ObjectMapper objectMapper;
 
     private String apiKey() {
-        List<String> keys = gptOssProperties.apiKeys();
-        if (keys == null || keys.isEmpty()) {
-            throw new RuntimeException("GPT-OSS ch\u01B0a \u0111\u01B0\u1EE3c c\u1EA5u h\u00ECnh API key.");
+        if (!gptOssKeyRotator.hasKeys()) {
+            throw new RuntimeException("GPT-OSS chưa được cấu hình API key.");
         }
-        return keys.get(0);
+        return gptOssKeyRotator.nextKey();
     }
 
     public String callWithPrompt(String systemPrompt, String userMessage, int maxTokens) {
+        RuntimeException lastFailure = null;
 
+        for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+            try {
+                return callWithPromptOnce(systemPrompt, userMessage, maxTokens, attempt);
+            } catch (RuntimeException exception) {
+                lastFailure = exception;
+                boolean shouldRetry = attempt < MAX_ATTEMPTS && isRetryable(exception);
+                if (!shouldRetry) {
+                    break;
+                }
+
+                long delayMs = BASE_RETRY_DELAY_MS * attempt;
+                log.warn("GPT-OSS transient failure on attempt {}/{}. Retrying in {} ms. Cause: {}",
+                        attempt, MAX_ATTEMPTS, delayMs, exception.getMessage());
+                sleepBeforeRetry(delayMs);
+            }
+        }
+
+        throw new RuntimeException("Không thể gọi GPT-OSS API ổn định sau nhiều lần thử. "
+                + (lastFailure != null ? lastFailure.getMessage() : "Vui lòng thử lại sau."));
+    }
+
+    private String callWithPromptOnce(String systemPrompt, String userMessage, int maxTokens, int attempt) {
         try {
+            String apiKey = apiKey();
+
             ObjectNode requestBody = objectMapper.createObjectNode();
             requestBody.put("model", gptOssProperties.model());
+            requestBody.put("stream", false);
 
             ArrayNode msgArray = objectMapper.createArrayNode();
             ObjectNode sysMsg = objectMapper.createObjectNode();
@@ -54,9 +83,8 @@ public class GptOssService {
             }
 
             String requestJson = objectMapper.writeValueAsString(requestBody);
-            log.debug("GPT-OSS callWithPrompt request: {}", requestJson);
+            log.debug("GPT-OSS callWithPrompt attempt {} request: {}", attempt, requestJson);
 
-            // Read raw string first to avoid deserialization issues
             String rawResponse = gptOssRestClient.post()
                     .uri(uriBuilder -> uriBuilder.path("/chat/completions").build())
                     .header("Authorization", "Bearer " + apiKey())
@@ -64,7 +92,10 @@ public class GptOssService {
                     .retrieve()
                     .onStatus(status -> !status.is2xxSuccessful(), (req, res) -> {
                         String errorBody = "";
-                        try { errorBody = new String(res.getBody().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8); } catch (Exception ignored) {}
+                        try {
+                            errorBody = new String(res.getBody().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+                        } catch (Exception ignored) {
+                        }
                         log.error("GPT-OSS HTTP error {}: {}", res.getStatusCode().value(), errorBody);
                         throw new RuntimeException("GPT-OSS API HTTP " + res.getStatusCode().value() + ": " + errorBody);
                     })
@@ -75,14 +106,23 @@ public class GptOssService {
                 throw new RuntimeException("GPT-OSS API trả về phản hồi rỗng.");
             }
 
-            log.info("GPT-OSS callWithPrompt response (first 500 chars): {}", rawResponse.length() > 500 ? rawResponse.substring(0, 500) : rawResponse);
+            log.info("GPT-OSS callWithPrompt attempt {} response (first 500 chars): {}",
+                    attempt,
+                    rawResponse.length() > 500 ? rawResponse.substring(0, 500) : rawResponse);
+
+            if (OpenRouterResponseParser.isSseFormat(rawResponse)) {
+                String sseReply = OpenRouterResponseParser.parseSseStream(rawResponse, objectMapper);
+                if (sseReply != null && !sseReply.isBlank()) {
+                    return sseReply;
+                }
+                throw new RuntimeException("GPT-OSS SSE không trả về nội dung hợp lệ.");
+            }
 
             JsonNode root;
             try {
                 root = objectMapper.readTree(rawResponse);
             } catch (Exception parseEx) {
                 log.error("GPT-OSS JSON parse failed. Raw response: {}", rawResponse, parseEx);
-                // If it looks like plain text, return it directly
                 String cleaned = rawResponse.trim();
                 if (!cleaned.startsWith("{") && !cleaned.startsWith("[")) {
                     return cleaned;
@@ -95,7 +135,7 @@ public class GptOssService {
                 String errorMsg = errorNode.has("message") ? errorNode.get("message").asText() : errorNode.asText();
                 String errorCode = errorNode.has("code") ? errorNode.get("code").asText() : "unknown";
                 log.error("GPT-OSS API error [code={}]: {}", errorCode, errorMsg);
-                throw new RuntimeException("GPT-OSS API l\u1ED7i: " + errorMsg);
+                throw new RuntimeException("GPT-OSS API lỗi [" + errorCode + "]: " + errorMsg);
             }
 
             String reply = OpenRouterResponseParser.extractAssistantText(root);
@@ -104,17 +144,51 @@ public class GptOssService {
             }
 
             log.warn("GPT-OSS returned empty content. Full response: {}", root.toString());
-            throw new RuntimeException("GPT-OSS kh\u00F4ng tr\u1EA3 v\u1EC1 n\u1ED9i dung h\u1EE3p l\u1EC7.");
-        } catch (Exception e) {
-            log.error("GPT-OSS call error: {}", e.getMessage(), e);
-            throw new RuntimeException("Kh\u00F4ng th\u1EC3 g\u1ECDi GPT-OSS API: " + e.getMessage(), e);
+            throw new RuntimeException("GPT-OSS không trả về nội dung hợp lệ.");
+        } catch (Exception exception) {
+            log.error("GPT-OSS call error: {}", exception.getMessage(), exception);
+            throw new RuntimeException("Không thể gọi GPT-OSS API: " + exception.getMessage(), exception);
+        }
+    }
+
+    private boolean isRetryable(RuntimeException exception) {
+        String message = exception.getMessage();
+        if (message == null || message.isBlank()) {
+            return true;
+        }
+
+        String normalized = message.toLowerCase();
+        return normalized.contains("429")
+                || normalized.contains("500")
+                || normalized.contains("502")
+                || normalized.contains("503")
+                || normalized.contains("504")
+                || normalized.contains("timeout")
+                || normalized.contains("timed out")
+                || normalized.contains("connection reset")
+                || normalized.contains("connection refused")
+                || normalized.contains("empty")
+                || normalized.contains("rỗng")
+                || normalized.contains("overloaded")
+                || normalized.contains("rate limit")
+                || normalized.contains("temporarily unavailable")
+                || normalized.contains("service unavailable")
+                || normalized.contains("network");
+    }
+
+    private void sleepBeforeRetry(long delayMs) {
+        try {
+            Thread.sleep(delayMs);
+        } catch (InterruptedException interruptedException) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Retry GPT-OSS bị gián đoạn.", interruptedException);
         }
     }
 
     public AssistantChatResponseDTO chat(String message) {
         try {
             String reply = callWithPrompt(
-                    "B\u1EA1n l\u00E0 chuy\u00EAn gia t\u00E0i ch\u00EDnh AI c\u1EE7a Money Manager. Tr\u1EA3 l\u1EDDi b\u1EB1ng ti\u1EBFng Vi\u1EC7t, ng\u1EAFn g\u1ECDn, r\u00F5 r\u00E0ng, kh\u00F4ng d\u00F9ng markdown.",
+                    "Bạn là chuyên gia tài chính AI của Money Manager. Trả lời bằng tiếng Việt, ngắn gọn, rõ ràng, không dùng markdown.",
                     message,
                     800
             );
@@ -122,10 +196,10 @@ public class GptOssService {
                     .reply(reply)
                     .model(gptOssProperties.model())
                     .build();
-        } catch (Exception e) {
-            log.error("GPT-OSS chat error: {}", e.getMessage(), e);
+        } catch (Exception exception) {
+            log.error("GPT-OSS chat error: {}", exception.getMessage(), exception);
             return AssistantChatResponseDTO.builder()
-                    .reply("Xin l\u1ED7i, AI \u0111ang b\u1EADn. B\u1EA1n th\u1EED l\u1EA1i sau nh\u00E9.")
+                    .reply("Xin lỗi, AI đang bận. Bạn thử lại sau nhé.")
                     .model(gptOssProperties.model())
                     .build();
         }
@@ -133,7 +207,7 @@ public class GptOssService {
 
     public AssistantChatResponseDTO getDashboardInsight(java.util.Map<String, Object> dashboardData, String fullName) {
         String statsInfo = String.format(
-                "Thu nh\u1EADp: %s VND. Chi ti\u00EAu: %s VND. S\u1ED1 d\u01B0: %s VND. S\u1ED1 m\u1EE5c ti\u00EAu ti\u1EBFt ki\u1EC7m \u0111ang ch\u1EA1y: %s. T\u1ED5ng ti\u1EC1n ti\u1EBFt ki\u1EC7m: %s VND.",
+                "Thu nhập: %s VND. Chi tiêu: %s VND. Số dư: %s VND. Số mục tiêu tiết kiệm đang chạy: %s. Tổng tiền tiết kiệm: %s VND.",
                 dashboardData.get("totalIncome"),
                 dashboardData.get("totalExpense"),
                 dashboardData.get("totalBalance"),
@@ -141,21 +215,21 @@ public class GptOssService {
                 dashboardData.get("savingGoalTotalSaved")
         );
 
-        String systemPrompt = "B\u1EA1n l\u00E0 chuy\u00EAn gia t\u00E0i ch\u00EDnh AI c\u1EE7a Money Manager. D\u1EF1a v\u00E0o s\u1ED1 li\u1EC7u th\u00E1ng n\u00E0y c\u1EE7a " + fullName + ":\n" +
+        String systemPrompt = "Bạn là chuyên gia tài chính AI của Money Manager. Dựa vào số liệu tháng này của " + fullName + ":\n" +
                 statsInfo + "\n" +
-                "Nhi\u1EC7m v\u1EE5: \u0110\u01B0a ra \u0111\u00FAng 1 c\u00E2u d\u1EF1 \u0111o\u00E1n r\u1EE7i ro/xu h\u01B0\u1EDBng v\u00E0 1 c\u00E2u khuy\u00EAn h\u00E0nh \u0111\u1ED9ng th\u1EF1c t\u1EBF.\n" +
-                "Quy t\u1EAFc: Tr\u1EA3 l\u1EDDi t\u1ED1i \u0111a 40 ch\u1EEF. Kh\u00F4ng d\u00F9ng markdown, kh\u00F4ng d\u00F9ng k\u00FD t\u1EF1 \u0111\u1EB7c bi\u1EC7t. N\u00F3i th\u1EB3ng v\u1EA5n \u0111\u1EC1.";
+                "Nhiệm vụ: Đưa ra đúng 1 câu dự đoán rủi ro/xu hướng và 1 câu khuyên hành động thực tế.\n" +
+                "Quy tắc: Trả lời tối đa 40 chữ. Không dùng markdown, không dùng ký tự đặc biệt. Nói thẳng vấn đề.";
 
         try {
-            String reply = callWithPrompt(systemPrompt, "H\u00E3y ph\u00E2n t\u00EDch nhanh s\u1ED1 li\u1EC7u v\u00E0 cho t\u00F4i d\u1EF1 \u0111o\u00E1n.", 256);
+            String reply = callWithPrompt(systemPrompt, "Hãy phân tích nhanh số liệu và cho tôi dự đoán.", 256);
             return AssistantChatResponseDTO.builder()
                     .reply(reply)
                     .model(gptOssProperties.model())
                     .build();
-        } catch (Exception e) {
-            log.error("GPT-OSS dashboard insight error: {}", e.getMessage(), e);
+        } catch (Exception exception) {
+            log.error("GPT-OSS dashboard insight error: {}", exception.getMessage(), exception);
             return AssistantChatResponseDTO.builder()
-                    .reply("AI \u0111ang c\u1EADp nh\u1EADt, vui l\u00F2ng th\u1EED l\u1EA1i sau.")
+                    .reply("AI đang cập nhật, vui lòng thử lại sau.")
                     .model(gptOssProperties.model())
                     .build();
         }

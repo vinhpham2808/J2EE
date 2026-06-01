@@ -4,6 +4,8 @@ import { useContext, useState } from "react";
 import { AppContext } from "../../context/AppContext";
 import { useTheme } from "../../context/ThemeContext";
 import Footer from "../../components/Footer.jsx";
+import axiosConfig from "../../util/axiosConfig";
+import { API_ENDPOINTS } from "../../util/apiEndpoints";
 
 const AdminLayout = () => {
   const { clearUser } = useContext(AppContext);
@@ -12,11 +14,15 @@ const AdminLayout = () => {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const handleLogout = () => {
-    localStorage.clear();
-    sessionStorage.clear();
-    clearUser();
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      await axiosConfig.post(API_ENDPOINTS.LOGOUT);
+    } catch (err) {
+      console.error("Logout error:", err);
+    } finally {
+      clearUser();
+      navigate("/login");
+    }
   };
 
   const NavItem = ({ to, icon: Icon, label, exact, onClick }) => {
@@ -27,13 +33,13 @@ const AdminLayout = () => {
       <Link
         to={to}
         onClick={onClick}
-        className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
+        className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
           isActive
-            ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold"
-            : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white font-medium"
+            ? "bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 font-semibold"
+            : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white font-medium hover:translate-x-1"
         }`}
       >
-        <Icon size={20} className={isActive ? "text-amber-500" : "text-slate-400 dark:text-slate-500"} />
+        <Icon size={20} className={isActive ? "text-indigo-600 dark:text-indigo-400" : "text-slate-400 dark:text-slate-500"} />
         <span>{label}</span>
       </Link>
     );
@@ -43,14 +49,39 @@ const AdminLayout = () => {
 
   const sidebarContent = (
     <>
-      <div className="p-6 border-b border-slate-100 dark:border-white/10 flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-amber-500">Bảng Quản Trị</h2>
-        <button
-          className="lg:hidden p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"
-          onClick={closeSidebar}
-        >
-          <X size={20} />
-        </button>
+      <div className="px-5 py-4 border-b border-slate-100 dark:border-white/10">
+        <div className="flex items-center justify-between">
+          {/* Logo + Branding */}
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="relative shrink-0">
+              <img
+                src="/favicon.png"
+                alt="Money Manager Logo"
+                className="w-12 h-12 rounded-2xl object-cover shadow-md shadow-violet-500/20"
+              />
+              {/* Admin badge overlay */}
+              <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-indigo-600 border-2 border-white dark:border-[#0F172A] flex items-center justify-center">
+                <svg width="10" height="10" viewBox="0 0 8 8" fill="none">
+                  <path d="M4 1L5.2 3H7L5.6 4.8L6.2 7L4 5.8L1.8 7L2.4 4.8L1 3H2.8L4 1Z" fill="white"/>
+                </svg>
+              </span>
+            </div>
+            <div className="min-w-0">
+              <p className="text-base lg:text-lg font-black text-slate-900 dark:text-white leading-tight tracking-tight whitespace-nowrap">
+                Admin Dashboard
+              </p>
+              <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 mt-0.5 truncate">
+                Money Manager
+              </p>
+            </div>
+          </div>
+          <button
+            className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors shrink-0"
+            onClick={closeSidebar}
+          >
+            <X size={18} />
+          </button>
+        </div>
       </div>
 
       <nav className="flex-1 p-4 space-y-2">
@@ -112,14 +143,23 @@ const AdminLayout = () => {
             >
               <Menu size={20} />
             </button>
-            <h1 className="text-lg font-semibold text-slate-800 dark:text-white">
-              {location.pathname === "/admin" && "Bảng điều khiển"}
-              {location.pathname.startsWith("/admin/users") && "Người dùng"}
-              {location.pathname.startsWith("/admin/payments") && "Thanh toán"}
-              {location.pathname.startsWith("/admin/subscriptions") && "Gói cước"}
-              {location.pathname.startsWith("/admin/notifications") && "Thông báo"}
-              {location.pathname.startsWith("/admin/settings") && "Cài đặt"}
-            </h1>
+            {/* Mobile: show logo on small screens */}
+            <div className="flex lg:hidden items-center gap-2.5">
+              <img src="/favicon.png" alt="logo" className="w-9 h-9 rounded-xl object-cover shadow-sm" />
+            </div>
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-lg lg:text-xl font-extrabold text-slate-800 dark:text-white">
+                {location.pathname === "/admin" && "Admin Dashboard"}
+                {location.pathname.startsWith("/admin/users") && "Người dùng"}
+                {location.pathname.startsWith("/admin/payments") && "Thanh toán"}
+                {location.pathname.startsWith("/admin/subscriptions") && "Gói cước"}
+                {location.pathname.startsWith("/admin/notifications") && "Thông báo"}
+                {location.pathname.startsWith("/admin/settings") && "Cài đặt"}
+              </h1>
+              <span className="hidden sm:inline-flex items-center px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
+                Admin
+              </span>
+            </div>
           </div>
 
           <div className="flex items-center gap-2">

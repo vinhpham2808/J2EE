@@ -8,8 +8,8 @@ import { formatCurrency } from "../util/helper.js";
 const fmt = (n) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(n ?? 0);
 
-const JarTransferModal = ({ jars, onTransfer, onClose }) => {
-  const [fromJarId, setFromJarId] = useState("");
+const JarTransferModal = ({ jars, onTransfer, onClose, defaultFromJarId }) => {
+  const [fromJarId, setFromJarId] = useState(defaultFromJarId || "");
   const [toJarId, setToJarId] = useState("");
   const [amount, setAmount] = useState("");
 

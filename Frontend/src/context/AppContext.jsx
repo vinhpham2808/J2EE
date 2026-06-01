@@ -12,12 +12,17 @@ export const AppContextProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [currentPage, setCurrentPage] = useState(null);
 
+  const clearUser = () => {
+    setUser(null);
+    localStorage.setItem("logout-event", Date.now().toString());
+  };
+
   return (
     <AppContext.Provider
       value={{
         user,
         setUser,
-        clearUser: () => setUser(null),
+        clearUser,
         currentPage,
         setCurrentPage
       }}

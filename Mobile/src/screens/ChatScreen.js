@@ -6,19 +6,28 @@ import {
   FlatList,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator
+  ActivityIndicator,
+  Pressable
 } from "react-native";
 import { COLORS } from "../constants/colors";
 import ChatAssistantHeader from "../components/chatbotUI/ChatAssistantHeader";
 import MessageBubble from "../components/chatbotUI/MessageBubble";
 import QuickPromptChips from "../components/chatbotUI/QuickPromptChips";
 import ChatInputBar from "../components/chatbotUI/ChatInputBar";
+
+import ChatHeader from "../components/chatbotUI/ChatHeader";
+import SessionsModal from "../components/chatbotUI/SessionsModal";
+import EditMessageModal from "../components/chatbotUI/EditMessageModal";
+
 import useChatMessages from "../components/chatbotUI/useChatMessages";
 import useModelConfig from "../components/chatbotUI/useModelConfig";
 import useVoiceInput from "../components/chatbotUI/useVoiceInput";
 
 export default function ChatScreen() {
   const [inputText, setInputText] = useState("");
+  const [isSessionsVisible, setIsSessionsVisible] = useState(false);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [editingMessage, setEditingMessage] = useState(null);
 
   const {
     activeMode,
@@ -36,12 +45,20 @@ export default function ChatScreen() {
 
   const {
     messages,
+    sessions,
+    activeSessionId,
     loading,
     chatBusy,
     hasUserStartedChat,
     isProcessingCrud,
     flatListRef,
     sendMessage,
+    retryLastMessage,
+    stopGenerating,
+    selectSession,
+    deleteSession,
+    renameSession,
+    startNewChat,
     handleConfirmAction,
     handleCancelConfirmation,
     handleUndo
@@ -80,19 +97,53 @@ export default function ChatScreen() {
     sendMessage(prompt.text);
   }, [sendMessage]);
 
+  const handleEditMessage = useCallback((message) => {
+    setEditingMessage(message);
+    setIsEditModalVisible(true);
+  }, []);
+
+  const handleSaveEditedMessage = useCallback((newText, messageId) => {
+    sendMessage(newText, { editMessageId: messageId });
+  }, [sendMessage]);
+
   const renderMessage = useCallback(({ item }) => (
     <MessageBubble
       message={item}
       onConfirm={handleConfirmAction}
       onCancel={handleCancelConfirmation}
       onUndo={handleUndo}
+      onEditMessage={handleEditMessage}
+      onRetry={retryLastMessage}
       isProcessing={isProcessingCrud}
     />
-  ), [handleConfirmAction, handleCancelConfirmation, handleUndo, isProcessingCrud]);
+  ), [handleConfirmAction, handleCancelConfirmation, handleUndo, handleEditMessage, retryLastMessage, isProcessingCrud]);
 
   return (
+
     <View style={styles.container}>
       <ChatAssistantHeader
+
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      <ChatHeader>
+        <View style={styles.headerRightContainer}>
+          <Pressable
+            style={({ pressed }) => [styles.historyBtn, pressed && styles.historyBtnPressed]}
+            onPress={() => setIsSessionsVisible(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Mở lịch sử phiên chat"
+          >
+            <Text style={styles.historyIcon}>⏳</Text>
+          </Pressable>
+          <ModelSelectorPill
+            label={modelLabel}
+            value={modelValue}
+            options={modelOptions}
+            title={activeMode === "chat" ? "MODEL CHAT" : "MODEL AGENT"}
+            onSelect={handleModelChange}
+          />
+        </View>
+      </ChatHeader>
+      <ModeSegmentedControl
         activeMode={activeMode}
         isFreePlan={isFreePlan}
         modelOptions={modelOptions}
@@ -133,6 +184,7 @@ export default function ChatScreen() {
           value={inputText}
           onChangeText={handleInputChange}
           onSend={handleSend}
+          onStop={stopGenerating}
           placeholder={inputPlaceholder}
           loading={loading}
           disabled={chatBusy}
@@ -140,6 +192,27 @@ export default function ChatScreen() {
           isRecording={isRecording}
         />
       </KeyboardAvoidingView>
+
+      <SessionsModal
+        visible={isSessionsVisible}
+        onClose={() => setIsSessionsVisible(false)}
+        sessions={sessions}
+        activeSessionId={activeSessionId}
+        onSelectSession={selectSession}
+        onDeleteSession={deleteSession}
+        onRenameSession={renameSession}
+        onNewChat={startNewChat}
+      />
+
+      <EditMessageModal
+        visible={isEditModalVisible}
+        onClose={() => {
+          setIsEditModalVisible(false);
+          setEditingMessage(null);
+        }}
+        message={editingMessage}
+        onSave={handleSaveEditedMessage}
+      />
     </View>
   );
 }
@@ -148,6 +221,28 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.CHAT_BG
+  },
+  headerRightContainer: {
+    flexDirection: "row",
+    alignItems: "center"
+  },
+  historyBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: COLORS.CARD,
+    borderWidth: 1,
+    borderColor: COLORS.CARD_BORDER,
+    marginRight: 8
+  },
+  historyBtnPressed: {
+    opacity: 0.8,
+    backgroundColor: COLORS.ROSE_MIST
+  },
+  historyIcon: {
+    fontSize: 16
   },
   keyboardView: {
     flex: 1

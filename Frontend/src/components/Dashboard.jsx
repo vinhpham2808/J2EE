@@ -3,8 +3,10 @@ import Sidebar from "./Sidebar.jsx";
 import Footer from "./Footer.jsx";
 import { useContext } from "react";
 import { AppContext } from "../context/AppContext.jsx";
+import { useUser } from "../hooks/useUser.jsx";
 
 const Dashboard = ({ children, activeMenu }) => {
+  useUser();
   const { user } = useContext(AppContext);
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-[#0A0E1A] text-slate-900 dark:text-slate-100 antialiased">

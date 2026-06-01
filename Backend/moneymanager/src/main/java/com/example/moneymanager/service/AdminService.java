@@ -68,6 +68,22 @@ public class AdminService {
         return stream.map(this::toAdminPaymentDTO).toList();
     }
 
+    @Transactional(readOnly = true)
+    public AdminPaymentDTO getPaymentByOrderCode(Long orderCode) {
+        ensureAdmin();
+        PaymentEntity payment = paymentRepository.findByOrderCode(orderCode)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn với mã: " + orderCode));
+        return toAdminPaymentDTO(payment);
+    }
+
+    @Transactional
+    public void deletePayment(Long orderCode) {
+        ensureAdmin();
+        PaymentEntity payment = paymentRepository.findByOrderCode(orderCode)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn với mã: " + orderCode));
+        paymentRepository.delete(payment);
+    }
+
     private boolean containsKeyword(PaymentEntity payment, String keyword) {
         String orderCode = payment.getOrderCode() != null ? String.valueOf(payment.getOrderCode()) : "";
         String description = payment.getDescription() != null ? payment.getDescription().toLowerCase(Locale.ROOT) : "";
@@ -104,7 +120,7 @@ public class AdminService {
 
     public void sendBroadcast(AdminBroadcastDTO dto) {
         ensureAdmin();
-        notificationService.createBroadcast(dto.getTitle(), dto.getMessage());
+        notificationService.createBroadcast(dto.getTitle(), dto.getMessage(), dto.getType());
     }
 
     @Transactional(readOnly = true)
@@ -131,6 +147,13 @@ public class AdminService {
         }
         notification.setTitle(dto.getTitle());
         notification.setMessage(dto.getMessage());
+        if (dto.getType() != null) {
+            try {
+                notification.setType(NotificationType.valueOf(dto.getType().toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                // Keep default or previous
+            }
+        }
         notificationRepository.save(notification);
     }
 
@@ -146,6 +169,20 @@ public class AdminService {
         notificationReadRepository.deleteByNotificationId(id);
         notificationRepository.delete(notification);
     }
+
+    @Transactional
+    public void deleteBroadcasts(List<Long> ids) {
+        ensureAdmin();
+        List<NotificationEntity> notifications = notificationRepository.findAllById(ids);
+        for (NotificationEntity notification : notifications) {
+            if (notification.getProfile() != null) {
+                throw new RuntimeException("Chỉ có thể xoá thông báo broadcast: " + notification.getId());
+            }
+            notificationReadRepository.deleteByNotificationId(notification.getId());
+            notificationRepository.delete(notification);
+        }
+    }
+
 
     // ─── User CRUD ───────────────────────────────────────────────────
 

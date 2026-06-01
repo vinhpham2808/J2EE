@@ -1,5 +1,6 @@
 package com.example.moneymanager.controller;
 
+import com.example.moneymanager.dto.MonthlyReportAiAnalysisRequestDTO;
 import com.example.moneymanager.dto.MonthlyReportCardDTO;
 import com.example.moneymanager.service.MonthlyReportCardService;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +42,22 @@ public class MonthlyReportCardController {
             return ResponseEntity.ok(Map.of(
                     "success", true,
                     "data", report
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()
+            ));
+        }
+    }
+
+    @PostMapping("/monthly/ai-analysis")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> analyzeMonthlyReportWithAi(@RequestBody MonthlyReportAiAnalysisRequestDTO request) {
+        try {
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "reply", monthlyReportCardService.analyzeReportWithAi(request)
             ));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of(

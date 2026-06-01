@@ -36,7 +36,7 @@ body {
 
 .add-btn {
   @apply flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold cursor-pointer
-         bg-violet-600 hover:bg-violet-500 text-white transition duration-150 active:scale-95;
+         bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-md shadow-violet-600/10 hover:shadow-violet-600/25 transition-all duration-200 hover:-translate-y-0.5 active:scale-95;
 }
 
 /* ───────────────────────────────────────────────────────────── */
@@ -44,7 +44,15 @@ body {
 /* ───────────────────────────────────────────────────────────── */
 
 .btn-primary {
-  @apply w-full rounded-xl bg-violet-600 hover:bg-violet-500 px-4 py-3 text-sm font-semibold text-white transition duration-150 active:scale-95 cursor-pointer;
+  @apply w-full rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 px-4 py-3 text-sm font-bold text-white transition-all duration-300 active:scale-[0.98] cursor-pointer shadow-lg shadow-violet-600/10 hover:shadow-violet-600/25 hover:-translate-y-0.5;
+}
+
+.btn-secondary {
+  @apply rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-all duration-300 active:scale-[0.98] cursor-pointer border border-slate-200 bg-white/80 hover:bg-slate-50 hover:-translate-y-0.5 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10 dark:hover:border-white/15;
+}
+
+.btn-accent {
+  @apply rounded-xl px-4 py-3 text-sm font-bold text-white transition-all duration-300 active:scale-[0.98] cursor-pointer bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 shadow-lg shadow-amber-500/10 hover:shadow-amber-500/25 hover:-translate-y-0.5;
 }
 
 /* ───────────────────────────────────────────────────────────── */
@@ -62,11 +70,19 @@ body {
 }
 
 .form-input {
-  @apply w-full mt-1 px-4 py-2.5 rounded-xl text-sm outline-none transition-colors
-         bg-slate-100 border border-slate-200 text-slate-900 placeholder-slate-400
-         focus:border-violet-500 focus:ring-1 focus:ring-violet-500/30
+  @apply w-full mt-1 px-4 py-2.5 rounded-xl text-sm outline-none transition-all duration-300
+         bg-slate-100/50 border border-slate-200 text-slate-900 placeholder-slate-400
+         focus:bg-white focus:border-violet-500 focus:ring-1 focus:ring-violet-500/20 focus:shadow-[0_0_15px_rgba(139,92,246,0.1)]
          dark:bg-white/5 dark:border-white/10 dark:text-white dark:placeholder-slate-500
-         dark:focus:border-amber-500 dark:focus:ring-amber-500/30;
+         dark:focus:bg-slate-900/60 dark:focus:border-amber-500 dark:focus:ring-amber-500/20 dark:focus:shadow-[0_0_15px_rgba(245,158,11,0.1)];
+}
+
+.search-input {
+  @apply w-full px-4 py-2.5 rounded-xl text-sm outline-none transition-all duration-300
+         bg-slate-100/50 border border-slate-200 text-slate-900 placeholder-slate-400
+         focus:bg-white focus:border-violet-500 focus:ring-1 focus:ring-violet-500/20 focus:shadow-[0_0_15px_rgba(139,92,246,0.1)]
+         dark:bg-white/5 dark:border-white/10 dark:text-white dark:placeholder-slate-500
+         dark:focus:bg-slate-900/60 dark:focus:border-amber-500 dark:focus:ring-amber-500/20 dark:focus:shadow-[0_0_15px_rgba(245,158,11,0.1)];
 }
 
 /* ───────────────────────────────────────────────────────────── */
@@ -242,4 +258,236 @@ html[data-performance="low"] *::after {
   animation-duration: 0.01ms !important;
   animation-iteration-count: 1 !important;
   transition-duration: 0.01ms !important;
+}
+
+/* ───────────────────────────────────────────────────────────── */
+/* GLOBAL LOADING SCREEN                                         */
+/* ───────────────────────────────────────────────────────────── */
+
+.global-loading-overlay {
+  background-color: rgba(248, 250, 252, 0.88);
+  /* Bỏ backdrop-filter blur - rất nặng GPU, gây lag */
+  transition: opacity 120ms ease-out;
+  will-change: opacity;
+}
+
+.dark .global-loading-overlay {
+  background-color: rgba(10, 14, 26, 0.90);
+}
+
+/* Sleek Top Progress Bar Loader */
+.top-loader-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 9999;
+  background-color: transparent;
+  overflow: hidden;
+  pointer-events: none; /* User can click through it */
+  transition: opacity 200ms ease-out;
+}
+
+.top-loader-progress {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #7c3aed, #ec4899, #f59e0b, #7c3aed);
+  background-size: 300% 100%;
+  width: 100%;
+  animation: top-loader-slide 2.2s infinite linear;
+}
+
+@keyframes top-loader-slide {
+  0% {
+    transform: translateX(-100%);
+    background-position: 0% 50%;
+  }
+  50% {
+    transform: translateX(0%);
+    background-position: 100% 50%;
+  }
+  100% {
+    transform: translateX(100%);
+    background-position: 0% 50%;
+  }
+}
+
+.global-spinner-ring {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 3px solid rgba(124, 58, 237, 0.15);
+  border-top-color: #7c3aed;
+  border-right-color: #7c3aed;
+  animation: global-spin 0.75s linear infinite;
+  will-change: transform;
+}
+
+/* Glow effect đặt trên wrapper thay vì spinner để tránh repaint mỗi frame */
+.global-spinner-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 0 10px rgba(124, 58, 237, 0.4));
+}
+
+.dark .global-spinner-wrapper {
+  filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.4));
+}
+
+.dark .global-spinner-ring {
+  border-color: rgba(245, 158, 11, 0.15);
+  border-top-color: #f59e0b;
+  border-right-color: #f59e0b;
+}
+
+@keyframes global-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Low-performance mode overrides */
+html[data-performance="low"] .global-loading-overlay {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background-color: rgba(255, 255, 255, 0.95) !important;
+}
+
+html[data-performance="low"] .dark .global-loading-overlay {
+  background-color: rgba(10, 14, 26, 0.95) !important;
+}
+
+html[data-performance="low"] .global-spinner-ring {
+  animation: global-spin 1.5s linear infinite !important;
+}
+html[data-performance="low"] .global-spinner-wrapper {
+  filter: none !important;
+}
+
+/* ───────────────────────────────────────────────────────────── */
+/* PREMIUM MESSAGE ENTRY ANIMATION                              */
+ /* ───────────────────────────────────────────────────────────── */
+ @keyframes slide-up-fade {
+   from {
+     opacity: 0;
+     transform: translateY(12px);
+   }
+   to {
+     opacity: 1;
+     transform: translateY(0);
+   }
+ }
+
+.animate-msg-appear {
+  animation: slide-up-fade 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ───────────────────────────────────────────────────────────── */
+/* PREMIUM TOAST & MODAL ANIMATIONS                              */
+/* ───────────────────────────────────────────────────────────── */
+
+@keyframes modal-backdrop-in {
+  from { opacity: 0; backdrop-filter: blur(0px); }
+  to { opacity: 1; backdrop-filter: blur(8px); }
+}
+
+@keyframes modal-content-in {
+  from { opacity: 0; transform: scale(0.95) translateY(12px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes toast-spring-in {
+  0% { transform: scale(0.9) translateY(-12px); opacity: 0; }
+  70% { transform: scale(1.02) translateY(2px); opacity: 0.9; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@keyframes halo-pulse {
+  0% { transform: scale(0.95); opacity: 0.6; }
+  50% { transform: scale(1.2); opacity: 0.25; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+.animate-modal-backdrop {
+  animation: modal-backdrop-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-modal-content {
+  animation: modal-content-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-toast-spring {
+  animation: toast-spring-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-halo-pulse {
+  animation: halo-pulse 2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+/* ───────────────────────────────────────────────────────────── */
+/* MODERN CUSTOM SCROLLBAR                                       */
+/* ───────────────────────────────────────────────────────────── */
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(124, 58, 237, 0.12);
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(124, 58, 237, 0.3);
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(245, 158, 11, 0.12);
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(245, 158, 11, 0.3);
+}
+
+/* ───────────────────────────────────────────────────────────── */
+/* RECHARTS PREMIUM MICRO-ANIMATIONS                             */
+/* ───────────────────────────────────────────────────────────── */
+
+.recharts-bar-rectangle {
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, filter 0.2s ease;
+  cursor: pointer;
+  transform-origin: bottom;
+}
+
+.recharts-bar-rectangle:hover {
+  transform: scaleY(1.03);
+  opacity: 0.95;
+  filter: brightness(1.08) drop-shadow(0px 6px 12px rgba(99, 102, 241, 0.18));
+}
+
+.dark .recharts-bar-rectangle:hover {
+  filter: brightness(1.15) drop-shadow(0px 6px 15px rgba(167, 139, 250, 0.3));
+}
+
+.recharts-pie-sector {
+  transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), filter 0.25s ease;
+  cursor: pointer;
+}
+
+.recharts-pie-sector:hover {
+  opacity: 0.92;
+  filter: brightness(1.08) drop-shadow(0px 4px 10px rgba(99, 102, 241, 0.22));
+}
+
+.dark .recharts-pie-sector:hover {
+  filter: brightness(1.15) drop-shadow(0px 5px 12px rgba(167, 139, 250, 0.35));
 }

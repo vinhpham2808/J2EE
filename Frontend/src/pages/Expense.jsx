@@ -14,7 +14,10 @@ import AddExpenseForm from "../components/AddExpenseForm.jsx";
 import EditExpenseForm from "../components/EditExpenseForm.jsx";
 import DeleteAlert from "../components/DeleteAlert.jsx";
 import QuickExpenseTemplates from "../components/QuickExpenseTemplates.jsx";
+import TransactionCalendar from "../components/TransactionCalendar.jsx";
 import { usePageTitle } from "../hooks/usePageTitle.js";
+import DateInput from "../components/DateInput.jsx";
+import { getTodayIsoDate, isIsoDateAfter, normalizeToIsoDate } from "../util/dateInput.js";
 
 const Expense = () => {
   useUser();
@@ -22,17 +25,19 @@ const Expense = () => {
   const { user } = useContext(AppContext);
   const [expenseData, setExpenseData] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [openAddExpenseModal, setOpenAddExpenseModal] = useState(false);
   const [openEditExpenseModal, setOpenEditExpenseModal] = useState(false);
   const [expenseToEdit, setExpenseToEdit] = useState(null);
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState(() => getTodayIsoDate());
+  const handleSelectCalendarDate = (date) => {
+    setSelectedCalendarDate(date);
+    setOpenAddExpenseModal(true);
+  };
   const [openDeleteAlert, setOpenDeleteAlert] = useState({ show: false, data: null });
   const [isImportingReceipt, setIsImportingReceipt] = useState(false);
   const [isConfirmingImport, setIsConfirmingImport] = useState(false);
   const [openReceiptPreviewModal, setOpenReceiptPreviewModal] = useState(false);
   const [receiptPreview, setReceiptPreview] = useState(null);
-  const [expensesLoaded, setExpensesLoaded] = useState(false);
-  const [showAllExpenses, setShowAllExpenses] = useState(false);
   const [jars, setJars] = useState([]);
   const [openFormatInfoModal, setOpenFormatInfoModal] = useState(false);
   const receiptFileInputRef = useRef(null);
@@ -43,15 +48,12 @@ const Expense = () => {
   const receiptImportUpgradeMessage = "Tính năng kiểm tra hoá đơn bằng ảnh chỉ có ở gói Premium. Vui lòng nâng cấp để tiếp tục";
 
   const fetchExpenseDetails = async () => {
-    setLoading(true);
     try {
       const response = await axiosConfig.get(`${API_ENDPOINTS.GET_ALL_EXPENSE}?all=true`);
       if (response.data) setExpenseData(response.data);
     } catch (error) {
       console.error("Failed to fetch expense details:", error);
-      toast.error("Không thể tải chi tiết chi tiêu.");
-    } finally {
-      setLoading(false);
+      toast.error(error.response?.data?.message || "Không thể tải chi tiết chi tiêu.");
     }
   };
 
@@ -71,7 +73,7 @@ const Expense = () => {
       return [];
     } catch (error) {
       console.error("Failed to fetch expense categories:", error);
-      toast.error("Không thể tải danh mục chi tiêu.");
+      toast.error(error.response?.data?.message || "Không thể tải danh mục chi tiêu.");
       return [];
     }
   };
@@ -82,8 +84,8 @@ const Expense = () => {
     if (!categoryId) { toast.error("Vui lòng chọn danh mục."); return; }
     if (!amount || isNaN(amount) || Number(amount) <= 0) { toast.error("Số tiền phải lớn hơn 0."); return; }
     if (!date) { toast.error("Vui lòng chọn ngày."); return; }
-    const today = new Date().toISOString().split("T")[0];
-    if (date > today) { toast.error("Ngày không được chọn ở tương lai."); return; }
+    const today = getTodayIsoDate();
+    if (isIsoDateAfter(date, today)) { toast.error("Ngày không được chọn ở tương lai."); return; }
 
     try {
       const response = await axiosConfig.post(API_ENDPOINTS.ADD_EXPENSE, { name, categoryId, amount: Number(amount), date, icon, jarId });
@@ -125,8 +127,8 @@ const Expense = () => {
     if (!categoryId) { toast.error("Vui lòng chọn danh mục."); return; }
     if (!amount || isNaN(amount) || Number(amount) <= 0) { toast.error("Số tiền phải lớn hơn 0."); return; }
     if (!date) { toast.error("Vui lòng chọn ngày."); return; }
-    const today = new Date().toISOString().split("T")[0];
-    if (date > today) { toast.error("Ngày không được chọn ở tương lai."); return; }
+    const today = getTodayIsoDate();
+    if (isIsoDateAfter(date, today)) { toast.error("Ngày không được chọn ở tương lai."); return; }
 
     try {
       const response = await axiosConfig.put(API_ENDPOINTS.UPDATE_EXPENSE(id), { name, categoryId, amount: Number(amount), date, icon, jarId });
@@ -173,7 +175,7 @@ const Expense = () => {
           try {
             const data = JSON.parse(reader.result);
             toast.error(data.message || "Bạn thao tác quá nhanh.");
-          } catch (e) {
+          } catch {
             toast.error("Bạn đã bị giới hạn tính năng này.");
           }
         };
@@ -191,9 +193,9 @@ const Expense = () => {
       const response = await axiosConfig.get(API_ENDPOINTS.EMAIL_EXPENSE);
       toast.dismiss(loadingToast);
       if (response.status === 200) toast.success("Đã gửi Email thành công!");
-    } catch (e) {
+    } catch (error) {
       toast.dismiss(loadingToast);
-      toast.error(e.response?.data?.message || "Lỗi khi gửi email báo cáo.");
+      toast.error(error.response?.data?.message || "Lỗi khi gửi email báo cáo.");
     }
   };
 
@@ -222,11 +224,11 @@ const Expense = () => {
       setReceiptPreview({
         merchant: response.data?.merchant || "",
         location: response.data?.location || "",
-        receiptDate: response.data?.receiptDate || new Date().toISOString().split("T")[0],
+        receiptDate: normalizeToIsoDate(response.data?.receiptDate) || getTodayIsoDate(),
         jarId: "",
         items: (response.data?.items || []).map((item) => ({
           name: item?.name || "", amount: item?.amount ?? "", categoryId: item?.categoryId ?? "",
-          icon: item?.icon || "", date: item?.date || response.data?.receiptDate || new Date().toISOString().split("T")[0],
+          icon: item?.icon || "", date: normalizeToIsoDate(item?.date) || normalizeToIsoDate(response.data?.receiptDate) || getTodayIsoDate(),
         })),
       });
       setOpenReceiptPreviewModal(true);
@@ -281,15 +283,22 @@ const Expense = () => {
 
   return (
     <Dashboard activeMenu="Expense">
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <ExpenseOverview
-          transactions={expenseData}
           onExpenseIncome={() => setOpenAddExpenseModal(true)}
           onImportReceipt={handleOpenReceiptPicker}
           isImportingReceipt={isImportingReceipt}
           onOpenFormatInfo={() => setOpenFormatInfoModal(true)}
         />
         <input ref={receiptFileInputRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={handleImportReceipt} disabled={isImportingReceipt} />
+
+        <TransactionCalendar
+          transactions={expenseData}
+          type="expense"
+          onEdit={(exp) => { setExpenseToEdit(exp); setOpenEditExpenseModal(true); }}
+          onDelete={(id) => setOpenDeleteAlert({ show: true, data: id })}
+          onSelectDate={handleSelectCalendarDate}
+        />
 
         {/* Quick Expense Templates */}
         <QuickExpenseTemplates
@@ -308,7 +317,7 @@ const Expense = () => {
         />
 
         <Modal isOpen={openAddExpenseModal} onClose={() => setOpenAddExpenseModal(false)} title="Thêm chi tiêu">
-          <AddExpenseForm onAddExpense={handleAddExpense} categories={categories} jars={jars} />
+          <AddExpenseForm onAddExpense={handleAddExpense} categories={categories} jars={jars} initialDate={selectedCalendarDate} />
         </Modal>
 
         <Modal isOpen={openEditExpenseModal} onClose={() => { setOpenEditExpenseModal(false); setExpenseToEdit(null); }} title="Chỉnh sửa chi tiêu">
@@ -318,7 +327,11 @@ const Expense = () => {
         </Modal>
 
         <Modal isOpen={openDeleteAlert.show} onClose={() => setOpenDeleteAlert({ show: false, data: null })} title="Xóa chi tiêu">
-          <DeleteAlert content="Bạn có chắc chắn muốn xóa chi tiêu này không?" onDelete={() => deleteExpense(openDeleteAlert.data)} />
+          <DeleteAlert 
+            content="Bạn có chắc chắn muốn xóa chi tiêu này không?" 
+            onDelete={() => deleteExpense(openDeleteAlert.data)} 
+            onCancel={() => setOpenDeleteAlert({ show: false, data: null })}
+          />
         </Modal>
 
         {/* Format Info Modal */}
@@ -367,7 +380,7 @@ const Expense = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Ngày hóa đơn</label>
-                <input type="date" className={inputCls} value={receiptPreview?.receiptDate || ""} onChange={(e) => handlePreviewFieldChange("receiptDate", e.target.value)} />
+                <DateInput className={inputCls} value={receiptPreview?.receiptDate || ""} onChange={(e) => handlePreviewFieldChange("receiptDate", e.target.value)} />
               </div>
               {jars.length > 0 && (
                 <div>
@@ -429,7 +442,7 @@ const Expense = () => {
                     </div>
                     <div className="md:col-span-2">
                       <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Ngày</label>
-                      <input type="date" className={inputCls} value={item.date || receiptPreview?.receiptDate || ""} onChange={(e) => handlePreviewItemChange(index, "date", e.target.value)} />
+                      <DateInput className={inputCls} value={item.date || receiptPreview?.receiptDate || ""} onChange={(e) => handlePreviewItemChange(index, "date", e.target.value)} />
                     </div>
                     <div className="md:col-span-1 flex md:justify-end">
                       <button type="button" className="rounded-xl border border-red-200 dark:border-red-500/30 px-2 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors" onClick={() => handleRemovePreviewItem(index)}>

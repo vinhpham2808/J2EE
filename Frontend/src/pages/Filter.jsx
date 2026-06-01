@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 import TransactionInfoCard from "../components/TransactionInfoCard.jsx";
 import moment from "moment";
 import { usePageTitle } from "../hooks/usePageTitle.js";
+import DateInput from "../components/DateInput.jsx";
 
 const Filter = () => {
     useUser();
@@ -82,10 +83,9 @@ const Filter = () => {
                             <label htmlFor="startdate" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1.5">
                                 Từ ngày
                             </label>
-                            <input
+                            <DateInput
                                 value={startDate}
                                 id="startdate"
-                                type="date"
                                 className="w-full rounded-xl px-3.5 py-2.5 text-sm outline-none transition-colors
                                     bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10
                                     text-slate-900 dark:text-white
@@ -98,10 +98,9 @@ const Filter = () => {
                             <label htmlFor="enddate" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1.5">
                                 Đến ngày
                             </label>
-                            <input
+                            <DateInput
                                 value={endDate}
                                 id="enddate"
-                                type="date"
                                 className="w-full rounded-xl px-3.5 py-2.5 text-sm outline-none transition-colors
                                     bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10
                                     text-slate-900 dark:text-white
@@ -135,29 +134,29 @@ const Filter = () => {
                                 className="w-full rounded-xl px-3.5 py-2.5 text-sm outline-none transition-colors bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:border-violet-500 dark:focus:border-amber-500 focus:ring-1 focus:ring-violet-500/30 dark:focus:ring-amber-500/30"
                             />
                         </div>
-                        <div className="flex items-end gap-2">
-                            <div className="flex-1">
-                                <label htmlFor="keyword" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1.5">
-                                    Tìm kiếm
-                                </label>
-                                <input
-                                    value={keyword}
-                                    id="keyword"
-                                    type="text"
-                                    placeholder="Từ khóa..."
-                                    className="w-full rounded-xl px-3.5 py-2.5 text-sm outline-none transition-colors
-                                        bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10
-                                        text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500
-                                        focus:border-violet-500 dark:focus:border-amber-500 focus:ring-1 focus:ring-violet-500/30 dark:focus:ring-amber-500/30"
-                                    onChange={e => setKeyword(e.target.value)}
-                                />
+                        <div className="flex flex-col">
+                            <label htmlFor="keyword" className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1.5">
+                                Tìm kiếm
+                            </label>
+                            <div className="flex items-center gap-2 w-full">
+                                <div className="relative flex-1 group">
+                                    <input
+                                        value={keyword}
+                                        id="keyword"
+                                        type="text"
+                                        placeholder="Từ khóa..."
+                                        className="search-input pl-10 w-full"
+                                        onChange={e => setKeyword(e.target.value)}
+                                    />
+                                    <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-violet-500 dark:group-focus-within:text-amber-500 transition-colors pointer-events-none" />
+                                </div>
+                                <button
+                                    onClick={handleSearch}
+                                    className="shrink-0 p-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-md shadow-violet-600/10 hover:shadow-violet-600/25 transition-all duration-300 active:scale-[0.95] cursor-pointer"
+                                >
+                                    <Search size={18} />
+                                </button>
                             </div>
-                            <button
-                                onClick={handleSearch}
-                                className="shrink-0 p-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white transition duration-150 transform-gpu active:scale-95 cursor-pointer"
-                            >
-                                <Search size={20} />
-                            </button>
                         </div>
                     </form>
                 </div>
@@ -174,9 +173,19 @@ const Filter = () => {
                     </h5>
 
                     {loading ? (
-                        <div className="flex flex-col items-center justify-center py-16 text-center">
-                            <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 dark:border-white/10 border-t-violet-600 dark:border-t-amber-500"></div>
-                            <p className="mt-4 text-slate-500 dark:text-slate-400">Đang tải giao dịch...</p>
+                        <div className="space-y-3">
+                            {[1, 2, 3, 4].map((i) => (
+                                <div key={i} className="flex items-center justify-between p-4 rounded-xl border border-slate-200/60 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] animate-pulse">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-white/10" />
+                                        <div className="space-y-2">
+                                            <div className="h-4 w-32 bg-slate-200 dark:bg-white/10 rounded" />
+                                            <div className="h-3 w-20 bg-slate-200 dark:bg-white/10 rounded" />
+                                        </div>
+                                    </div>
+                                    <div className="h-5 w-24 bg-slate-200 dark:bg-white/10 rounded-lg" />
+                                </div>
+                            ))}
                         </div>
                     ) : transactions.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed border-slate-100 dark:border-white/10 rounded-xl bg-slate-50/50 dark:bg-white/3">

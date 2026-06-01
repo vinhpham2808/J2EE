@@ -1,6 +1,5 @@
 package com.example.moneymanager.service;
 
-import com.example.moneymanager.dto.ExpenseDTO;
 import com.example.moneymanager.dto.ForecastDTOs.*;
 import com.example.moneymanager.entity.ExpenseEntity;
 import com.example.moneymanager.entity.ProfileEntity;
@@ -8,10 +7,14 @@ import com.example.moneymanager.repository.ExpenseRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import java.text.NumberFormat;
+import java.util.Locale;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -19,203 +22,200 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional(readOnly = true)
 public class ForecastService {
 
     private final ExpenseRepository expenseRepository;
-    private final GptOssService gptOssService;
-    private final SubscriptionService subscriptionService;
     private final ProfileService profileService;
+    private final GptOssService gptOssService;
 
     public MonthlyForecastDTO getMonthlyForecast(int year, int month) {
         ProfileEntity profile = profileService.getCurrentProfile();
-        subscriptionService.ensureCanUseForecast(profile);
-
-        YearMonth targetMonth = YearMonth.of(year, month);
-        LocalDate startDate = targetMonth.minusMonths(6).atDay(1);
-        LocalDate endDate = targetMonth.minusMonths(1).atEndOfMonth();
-
-        List<ExpenseEntity> historicalExpenses = expenseRepository.findByProfileIdAndDateBetween(
+        
+        LocalDate startDate = LocalDate.now().minusMonths(6).withDayOfMonth(1);
+        LocalDate endDate = LocalDate.now();
+        
+        List<ExpenseEntity> expenses = expenseRepository.findByProfileIdAndDateBetween(
                 profile.getId(), startDate, endDate);
 
+        // Group by category and month using Map
+        Map<Long, Map<YearMonth, BigDecimal>> categoryMonthTotals = new HashMap<>();
         Map<Long, String> categoryNames = new HashMap<>();
-        Map<Long, List<MonthlyTotal>> categoryHistory = new HashMap<>();
-
-        for (ExpenseEntity e : historicalExpenses) {
-            if (e.getCategory() == null) continue;
-            Long catId = e.getCategory().getId();
-            categoryNames.putIfAbsent(catId, e.getCategory().getName());
-
-            YearMonth ym = YearMonth.from(e.getDate());
-            categoryHistory.putIfAbsent(catId, new ArrayList<>());
+        
+        for (ExpenseEntity expense : expenses) {
+            Long catId = expense.getCategory().getId();
+            YearMonth ym = YearMonth.from(expense.getDate());
             
-            MonthlyTotal mt = categoryHistory.get(catId).stream()
-                    .filter(m -> m.yearMonth.equals(ym))
-                    .findFirst()
-                    .orElseGet(() -> {
-                        MonthlyTotal newMt = new MonthlyTotal(ym, BigDecimal.ZERO);
-                        categoryHistory.get(catId).add(newMt);
-                        return newMt;
-                    });
-            mt.total = mt.total.add(e.getAmount());
+            categoryNames.putIfAbsent(catId, expense.getCategory().getName());
+            categoryMonthTotals.computeIfAbsent(catId, k -> new HashMap<>())
+                    .merge(ym, expense.getAmount(), BigDecimal::add);
         }
 
-        List<CategoryForecastItem> categories = new ArrayList<>();
-        for (Map.Entry<Long, List<MonthlyTotal>> entry : categoryHistory.entrySet()) {
+        List<CategoryForecastItem> forecasts = new ArrayList<>();
+        YearMonth targetMonth = YearMonth.of(year, month);
+        
+        for (Map.Entry<Long, Map<YearMonth, BigDecimal>> entry : categoryMonthTotals.entrySet()) {
             Long catId = entry.getKey();
-            List<MonthlyTotal> history = entry.getValue();
+            Map<YearMonth, BigDecimal> monthTotals = entry.getValue();
             
-            if (history.isEmpty()) continue;
-
-            BigDecimal sum = history.stream().map(h -> h.total).reduce(BigDecimal.ZERO, BigDecimal::add);
-            BigDecimal avg = sum.divide(BigDecimal.valueOf(history.size()), 2, RoundingMode.HALF_UP);
-
-            // Simple trend: comparing last month to average
-            MonthlyTotal lastMonthTotal = history.stream()
-                    .filter(h -> h.yearMonth.equals(targetMonth.minusMonths(1)))
-                    .findFirst()
-                    .orElse(new MonthlyTotal(targetMonth.minusMonths(1), BigDecimal.ZERO));
-
-            String trend = "STABLE";
-            if (lastMonthTotal.total.compareTo(avg.multiply(BigDecimal.valueOf(1.1))) > 0) trend = "UP";
-            else if (lastMonthTotal.total.compareTo(avg.multiply(BigDecimal.valueOf(0.9))) < 0) trend = "DOWN";
-
-            // Prediction: simple moving average + trend adjustment
-            BigDecimal predicted = avg;
-            if (trend.equals("UP")) predicted = avg.multiply(BigDecimal.valueOf(1.05));
-            else if (trend.equals("DOWN")) predicted = avg.multiply(BigDecimal.valueOf(0.95));
-
-            categories.add(CategoryForecastItem.builder()
+            // Calculate average and trend
+            BigDecimal total = monthTotals.values().stream()
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal avg = total.divide(BigDecimal.valueOf(monthTotals.size()), 2, RoundingMode.HALF_UP);
+            
+            // Trend: compare last 3 months to previous 3 months
+            BigDecimal recentSum = BigDecimal.ZERO;
+            BigDecimal olderSum = BigDecimal.ZERO;
+            int recentCount = 0, olderCount = 0;
+            
+            for (Map.Entry<YearMonth, BigDecimal> mt : monthTotals.entrySet()) {
+                YearMonth ym = mt.getKey();
+                long monthsDiff = java.time.temporal.ChronoUnit.MONTHS.between(ym, LocalDate.now());
+                if (monthsDiff <= 3) {
+                    recentSum = recentSum.add(mt.getValue());
+                    recentCount++;
+                } else if (monthsDiff <= 6) {
+                    olderSum = olderSum.add(mt.getValue());
+                    olderCount++;
+                }
+            }
+            
+            BigDecimal recentAvg = recentCount > 0 ? recentSum.divide(BigDecimal.valueOf(recentCount), 2, RoundingMode.HALF_UP) : avg;
+            BigDecimal olderAvg = olderCount > 0 ? olderSum.divide(BigDecimal.valueOf(olderCount), 2, RoundingMode.HALF_UP) : avg;
+            
+            String trend = recentAvg.compareTo(olderAvg.multiply(new BigDecimal("1.1"))) > 0 ? "UP" :
+                          recentAvg.compareTo(olderAvg.multiply(new BigDecimal("0.9"))) < 0 ? "DOWN" : "STABLE";
+            
+            // Forecast: use recent average * trend factor
+            BigDecimal predicted = trend.equals("UP") ? recentAvg.multiply(new BigDecimal("1.05")) :
+                                   trend.equals("DOWN") ? recentAvg.multiply(new BigDecimal("0.95")) : recentAvg;
+            
+            CategoryForecastItem item = CategoryForecastItem.builder()
                     .categoryId(catId)
                     .categoryName(categoryNames.get(catId))
                     .predictedAmount(predicted)
                     .historicalAverage(avg)
                     .trend(trend)
-                    .build());
+                    .build();
+            
+            forecasts.add(item);
         }
 
         return MonthlyForecastDTO.builder()
                 .year(year)
                 .month(month)
-                .categories(categories)
+                .categories(forecasts)
                 .build();
     }
 
     public List<AnomalyDTO> detectAnomalies() {
-        ProfileEntity profile = profileService.getCurrentProfile();
-        subscriptionService.ensureCanUseForecast(profile);
-
-        LocalDate startDate = LocalDate.now().minusMonths(3).withDayOfMonth(1);
-        LocalDate endDate = LocalDate.now();
-
-        return detectAnomaliesBetween(profile, startDate, endDate, null);
+        return detectAnomalies(null, null);
     }
 
     public List<AnomalyDTO> detectAnomalies(Integer year, Integer month) {
-        ProfileEntity profile = profileService.getCurrentProfile();
-        subscriptionService.ensureCanUseForecast(profile);
-
-        if (year == null || month == null) {
-            LocalDate startDate = LocalDate.now().minusMonths(3).withDayOfMonth(1);
-            LocalDate endDate = LocalDate.now();
-            return detectAnomaliesBetween(profile, startDate, endDate, null);
+        if (year != null && month != null) {
+            LocalDate startDate = LocalDate.of(year, month, 1).minusMonths(3);
+            LocalDate endDate = LocalDate.of(year, month, 1).plusMonths(1).minusDays(1);
+            return detectAnomaliesInRange(startDate, endDate);
         }
-
-        YearMonth targetMonth = YearMonth.of(year, month);
-        LocalDate startDate = targetMonth.minusMonths(2).atDay(1);
-        LocalDate endDate = targetMonth.atEndOfMonth();
-
-        return detectAnomaliesBetween(profile, startDate, endDate, targetMonth);
+        return detectAnomaliesInRange(
+                LocalDate.now().minusMonths(3).withDayOfMonth(1),
+                LocalDate.now()
+        );
     }
 
-    private List<AnomalyDTO> detectAnomaliesBetween(
-            ProfileEntity profile,
-            LocalDate startDate,
-            LocalDate endDate,
-            YearMonth targetMonth) {
+    private List<AnomalyDTO> detectAnomaliesInRange(LocalDate startDate, LocalDate endDate) {
+        ProfileEntity profile = profileService.getCurrentProfile();
+        
         List<ExpenseEntity> expenses = expenseRepository.findByProfileIdAndDateBetween(
                 profile.getId(), startDate, endDate);
 
-        Map<Long, List<BigDecimal>> categoryAmounts = new HashMap<>();
+        // Group by category and month using Map
+        Map<Long, Map<YearMonth, List<BigDecimal>>> categoryMonthAmounts = new HashMap<>();
         Map<Long, String> categoryNames = new HashMap<>();
-
-        for (ExpenseEntity e : expenses) {
-            if (e.getCategory() == null) continue;
-            categoryAmounts.computeIfAbsent(e.getCategory().getId(), k -> new ArrayList<>()).add(e.getAmount());
-            categoryNames.putIfAbsent(e.getCategory().getId(), e.getCategory().getName());
+        
+        for (ExpenseEntity expense : expenses) {
+            if (expense.getCategory() == null) continue;
+            
+            Long catId = expense.getCategory().getId();
+            YearMonth ym = YearMonth.from(expense.getDate());
+            
+            categoryNames.putIfAbsent(catId, expense.getCategory().getName());
+            categoryMonthAmounts.computeIfAbsent(catId, k -> new HashMap<>())
+                    .computeIfAbsent(ym, k -> new ArrayList<>())
+                    .add(expense.getAmount());
         }
 
         List<AnomalyDTO> anomalies = new ArrayList<>();
-
-        for (ExpenseEntity e : expenses) {
-            if (e.getCategory() == null) continue;
-            if (targetMonth != null && !YearMonth.from(e.getDate()).equals(targetMonth)) continue;
-
-            Long catId = e.getCategory().getId();
-            List<BigDecimal> amounts = categoryAmounts.get(catId);
-
-            if (amounts.size() < 3) continue; // Need enough data points
-
-            // Leave-one-out: compute mean/stdDev excluding the current expense
-            List<BigDecimal> others = amounts.stream()
-                    .filter(a -> a != e.getAmount()) // identity comparison (same reference from list)
+        
+        for (Map.Entry<Long, Map<YearMonth, List<BigDecimal>>> catEntry : categoryMonthAmounts.entrySet()) {
+            Long catId = catEntry.getKey();
+            Map<YearMonth, List<BigDecimal>> monthAmounts = catEntry.getValue();
+            
+            // Calculate global stats for this category (avoid O(n²) leave-one-out)
+            List<BigDecimal> allAmounts = monthAmounts.values().stream()
+                    .flatMap(Collection::stream)
                     .collect(Collectors.toList());
-            // Fallback: if all amounts are identical objects, remove one by index
-            if (others.size() == amounts.size()) {
-                others = new ArrayList<>(amounts);
-                others.remove(amounts.indexOf(e.getAmount()));
-            }
-            if (others.isEmpty()) continue;
-
-            double otherSum = others.stream().mapToDouble(BigDecimal::doubleValue).sum();
-            double otherMean = otherSum / others.size();
-
-            double otherVariance = others.stream()
-                    .mapToDouble(a -> Math.pow(a.doubleValue() - otherMean, 2))
-                    .sum() / others.size();
-            double otherStdDev = Math.sqrt(otherVariance);
-
-            if (e.getAmount().doubleValue() > otherMean + 2 * otherStdDev && e.getAmount().doubleValue() > 50000) {
-                anomalies.add(AnomalyDTO.builder()
-                        .transactionId(e.getId())
-                        .type("EXPENSE")
-                        .amount(e.getAmount())
-                        .categoryName(e.getCategory().getName())
-                        .date(e.getDate().toString())
-                        .meanAmount(BigDecimal.valueOf(otherMean))
-                        .stdDev(BigDecimal.valueOf(otherStdDev))
-                        .build());
+            
+            if (allAmounts.size() < 3) continue;
+            
+            BigDecimal sum = allAmounts.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal mean = sum.divide(BigDecimal.valueOf(allAmounts.size()), 2, RoundingMode.HALF_UP);
+            
+            BigDecimal varianceSum = allAmounts.stream()
+                    .map(amount -> {
+                        BigDecimal diff = amount.subtract(mean);
+                        return diff.multiply(diff);
+                    })
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal stdDev = new BigDecimal(Math.sqrt(varianceSum.divide(BigDecimal.valueOf(allAmounts.size()), 4, RoundingMode.HALF_UP).doubleValue()));
+            
+            // Detect anomalies: amount > mean + 2*stdDev
+            BigDecimal threshold = mean.add(stdDev.multiply(new BigDecimal("2")));
+            
+            for (ExpenseEntity expense : expenses) {
+                if (expense.getCategory() == null || !expense.getCategory().getId().equals(catId)) continue;
+                if (expense.getAmount().compareTo(threshold) > 0 && expense.getAmount().compareTo(new BigDecimal("50000")) > 0) {
+                    anomalies.add(AnomalyDTO.builder()
+                            .transactionId(expense.getId())
+                            .type("EXPENSE")
+                            .amount(expense.getAmount())
+                            .categoryName(expense.getCategory().getName())
+                            .date(expense.getDate().toString())
+                            .meanAmount(mean)
+                            .stdDev(stdDev)
+                            .build());
+                }
             }
         }
-
-        // Return top 5 most recent
+        
         return anomalies.stream()
                 .sorted(Comparator.comparing(AnomalyDTO::getDate).reversed())
                 .limit(5)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     public CategoryTrendDTO getCategoryTrend(Long categoryId, int months) {
         ProfileEntity profile = profileService.getCurrentProfile();
-        subscriptionService.ensureCanUseForecast(profile);
-
-        LocalDate startDate = LocalDate.now().minusMonths(months).withDayOfMonth(1);
-        LocalDate endDate = LocalDate.now().withDayOfMonth(LocalDate.now().lengthOfMonth());
-
-        List<ExpenseEntity> expenses = expenseRepository.findByProfileIdAndDateBetween(
-                profile.getId(), startDate, endDate);
         
-        expenses = expenses.stream()
+        LocalDate startDate = LocalDate.now().minusMonths(months).withDayOfMonth(1);
+        LocalDate endDate = LocalDate.now();
+        
+        List<ExpenseEntity> expenses = expenseRepository.findByProfileIdAndDateBetween(
+                profile.getId(), startDate, endDate)
+                .stream()
                 .filter(e -> e.getCategory() != null && e.getCategory().getId().equals(categoryId))
                 .toList();
-
+        
         String categoryName = expenses.isEmpty() ? "Unknown" : expenses.get(0).getCategory().getName();
         
-        Map<YearMonth, BigDecimal> monthlyTotals = new TreeMap<>();
-        for (ExpenseEntity e : expenses) {
-            YearMonth ym = YearMonth.from(e.getDate());
-            monthlyTotals.merge(ym, e.getAmount(), BigDecimal::add);
+        // Group by month using Map
+        Map<YearMonth, BigDecimal> monthlyTotals = new HashMap<>();
+        for (ExpenseEntity expense : expenses) {
+            YearMonth ym = YearMonth.from(expense.getDate());
+            monthlyTotals.merge(ym, expense.getAmount(), BigDecimal::add);
         }
-
+        
         List<MonthlyDataPoint> dataPoints = new ArrayList<>();
         YearMonth current = YearMonth.from(startDate);
         YearMonth end = YearMonth.from(endDate);
@@ -224,43 +224,56 @@ public class ForecastService {
             dataPoints.add(MonthlyDataPoint.builder()
                     .yearMonth(current.toString())
                     .actual(monthlyTotals.getOrDefault(current, BigDecimal.ZERO))
-                    .predicted(BigDecimal.ZERO) // Simplified for trend
+                    .predicted(BigDecimal.ZERO)
                     .build());
             current = current.plusMonths(1);
         }
-
+        
         return CategoryTrendDTO.builder()
                 .categoryName(categoryName)
                 .dataPoints(dataPoints)
                 .build();
     }
 
-    public ForecastInsightDTO getGeminiInsights(MonthlyForecastDTO forecast) {
-        ProfileEntity profile = profileService.getCurrentProfile();
-        subscriptionService.ensureCanUseForecast(profile);
+    public ForecastInsightDTO analyzeForecastWithAi(MonthlyForecastDTO forecast) {
+        try {
+            if (forecast == null || forecast.getCategories() == null || forecast.getCategories().isEmpty()) {
+                return ForecastInsightDTO.builder()
+                        .narrative("Chưa có đủ dữ liệu lịch sử để tạo phân tích. Hãy thêm nhiều giao dịch hơn!")
+                        .generatedAt(LocalDateTime.now())
+                        .build();
+            }
 
-        StringBuilder prompt = new StringBuilder();
-        prompt.append("Tôi có số liệu dự báo chi tiêu tháng ").append(forecast.getMonth()).append("/").append(forecast.getYear()).append(":\n");
-        
-        for (CategoryForecastItem item : forecast.getCategories()) {
-            prompt.append("- ").append(item.getCategoryName()).append(": dự báo ")
-                  .append(item.getPredictedAmount()).append("đ (Trung bình lịch sử: ")
-                  .append(item.getHistoricalAverage()).append("đ, Xu hướng: ").append(item.getTrend()).append(")\n");
+            NumberFormat nf = NumberFormat.getInstance(new Locale("vi", "VN"));
+            StringBuilder sb = new StringBuilder();
+            sb.append("Dữ liệu dự báo chi tiêu tháng ").append(forecast.getMonth()).append("/").append(forecast.getYear()).append(":\n");
+            forecast.getCategories().forEach(c -> {
+                sb.append("- Danh mục ").append(c.getCategoryName())
+                  .append(": dự báo ").append(nf.format(c.getPredictedAmount())).append("đ")
+                  .append(" (trung bình ").append(nf.format(c.getHistoricalAverage())).append("đ")
+                  .append(", xu hướng: ").append(c.getTrend()).append(")\n");
+            });
+
+            String systemPrompt = "Bạn là chuyên gia tài chính cá nhân của ứng dụng Money Manager. "
+                    + "Phân tích dữ liệu dự báo chi tiêu sau và đưa ra nhận xét ngắn gọn, thực tế bằng tiếng Việt. "
+                    + "Tập trung vào: 1) Danh mục nào đang có xu hướng tăng đáng lo ngại? 2) Lời khuyên cụ thể để kiểm soát chi tiêu tháng tới. "
+                    + "Trả lời tối đa 120 từ. Không dùng markdown. Viết thân thiện, súc tích.";
+
+            String narrative = gptOssService.callWithPrompt(systemPrompt, sb.toString(), 512);
+            if (narrative == null || narrative.isBlank()) {
+                narrative = "Chưa thể tạo phân tích AI lúc này. Vui lòng thử lại sau.";
+            }
+
+            return ForecastInsightDTO.builder()
+                    .narrative(narrative)
+                    .generatedAt(LocalDateTime.now())
+                    .build();
+        } catch (Exception e) {
+            log.error("Error generating GPT-OSS forecast insight: {}", e.getMessage(), e);
+            return ForecastInsightDTO.builder()
+                    .narrative("AI đang bảo trì, vui lòng thử lại sau.")
+                    .generatedAt(LocalDateTime.now())
+                    .build();
         }
-        
-        prompt.append("Dựa vào thông tin trên, hãy viết một đoạn phân tích ngắn gọn bằng tiếng Việt — giọng ấm áp, thân thiện như người bạn quan tâm, không phán xét — và đưa ra lời khuyên thực tế để tiết kiệm chi phí trong tháng này. Trả lời tối đa 100 chữ.");
-
-        String insight = gptOssService.chat(prompt.toString()).getReply();
-
-        return ForecastInsightDTO.builder()
-                .narrative(insight)
-                .generatedAt(java.time.LocalDateTime.now())
-                .build();
-    }
-
-    private static class MonthlyTotal {
-        YearMonth yearMonth;
-        BigDecimal total;
-        MonthlyTotal(YearMonth ym, BigDecimal t) { this.yearMonth = ym; this.total = t; }
     }
 }

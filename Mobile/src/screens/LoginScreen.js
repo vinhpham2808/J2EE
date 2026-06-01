@@ -24,6 +24,7 @@ import {
 import { tokenStorage } from "../storage/tokenStorage";
 import appLogo from "../assets/applogo.png";
 import { COLORS } from "../constants/colors";
+import { scale, clampScale } from "../utils/dimensions";
 
 export default function LoginScreen() {
   const navigation = useNavigation();
@@ -245,69 +246,69 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: -120,
     left: -100,
-    width: 300,
-    height: 300,
-    borderRadius: 150,
+    width: scale(300),
+    height: scale(300),
+    borderRadius: scale(150),
     backgroundColor: COLORS.PRIMARY_GLOW
   },
   bgGlowBottom: {
     position: "absolute",
     right: -140,
     bottom: -120,
-    width: 320,
-    height: 320,
-    borderRadius: 160,
+    width: scale(320),
+    height: scale(320),
+    borderRadius: scale(160),
     backgroundColor: COLORS.PRIMARY_GLOW
   },
   content: {
     flexGrow: 1,
     justifyContent: "center",
-    paddingHorizontal: 16,
-    paddingTop: 70,
-    paddingBottom: 30
+    paddingHorizontal: scale(16),
+    paddingTop: scale(70),
+    paddingBottom: scale(30)
   },
   brandRow: {
     alignSelf: "center",
-    marginBottom: 20
+    marginBottom: scale(20)
   },
   brandLogo: {
-    width: 220,
-    height: 72
+    width: 90,
+    height: 90
   },
   title: {
     color: COLORS.DARK_TEXT,
-    fontSize: 24,
+    fontSize: clampScale(24, 20, 28),
     fontWeight: "700",
     textAlign: "center"
   },
   subtitle: {
-    marginTop: 8,
+    marginTop: scale(8),
     color: COLORS.DARK_TEXT_SECONDARY,
-    fontSize: 13,
+    fontSize: clampScale(13, 11, 15),
     textAlign: "center"
   },
   formCard: {
-    marginTop: 24,
-    borderRadius: 16,
+    marginTop: scale(24),
+    borderRadius: scale(16),
     borderWidth: 1,
     borderColor: COLORS.DARK_BORDER_LIGHT,
     backgroundColor: COLORS.DARK_CARD,
-    padding: 14
+    padding: scale(14)
   },
   inputWrap: {
-    borderRadius: 10,
+    borderRadius: scale(10),
     borderWidth: 1,
     borderColor: COLORS.DARK_BORDER,
     backgroundColor: COLORS.DARK_INPUT_BG,
-    marginBottom: 10
+    marginBottom: scale(10)
   },
   input: {
-    paddingVertical: 12,
-    paddingHorizontal: 12,
+    paddingVertical: scale(12),
+    paddingHorizontal: scale(12),
     color: COLORS.DARK_TEXT
   },
   rowBetween: {
-    marginTop: 2,
+    marginTop: scale(2),
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between"
@@ -321,19 +322,19 @@ const styles = StyleSheet.create({
   },
   rememberText: {
     color: COLORS.DARK_TEXT_SECONDARY,
-    fontSize: 12,
-    marginLeft: 2
+    fontSize: clampScale(12, 10, 14),
+    marginLeft: scale(2)
   },
   forgotText: {
     color: COLORS.PRIMARY_LIGHT,
-    fontSize: 12,
+    fontSize: clampScale(12, 10, 14),
     fontWeight: "600"
   },
   loginButton: {
-    marginTop: 14,
-    borderRadius: 10,
+    marginTop: scale(14),
+    borderRadius: scale(10),
     backgroundColor: COLORS.PRIMARY,
-    paddingVertical: 12,
+    paddingVertical: scale(12),
     alignItems: "center"
   },
   loginButtonDisabled: {
@@ -341,15 +342,15 @@ const styles = StyleSheet.create({
   },
   loginButtonText: {
     color: COLORS.DARK_TEXT,
-    fontSize: 15,
+    fontSize: clampScale(15, 13, 17),
     fontWeight: "800"
   },
   dividerRow: {
-    marginTop: 18,
-    marginBottom: 14,
+    marginTop: scale(18),
+    marginBottom: scale(14),
     flexDirection: "row",
     alignItems: "center",
-    gap: 8
+    gap: scale(8)
   },
   dividerLine: {
     flex: 1,
@@ -358,50 +359,50 @@ const styles = StyleSheet.create({
   },
   dividerText: {
     color: COLORS.DARK_TEXT_SECONDARY,
-    fontSize: 12
+    fontSize: clampScale(12, 10, 14)
   },
   socialRow: {
     flexDirection: "row",
-    gap: 10
+    gap: scale(10)
   },
   socialBtn: {
     flex: 1,
-    borderRadius: 10,
+    borderRadius: scale(10),
     borderWidth: 1,
     borderColor: COLORS.DARK_BORDER,
     backgroundColor: COLORS.DARK_INPUT_BG,
-    paddingVertical: 11,
+    paddingVertical: scale(11),
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8
+    gap: scale(8)
   },
   socialBtnDisabled: {
     opacity: 0.6
   },
   socialIcon: {
     color: COLORS.DARK_TEXT,
-    fontSize: 16,
+    fontSize: clampScale(16, 14, 18),
     fontWeight: "700"
   },
   socialLabel: {
     color: COLORS.DARK_TEXT,
     fontWeight: "600",
-    fontSize: 13
+    fontSize: clampScale(13, 11, 15)
   },
   signupRow: {
-    marginTop: 16,
+    marginTop: scale(16),
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center"
   },
   signupText: {
     color: COLORS.DARK_TEXT_SECONDARY,
-    fontSize: 12
+    fontSize: clampScale(12, 10, 14)
   },
   signupLink: {
     color: COLORS.PRIMARY_LIGHT,
-    fontSize: 12,
+    fontSize: clampScale(12, 10, 14),
     fontWeight: "700"
   }
 });

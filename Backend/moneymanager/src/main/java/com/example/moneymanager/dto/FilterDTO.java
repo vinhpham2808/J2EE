@@ -13,4 +13,6 @@ public class FilterDTO {
     private String keyword;
     private String sortField; //date, amount, name
     private String sortOrder; //asc or desc
+    private Integer page;
+    private Integer size;
 }

@@ -8,11 +8,13 @@ import com.example.moneymanager.entity.CategoryEntity;
 import com.example.moneymanager.entity.ExpenseEntity;
 import com.example.moneymanager.entity.ProfileEntity;
 import com.example.moneymanager.entity.JarEntity;
+import com.example.moneymanager.event.TransactionEvents;
 import com.example.moneymanager.repository.BudgetRepository;
 import com.example.moneymanager.repository.CategoryRepository;
 import com.example.moneymanager.repository.ExpenseRepository;
 import com.example.moneymanager.repository.JarRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -36,8 +39,10 @@ public class ExpenseService {
     private final NotificationService notificationService;
     private final BudgetRepository budgetRepository;
     private final JarRepository jarRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     // Adds a new expense and checks budget status
+    @Transactional
     public ExpenseResponseDTO addExpense(ExpenseDTO dto) {
         ProfileEntity profile = profileService.getCurrentProfile();
         subscriptionService.ensureCanCreateTransaction(profile, dto.getDate());
@@ -67,34 +72,20 @@ public class ExpenseService {
 
         // Lấy tháng/năm của giao dịch vừa thêm
         LocalDate expenseDate = newExpense.getDate() != null ? newExpense.getDate() : LocalDate.now();
-        int month = expenseDate.getMonthValue();
-        int year  = expenseDate.getYear();
 
-        // Kiểm tra trạng thái ngân sách
+        // Publish event — side-effects chạy async sau khi transaction commit
+        eventPublisher.publishEvent(new TransactionEvents.ExpenseCreated(
+                profile, newExpense.getName(), newExpense.getAmount(), category, expenseDate));
+
+        // Vẫn trả BudgetStatus đồng bộ cho response (chỉ đọc, không write)
         BudgetStatusDTO budgetStatus = budgetService.checkBudgetStatus(
-                profile.getId(), category.getId(), month, year);
-
-        // Notify expense added
-        notificationService.notifyExpenseAdded(profile, newExpense.getName(), newExpense.getAmount());
-
-        // Notify budget warning
-        notificationService.notifyBudgetWarning(profile, budgetStatus);
-
-        // Gửi email cảnh báo bất đồng bộ nếu có cảnh báo
-        if (budgetStatus.isHasBudget() && (budgetStatus.isExceeded() || budgetStatus.isWarning())) {
-            budgetService.sendBudgetAlertEmailAsync(profile, budgetStatus);
-        }
-
-        // ─── Smart Notification: Budget Threshold (70/80/90%) ─────
-        checkBudgetThresholds(profile, category.getId(), month, year);
-
-        // ─── Smart Notification: Abnormal Spending Check ──────────
-        notificationService.checkAbnormalSpendingAsync(profile, expenseDate);
+                profile.getId(), category.getId(), expenseDate.getMonthValue(), expenseDate.getYear());
 
         return toResponseDTO(newExpense, budgetStatus);
     }
 
     // Retrieves all expenses for current month/based on the start date and end date
+    @Transactional(readOnly = true)
     public List<ExpenseDTO> getCurrentMonthExpensesForCurrentUser() {
         ProfileEntity profile = profileService.getCurrentProfile();
         LocalDate now = LocalDate.now();
@@ -105,10 +96,28 @@ public class ExpenseService {
     }
 
     // Retrieves all expenses for current user
+    @Transactional(readOnly = true)
     public List<ExpenseDTO> getAllExpensesForCurrentUser() {
         ProfileEntity profile = profileService.getCurrentProfile();
         List<ExpenseEntity> list = expenseRepository.findByProfileIdOrderByDateDesc(profile.getId());
         return list.stream().map(this::toDTO).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ExpenseDTO> getExpensesForCurrentUser(Boolean all, int page, int size) {
+        ProfileEntity profile = profileService.getCurrentProfile();
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        
+        org.springframework.data.domain.Page<ExpenseEntity> expensePage;
+        if (Boolean.TRUE.equals(all)) {
+            expensePage = expenseRepository.findByProfileIdOrderByDateDesc(profile.getId(), pageable);
+        } else {
+            LocalDate now = LocalDate.now();
+            LocalDate startDate = now.withDayOfMonth(1);
+            LocalDate endDate = now.withDayOfMonth(now.lengthOfMonth());
+            expensePage = expenseRepository.findByProfileIdAndDateBetween(profile.getId(), startDate, endDate, pageable);
+        }
+        return expensePage.getContent().stream().map(this::toDTO).toList();
     }
 
     // Delete expense by id for current user
@@ -189,26 +198,20 @@ public class ExpenseService {
         expense = expenseRepository.save(expense);
 
         LocalDate expenseDate = expense.getDate() != null ? expense.getDate() : LocalDate.now();
-        int month = expenseDate.getMonthValue();
-        int year  = expenseDate.getYear();
 
+        // Vẫn check budget status đồng bộ cho response
         BudgetStatusDTO budgetStatus = budgetService.checkBudgetStatus(
-                profile.getId(), category.getId(), month, year);
+                profile.getId(), category.getId(), expenseDate.getMonthValue(), expenseDate.getYear());
 
-        notificationService.notifyExpenseAdded(profile, "Cập nhật: " + expense.getName(), expense.getAmount());
-        notificationService.notifyBudgetWarning(profile, budgetStatus);
-
-        if (budgetStatus.isHasBudget() && (budgetStatus.isExceeded() || budgetStatus.isWarning())) {
-            budgetService.sendBudgetAlertEmailAsync(profile, budgetStatus);
-        }
-
-        checkBudgetThresholds(profile, category.getId(), month, year);
-        notificationService.checkAbnormalSpendingAsync(profile, expenseDate);
+        // Publish event — side-effects chạy async sau khi transaction commit
+        eventPublisher.publishEvent(new TransactionEvents.ExpenseUpdated(
+                profile, expense.getName(), expense.getAmount(), category, expenseDate));
 
         return toResponseDTO(expense, budgetStatus);
     }
 
     // Get latest 5 expenses for current user
+    @Transactional(readOnly = true)
     public List<ExpenseDTO> getLatest5ExpensesForCurrentUser() {
         ProfileEntity profile = profileService.getCurrentProfile();
         List<ExpenseEntity> list = expenseRepository.findTop5ByProfileIdOrderByDateDesc(profile.getId());
@@ -216,18 +219,21 @@ public class ExpenseService {
     }
 
     // Get total expenses for current user
+    @Transactional(readOnly = true)
     public BigDecimal getTotalExpenseForCurrentUser() {
         ProfileEntity profile = profileService.getCurrentProfile();
         BigDecimal total = expenseRepository.findTotalExpenseByProfileId(profile.getId());
         return total != null ? total : BigDecimal.ZERO;
     }
 
+    @Transactional(readOnly = true)
     public long getTotalExpenseCountForCurrentUser() {
         ProfileEntity profile = profileService.getCurrentProfile();
         return expenseRepository.countByProfileId(profile.getId());
     }
 
     // Filter expenses
+    @Transactional(readOnly = true)
     public List<ExpenseDTO> filterExpenses(LocalDate startDate, LocalDate endDate, String keyword, Sort sort) {
         ProfileEntity profile = profileService.getCurrentProfile();
         List<ExpenseEntity> list = expenseRepository.findByProfileIdAndDateBetweenAndNameContainingIgnoreCase(
@@ -235,7 +241,17 @@ public class ExpenseService {
         return list.stream().map(this::toDTO).toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<ExpenseDTO> filterExpenses(LocalDate startDate, LocalDate endDate, String keyword, Sort sort, int page, int size) {
+        ProfileEntity profile = profileService.getCurrentProfile();
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size, sort);
+        org.springframework.data.domain.Page<ExpenseEntity> expensePage = expenseRepository.findByProfileIdAndDateBetweenAndNameContainingIgnoreCase(
+                profile.getId(), startDate, endDate, keyword, pageable);
+        return expensePage.getContent().stream().map(this::toDTO).toList();
+    }
+
     // Notifications
+    @Transactional(readOnly = true)
     public List<ExpenseDTO> getExpensesForUserOnDate(Long profileId, LocalDate date) {
         List<ExpenseEntity> list = expenseRepository.findByProfileIdAndDate(profileId, date);
         return list.stream().map(this::toDTO).toList();
@@ -342,5 +358,20 @@ public class ExpenseService {
         return expenses.stream()
                 .map(this::toDTO)
                 .collect(java.util.stream.Collectors.toList());
+    }
+
+    public Map<String, BigDecimal> getMonthlyTotalsForCurrentUser(LocalDate startDate, LocalDate endDate) {
+        ProfileEntity profile = profileService.getCurrentProfile();
+        List<Object[]> results = expenseRepository.findMonthlyExpenseTotals(profile.getId(), startDate, endDate);
+        
+        Map<String, BigDecimal> totals = new java.util.HashMap<>();
+        for (Object[] row : results) {
+            Integer month = (Integer) row[0];
+            Integer year = (Integer) row[1];
+            BigDecimal amount = (BigDecimal) row[2];
+            String key = year + "-" + String.format("%02d", month);
+            totals.put(key, amount);
+        }
+        return totals;
     }
 }
