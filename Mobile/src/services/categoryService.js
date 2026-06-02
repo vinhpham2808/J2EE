@@ -15,3 +15,18 @@ export const fetchCategories = async () => {
   const response = await http.get(API_ENDPOINTS.GET_ALL_CATEGORIES);
   return Array.isArray(response.data) ? response.data : [];
 };
+
+export const createCategory = async (payload) => {
+  const response = await http.post(API_ENDPOINTS.ADD_CATEGORY, payload);
+  return response.data;
+};
+
+export const updateCategory = async (categoryId, payload) => {
+  const response = await http.put(API_ENDPOINTS.UPDATE_CATEGORY(categoryId), payload);
+  return response.data;
+};
+
+export const deleteCategory = async (categoryId) => {
+  const response = await http.delete(API_ENDPOINTS.DELETE_CATEGORY(categoryId));
+  return response.data;
+};

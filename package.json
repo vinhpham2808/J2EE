@@ -1,8 +1,5 @@
 {
   "dependencies": {
     "mongodb": "^7.2.0"
-  },
-  "devDependencies": {
-    "milens": "^0.6.6"
   }
 }
