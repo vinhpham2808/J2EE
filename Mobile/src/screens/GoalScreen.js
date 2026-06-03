@@ -5,15 +5,15 @@ import { COLORS } from "../constants/colors";
 import { formatMoney } from "../utils/format";
 import ShowMoreButton from "../components/ShowMoreButton";
 import { getSafeAreaBottom, getSafeAreaTop } from "../utils/safeAreaSpacing";
-import useSavingGoals from "../hooks/useSavingGoals";
-import GoalForm from "../components/savingGoals/GoalForm";
-import CompactGoalTab from "../components/savingGoals/CompactGoalTab";
-import GoalDetailModal from "../components/savingGoals/GoalDetailModal";
-import ContributionModal from "../components/savingGoals/ContributionModal";
+import useGoals from "../hooks/useGoals";
+import GoalForm from "../components/Goal/GoalForm";
+import CompactGoalTab from "../components/Goal/CompactGoalTab";
+import GoalDetailModal from "../components/Goal/GoalDetailModal";
+import ContributionModal from "../components/Goal/ContributionModal";
 
 // â”€â”€â”€ Main Screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-export default function SavingGoalScreen() {
+export default function GoalScreen() {
   const insets = useSafeAreaInsets();
 
   const {
@@ -48,7 +48,7 @@ export default function SavingGoalScreen() {
     openContributionModal,
     closeContributionModal,
     onContribute,
-  } = useSavingGoals();
+  } = useGoals();
 
   return (
     <View style={[styles.container, { paddingTop: getSafeAreaTop(insets) }]}>

@@ -1,21 +1,15 @@
-import React, { useCallback, useMemo, useState } from "react";
-import { Alert, FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import React, { useCallback } from "react";
+import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import http from "../services/http";
-import { API_ENDPOINTS } from "../constants/api";
-import { SUCCESS_ALERT_MESSAGES, SUCCESS_ALERT_TITLE } from "../constants/alertMessages";
-import { formatDate, formatMoney, getApiErrorMessage } from "../utils/format";
+import IncomeForm from "../components/Incomes/IncomeForm";
 import IncomeExpenseChart from "../components/IncomeExpenseChart";
-import { COLORS } from "../constants/colors";
 import VoiceInputButton from "../components/VoiceInputButton";
-import { downloadAndShareFile } from "../utils/fileDownload";
-import { getSafeAreaBottom, getSafeAreaTop } from "../utils/safeAreaSpacing";
-
-const FILTER_TYPES = {
-  current: "current",
-  all: "all"
-};
+import { COLORS } from "../constants/colors";
+import useIncomeForm from "../hooks/useIncomeForm";
+import useIncomes, { INCOME_FILTER_TYPES } from "../hooks/useIncomes";
+import { formatDate, formatMoney } from "../utils/format";
+import { getSafeAreaBottom, getSafeAreaContentStyle, getSafeAreaTop } from "../utils/safeAreaSpacing";
 
 function IncomeItem({ item, onDelete }) {
   return (
@@ -47,105 +41,53 @@ function IncomeItem({ item, onDelete }) {
 }
 
 export default function IncomeScreen() {
+  const route = useRoute();
+
+  if (route.name === "AddIncome") {
+    return <IncomeFormRoute />;
+  }
+
+  return <IncomeListRoute />;
+}
+
+function IncomeFormRoute() {
+  const navigation = useNavigation();
+  const route = useRoute();
+  const insets = useSafeAreaInsets();
+
+  const form = useIncomeForm({
+    initialData: route.params?.initialData,
+    onSaved: () => navigation.goBack()
+  });
+
+  return <IncomeForm form={form} insetsStyle={getSafeAreaContentStyle(insets)} />;
+}
+
+function IncomeListRoute() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const [incomes, setIncomes] = useState([]);
-  const [refreshing, setRefreshing] = useState(false);
-  const [filterType, setFilterType] = useState(FILTER_TYPES.current);
-  const [isExporting, setIsExporting] = useState(false);
+  const {
+    filterType,
+    handleExport,
+    handleVoiceResult,
+    incomes,
+    isExporting,
+    onDelete,
+    onRefresh,
+    refreshing,
+    setFilterType,
+    totalIncome
+  } = useIncomes();
 
-  const totalIncome = useMemo(() => {
-    return incomes.reduce((sum, item) => sum + Number(item?.amount || 0), 0);
-  }, [incomes]);
-
-  const fetchIncomes = useCallback(async () => {
-    const params = {};
-    if (filterType === FILTER_TYPES.all) {
-      params.all = true;
-    }
-
-    try {
-      const response = await http.get(API_ENDPOINTS.GET_ALL_INCOMES, { params });
-      setIncomes(Array.isArray(response.data) ? response.data : []);
-    } catch (error) {
-      console.error("Fetch incomes error:", error);
-    }
-  }, [filterType]);
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    try {
-      await fetchIncomes();
-    } catch (error) {
-      Alert.alert("Lỗi", getApiErrorMessage(error, "Không tải được danh sách thu nhập"));
-    } finally {
-      setRefreshing(false);
-    }
-  }, [fetchIncomes]);
-
-  const onDelete = async (id) => {
-    if (!id) return;
-
-    Alert.alert("Xác nhận", "Bạn có chắc muốn xóa khoản thu này?", [
-      { text: "Hủy", style: "cancel" },
-      {
-        text: "Xóa",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await http.delete(API_ENDPOINTS.DELETE_INCOME(id));
-            await fetchIncomes();
-            Alert.alert(SUCCESS_ALERT_TITLE, SUCCESS_ALERT_MESSAGES.delete.income);
-          } catch (error) {
-            Alert.alert("Xóa thất bại", getApiErrorMessage(error, "Không thể xóa khoản thu này"));
-          }
-        }
-      }
-    ]);
-  };
-
-  useFocusEffect(
-    useCallback(() => {
-      onRefresh();
-    }, [onRefresh])
+  const navigateToAddIncome = useCallback(
+    (initialData) => navigation.navigate("AddIncome", initialData ? { initialData } : undefined),
+    [navigation]
   );
 
-  const handleVoiceResult = async (text) => {
-    try {
-      const response = await http.post(API_ENDPOINTS.VOICE_PARSE, { text });
-      const data = response.data;
-      if (data) {
-        navigation.navigate("AddIncome", { initialData: data });
-      }
-    } catch (error) {
-      Alert.alert("Lỗi AI", getApiErrorMessage(error, "Không thể phân tích nội dung giọng nói"));
-    }
-  };
-
-  const handleExport = async () => {
-    setIsExporting(true);
-    try {
-      const now = new Date();
-      const isAllReport = filterType === FILTER_TYPES.all;
-      const payload = isAllReport
-        ? { all: true, month: now.getMonth() + 1, year: now.getFullYear() }
-        : { month: now.getMonth() + 1, year: now.getFullYear() };
-
-      const res = await http.post(API_ENDPOINTS.EXPORT_INCOME, payload);
-      if (res.data && res.data.presignedUrl) {
-        const fileName = isAllReport
-          ? "income_report_all_months.xlsx"
-          : `income_report_${payload.month}_${payload.year}.xlsx`;
-        await downloadAndShareFile(res.data.presignedUrl, fileName);
-      } else {
-        throw new Error("Không lấy được link tải file");
-      }
-    } catch (error) {
-      Alert.alert("Lỗi xuất file", getApiErrorMessage(error, "Không thể xuất báo cáo"));
-    } finally {
-      setIsExporting(false);
-    }
-  };
+  const onVoiceParsed = useCallback(
+    (text) => handleVoiceResult(text, navigateToAddIncome),
+    [handleVoiceResult, navigateToAddIncome]
+  );
 
   return (
     <View style={[styles.container, { paddingTop: getSafeAreaTop(insets) }]}>
@@ -166,21 +108,21 @@ export default function IncomeScreen() {
               <Text style={styles.filterTitle}>Khung thời gian</Text>
               <View style={styles.filterRow}>
                 <Pressable
-                  style={[styles.filterChip, filterType === FILTER_TYPES.current && styles.filterChipActive]}
+                  style={[styles.filterChip, filterType === INCOME_FILTER_TYPES.current && styles.filterChipActive]}
                   onPress={() => {
-                    setFilterType(FILTER_TYPES.current);
+                    setFilterType(INCOME_FILTER_TYPES.current);
                   }}
                 >
-                  <Text style={[styles.filterChipText, filterType === FILTER_TYPES.current && styles.filterChipTextActive]}>Tháng này</Text>
+                  <Text style={[styles.filterChipText, filterType === INCOME_FILTER_TYPES.current && styles.filterChipTextActive]}>Tháng này</Text>
                 </Pressable>
 
                 <Pressable
-                  style={[styles.filterChip, styles.filterChipLast, filterType === FILTER_TYPES.all && styles.filterChipActive]}
+                  style={[styles.filterChip, styles.filterChipLast, filterType === INCOME_FILTER_TYPES.all && styles.filterChipActive]}
                   onPress={() => {
-                    setFilterType(FILTER_TYPES.all);
+                    setFilterType(INCOME_FILTER_TYPES.all);
                   }}
                 >
-                  <Text style={[styles.filterChipText, filterType === FILTER_TYPES.all && styles.filterChipTextActive]}>Tất cả</Text>
+                  <Text style={[styles.filterChipText, filterType === INCOME_FILTER_TYPES.all && styles.filterChipTextActive]}>Tất cả</Text>
                 </Pressable>
               </View>
             </View>
@@ -192,10 +134,10 @@ export default function IncomeScreen() {
               <Text style={styles.summaryHint}>{incomes.length} giao dịch</Text>
 
               <View style={styles.actionRowMain}>
-                <Pressable style={styles.addButtonMain} onPress={() => navigation.navigate("AddIncome")}>
+                <Pressable style={styles.addButtonMain} onPress={() => navigateToAddIncome()}>
                   <Text style={styles.addButtonText}>+ Thêm thu nhập</Text>
                 </Pressable>
-                <VoiceInputButton onResult={handleVoiceResult} />
+                <VoiceInputButton onResult={onVoiceParsed} />
               </View>
               <Pressable 
                 style={[styles.exportButton, isExporting && { opacity: 0.7 }]} 
@@ -205,7 +147,7 @@ export default function IncomeScreen() {
                 <Text style={styles.exportText}>
                   {isExporting
                     ? "Đang tạo báo cáo..."
-                    : filterType === FILTER_TYPES.all
+                    : filterType === INCOME_FILTER_TYPES.all
                       ? "Tải báo cáo tất cả tháng"
                       : "Tải báo cáo tháng này"}
                 </Text>

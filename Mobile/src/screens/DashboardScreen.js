@@ -1,132 +1,38 @@
-import React, { useCallback, useMemo, useState } from "react";
-import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import React, { useCallback, useState } from "react";
+import { RefreshControl, ScrollView, StyleSheet } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import HomeTopHeader from "../components/HomeTopHeader";
-import HomeBanner from "../components/HomeBanner";
-import FinanceOverviewChart from "../components/FinanceOverviewChart";
-import NotificationModal from "../components/NotificationModal";
-import http from "../services/http";
-import { API_ENDPOINTS } from "../constants/api";
-import { buildMonthlyFinanceSeries } from "../utils/financeStats";
-import { formatDate, formatMoney, getApiErrorMessage } from "../utils/format";
-import { COLORS } from "../constants/colors";
-import { scale, clampScale } from "../utils/dimensions";
-import AiInsightButton from "../components/Ai_Insight/AiInsightButton";
-import AiInsightSheet from "../components/Ai_Insight/AiInsightSheet";
 import AiInsightLockedModal from "../components/Ai_Insight/AiInsightLockedModal";
+import AiInsightSheet from "../components/Ai_Insight/AiInsightSheet";
+import FinanceOverviewSection from "../components/Dashboard/FinanceOverviewSection";
+import RecentTransactionsSection from "../components/Dashboard/RecentTransactionsSection";
+import GoalsPreview from "../components/Dashboard/GoalsPreview";
+import HomeBanner from "../components/HomeBanner";
+import HomeTopHeader from "../components/HomeTopHeader";
+import NotificationModal from "../components/NotificationModal";
+import { useVisibleItems } from "../components/ShowMoreButton";
+import { COLORS } from "../constants/colors";
 import { useAiInsight } from "../hooks/useAiInsight";
-import ShowMoreButton, { useVisibleItems } from "../components/ShowMoreButton";
+import useDashboard from "../hooks/useDashboard";
+import { scale } from "../utils/dimensions";
 import { getSafeAreaBottom } from "../utils/safeAreaSpacing";
-
-function SectionHeader({ title, onMore, moreLabel = "Xem thêm" }) {
-  if (String(title || "").startsWith("Giao ")) {
-    return null;
-  }
-
-  return (
-    <View style={styles.sectionHeader}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      <ShowMoreButton visible={Boolean(onMore)} onPress={onMore} label={moreLabel} />
-    </View>
-  );
-}
-
-function formatRelativeTime(value) {
-  if (!value) return "-";
-
-  const raw = String(value);
-  const parsed = new Date(raw.includes("T") ? raw : `${raw}T00:00:00`);
-  const timestamp = parsed.getTime();
-
-  if (!Number.isFinite(timestamp)) {
-    return formatDate(value);
-  }
-
-  const diffMs = Date.now() - timestamp;
-  if (diffMs < 0) return "Vừa xong";
-
-  const minutes = Math.floor(diffMs / 60000);
-  if (minutes < 1) return "Vừa xong";
-  if (minutes < 60) return `${minutes} phút trước`;
-
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours} giờ trước`;
-
-  const days = Math.floor(hours / 24);
-  if (days < 30) return `${days} ngày trước`;
-
-  const months = Math.floor(days / 30);
-  if (months < 12) return `${months} tháng trước`;
-
-  const years = Math.floor(months / 12);
-  return `${years} năm trước`;
-}
-
-function TransactionRow({ item }) {
-  const isIncome = String(item?.type || "").toUpperCase().includes("INCOME");
-  const amountColor = isIncome ? COLORS.INCOME : COLORS.EXPENSE;
-  const sign = isIncome ? "+" : "-";
-
-  return (
-    <View style={styles.transactionRow}>
-      <View style={styles.transactionLeft}>
-        <View style={styles.transactionIconWrap}>
-          <Text style={styles.transactionIcon}>{item?.icon || "🧾"}</Text>
-        </View>
-        <View>
-          <Text style={styles.transactionName}>{item?.name || "Giao dịch"}</Text>
-          <Text style={styles.transactionDate}>{formatRelativeTime(item?.createdAt || item?.updatedAt || item?.date)}</Text>
-        </View>
-      </View>
-      <Text style={[styles.transactionAmount, { color: amountColor }]}>{sign}{formatMoney(item?.amount)}</Text>
-    </View>
-  );
-}
-
-function SavingGoalCard({ goal, onPress }) {
-  const target = Number(goal?.targetAmount || 0);
-  const current = Number(goal?.currentAmount || 0);
-  const progress = Math.max(0, Math.min(100, Number(goal?.progressPercent || 0)));
-  const status = String(goal?.status || "ACTIVE").toUpperCase();
-
-  const isCompleted = status === "COMPLETED";
-  const progressColor = isCompleted ? COLORS.PRIMARY : progress >= 50 ? COLORS.PRIMARY : progress >= 25 ? COLORS.GOLD : COLORS.INFO;
-
-  return (
-    <Pressable style={styles.savingGoalCard} onPress={onPress}>
-      <View style={styles.savingGoalHeader}>
-        <View style={styles.savingGoalInfo}>
-          <Text style={styles.savingGoalName} numberOfLines={1}>{goal?.name || "Mục tiêu"}</Text>
-          <Text style={styles.savingGoalStatus}>
-            {isCompleted ? "Hoàn thành" : `Đang tích lũy · ${formatMoney(current)} / ${formatMoney(target)}`}
-          </Text>
-        </View>
-        <Text style={[styles.savingGoalPercent, { color: progressColor }]}>{Math.round(progress)}%</Text>
-      </View>
-      <View style={styles.savingGoalTrack}>
-        <View style={[styles.savingGoalFill, { width: `${progress}%`, backgroundColor: progressColor }]} />
-      </View>
-    </Pressable>
-  );
-}
 
 export default function DashboardScreen() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const [dashboard, setDashboard] = useState(null);
-  const [savingGoals, setSavingGoals] = useState([]);
-  const [monthlySeries, setMonthlySeries] = useState([]);
-  const [notificationVisible, setNotificationVisible] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [refreshing, setRefreshing] = useState(false);
-
-  // ── AI Insight ─────────────────────────────────────────────
+  const dashboard = useDashboard();
   const ai = useAiInsight();
+  const [notificationVisible, setNotificationVisible] = useState(false);
   const [aiLockVisible, setAiLockVisible] = useState(false);
 
+  const {
+    visibleItems: recentTransactions,
+    canToggle: canExpandRecentTransactions,
+    expanded: showAllRecentTransactions,
+    toggle: toggleRecentTransactions
+  } = useVisibleItems(dashboard.recentTransactions, { initialCount: 4, mode: "toggle" });
+
   const handleAiPress = () => {
-    console.log("[DashboardScreen] handleAiPress clicked! User isPremium:", ai.isPremium);
     if (ai.isPremium) {
       ai.openSheet();
     } else {
@@ -141,158 +47,57 @@ export default function DashboardScreen() {
         year: draft.year,
         month: draft.month,
         source: "ai-insight",
-        draftSavedAt: draft.savedAt,
+        draftSavedAt: draft.savedAt
       });
     }
   }, [ai, navigation]);
 
-
-  const fetchDashboard = useCallback(async () => {
-    const response = await http.get(API_ENDPOINTS.DASHBOARD_DATA);
-    setDashboard(response.data || null);
-  }, []);
-
-  const fetchUnreadCount = useCallback(async () => {
-    try {
-      const response = await http.get(API_ENDPOINTS.GET_UNREAD_COUNT);
-      setUnreadCount(Number(response.data?.unreadCount || 0));
-    } catch {
-      setUnreadCount(0);
-    }
-  }, []);
-
-  const fetchSavingGoals = useCallback(async () => {
-    try {
-      const response = await http.get(API_ENDPOINTS.GET_SAVING_GOALS);
-      const goals = Array.isArray(response.data) ? response.data : [];
-      // Only show active goals, max 3
-      const activeGoals = goals
-        .filter(g => String(g?.status || "ACTIVE").toUpperCase() === "ACTIVE")
-        .slice(0, 3);
-      setSavingGoals(activeGoals);
-    } catch {
-      setSavingGoals([]);
-    }
-  }, []);
-
-  const fetchMonthlyFinanceSeries = useCallback(async () => {
-    const [incomeRes, expenseRes] = await Promise.all([
-      http.get(API_ENDPOINTS.GET_ALL_INCOMES, { params: { all: true } }),
-      http.get(API_ENDPOINTS.GET_ALL_EXPENSE)
-    ]);
-
-    const incomes = Array.isArray(incomeRes.data) ? incomeRes.data : [];
-    const expenses = Array.isArray(expenseRes.data) ? expenseRes.data : [];
-    setMonthlySeries(buildMonthlyFinanceSeries({ incomes, expenses, monthsBack: 6 }));
-  }, []);
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    try {
-      await Promise.all([fetchDashboard(), fetchSavingGoals(), fetchMonthlyFinanceSeries(), fetchUnreadCount()]);
-    } catch (error) {
-      Alert.alert("Lỗi", getApiErrorMessage(error, "Không tải được dữ liệu trang chủ"));
-    } finally {
-      setRefreshing(false);
-    }
-  }, [fetchDashboard, fetchSavingGoals, fetchMonthlyFinanceSeries, fetchUnreadCount]);
-
-  useFocusEffect(
-    useCallback(() => {
-      onRefresh();
-    }, [onRefresh])
-  );
-
-  const allRecentTransactions = useMemo(
-    () => (Array.isArray(dashboard?.recentTransactions) ? dashboard.recentTransactions : []),
-    [dashboard?.recentTransactions]
-  );
-
-  const {
-    visibleItems: recentTransactions,
-    canToggle: canExpandRecentTransactions,
-    expanded: showAllRecentTransactions,
-    toggle: toggleRecentTransactions
-  } = useVisibleItems(allRecentTransactions, { initialCount: 4, mode: "toggle" });
+  const goToGoals = useCallback(() => {
+    navigation.navigate("Goal");
+  }, [navigation]);
 
   return (
     <>
       <ScrollView
         style={styles.container}
         contentContainerStyle={[styles.content, { paddingBottom: getSafeAreaBottom(insets) }]}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        refreshControl={<RefreshControl refreshing={dashboard.refreshing} onRefresh={dashboard.onRefresh} />}
         showsVerticalScrollIndicator={false}
       >
         <HomeTopHeader
           onMenuPress={() => navigation.navigate("SettingTab", { screen: "Profile" })}
           onBellPress={() => setNotificationVisible(true)}
-          unreadCount={unreadCount}
+          unreadCount={dashboard.unreadCount}
         />
         <HomeBanner />
 
-        {/* Finance Overview Section */}
-        <View style={styles.financeHeaderRow}>
-          <Text style={styles.sectionTitle}>Tổng quan tài chính</Text>
-          <AiInsightButton onPress={handleAiPress} style={styles.aiButtonSpacing} />
-        </View>
-        <FinanceOverviewChart
-          totalBalance={dashboard?.totalBalance}
-          totalIncome={dashboard?.totalIncome}
-          totalExpense={dashboard?.totalExpense}
-          monthlySeries={monthlySeries}
+        <FinanceOverviewSection
+          dashboard={dashboard.dashboard}
+          monthlySeries={dashboard.monthlySeries}
+          onAiPress={handleAiPress}
         />
 
-        {/* Saving Goals Section */}
-        <SectionHeader title="Mục tiêu tiết kiệm" onMore={() => navigation.navigate("SavingGoal")} />
-        <View style={styles.sectionCard}>
-          {savingGoals.length > 0 ? (
-            savingGoals.map((goal) => (
-              <SavingGoalCard
-                key={goal.id}
-                goal={goal}
-                onPress={() => navigation.navigate("SavingGoal")}
-              />
-            ))
-          ) : (
-            <View style={styles.emptyGoalContainer}>
-              <Text style={styles.emptyGoalIcon}>🎯</Text>
-              <Text style={styles.emptyGoalText}>Chưa có mục tiêu tiết kiệm nào.</Text>
-              <Pressable
-                style={styles.createGoalButton}
-                onPress={() => navigation.navigate("SavingGoal")}
-              >
-                <Text style={styles.createGoalButtonText}>Tạo mục tiêu</Text>
-              </Pressable>
-            </View>
-          )}
-        </View>
+        <GoalsPreview
+          goals={dashboard.goals}
+          onCreate={goToGoals}
+          onGoalPress={goToGoals}
+          onMore={goToGoals}
+        />
 
-        {/* Recent Transactions Section */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Giao dịch gần đây</Text>
-          <ShowMoreButton
-            visible={canExpandRecentTransactions}
-            expanded={showAllRecentTransactions}
-            onPress={toggleRecentTransactions}
-          />
-        </View>
-        <SectionHeader title="Giao dịch gần đây" onMore={() => navigation.navigate("ExpenseTab")} />
-        <View style={styles.sectionCard}>
-          {recentTransactions.length ? (
-            recentTransactions.map((item) => <TransactionRow key={item.id || `${item.name}-${item.date}`} item={item} />)
-          ) : (
-            <Text style={styles.emptyText}>Chưa có giao dịch gần đây.</Text>
-          )}
-        </View>
+        <RecentTransactionsSection
+          canToggle={canExpandRecentTransactions}
+          expanded={showAllRecentTransactions}
+          onToggle={toggleRecentTransactions}
+          transactions={recentTransactions}
+        />
       </ScrollView>
 
       <NotificationModal
         visible={notificationVisible}
         onClose={() => setNotificationVisible(false)}
-        onUnreadCountChange={setUnreadCount}
+        onUnreadCountChange={dashboard.setUnreadCount}
       />
 
-      {/* ── AI Insight Sheet ──────────────────────────────── */}
       <AiInsightSheet
         visible={ai.visible}
         onClose={ai.closeSheet}
@@ -313,11 +118,7 @@ export default function DashboardScreen() {
         onConfirm={handleAiConfirm}
       />
 
-      {/* ── AI Insight Locked Modal ────────────────────────── */}
-      <AiInsightLockedModal
-        visible={aiLockVisible}
-        onClose={() => setAiLockVisible(false)}
-      />
+      <AiInsightLockedModal visible={aiLockVisible} onClose={() => setAiLockVisible(false)} />
     </>
   );
 }
@@ -331,149 +132,5 @@ const styles = StyleSheet.create({
     padding: scale(14),
     paddingBottom: scale(22),
     gap: scale(10)
-  },
-  financeHeaderRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  aiButtonSpacing: {
-    marginLeft: scale(8),
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: scale(6)
-  },
-  sectionTitle: {
-    color: COLORS.TEXT,
-    fontSize: clampScale(17, 15, 19),
-    fontWeight: "800"
-  },
-  sectionCard: {
-    backgroundColor: COLORS.CARD,
-    borderRadius: scale(14),
-    borderWidth: 1,
-    borderColor: COLORS.CARD_BORDER,
-    padding: scale(12)
-  },
-
-  // Transaction styles
-  transactionRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: scale(10),
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.BG
-  },
-  transactionLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-    paddingRight: scale(8)
-  },
-  transactionIconWrap: {
-    width: scale(36),
-    aspectRatio: 1,
-    borderRadius: scale(10),
-    backgroundColor: COLORS.ROSE_MIST,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: scale(10),
-    borderWidth: 1,
-    borderColor: COLORS.CARD_BORDER,
-  },
-  transactionIcon: {
-    fontSize: clampScale(16, 14, 18),
-  },
-  transactionName: {
-    color: COLORS.TEXT,
-    fontWeight: "700",
-    fontSize: clampScale(14, 12, 16)
-  },
-  transactionDate: {
-    color: COLORS.TEXT_MUTED,
-    marginTop: scale(2),
-    fontSize: clampScale(12, 10, 14)
-  },
-  transactionAmount: {
-    fontWeight: "800",
-    fontSize: clampScale(13, 11, 15)
-  },
-  emptyText: {
-    color: COLORS.TEXT_SECONDARY,
-    textAlign: "center",
-    paddingVertical: scale(16),
-  },
-
-  // Saving Goal Card styles
-  savingGoalCard: {
-    paddingVertical: scale(10),
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.BG,
-  },
-  savingGoalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: scale(8),
-  },
-  savingGoalInfo: {
-    flex: 1,
-    paddingRight: scale(10),
-  },
-  savingGoalName: {
-    color: COLORS.TEXT,
-    fontWeight: "700",
-    fontSize: clampScale(14, 12, 16),
-  },
-  savingGoalStatus: {
-    color: COLORS.TEXT_MUTED,
-    fontSize: clampScale(12, 10, 14),
-    marginTop: scale(2),
-  },
-  savingGoalPercent: {
-    fontSize: clampScale(18, 16, 22),
-    fontWeight: "900",
-  },
-  savingGoalTrack: {
-    height: scale(6),
-    borderRadius: scale(6),
-    backgroundColor: COLORS.CARD_BORDER,
-    overflow: "hidden",
-  },
-  savingGoalFill: {
-    height: "100%",
-    borderRadius: scale(6),
-  },
-
-  // Empty goal state
-  emptyGoalContainer: {
-    alignItems: "center",
-    paddingVertical: scale(16),
-  },
-  emptyGoalIcon: {
-    fontSize: clampScale(28, 24, 32),
-    marginBottom: scale(6),
-  },
-  emptyGoalText: {
-    color: COLORS.TEXT_SECONDARY,
-    fontSize: clampScale(13, 11, 15),
-    marginBottom: scale(10),
-  },
-  createGoalButton: {
-    backgroundColor: COLORS.ROSE_MIST,
-    borderWidth: 1,
-    borderColor: COLORS.CARD_BORDER,
-    borderRadius: scale(10),
-    paddingHorizontal: scale(16),
-    paddingVertical: scale(8),
-  },
-  createGoalButtonText: {
-    color: COLORS.PRIMARY,
-    fontWeight: "700",
-    fontSize: clampScale(13, 11, 15),
-  },
+  }
 });

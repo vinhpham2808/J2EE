@@ -93,13 +93,13 @@ export const API_ENDPOINTS = {
   SET_BUDGET: "/budgets",
   DELETE_BUDGET: (id) => `/budgets/${id}`,
 
-  // Saving goals
-  GET_SAVING_GOALS: "/saving-goals",
-  ADD_SAVING_GOAL: "/saving-goals",
-  UPDATE_SAVING_GOAL: (id) => `/saving-goals/${id}`,
-  DELETE_SAVING_GOAL: (id) => `/saving-goals/${id}`,
-  SAVING_GOAL_CONTRIBUTIONS: (id) => `/saving-goals/${id}/contributions`,
-  ADD_SAVING_GOAL_CONTRIBUTION: (id) => `/saving-goals/${id}/contributions`,
+  // Goals
+  GET_GOALS: "/saving-goals",
+  ADD_GOAL: "/saving-goals",
+  UPDATE_GOAL: (id) => `/saving-goals/${id}`,
+  DELETE_GOAL: (id) => `/saving-goals/${id}`,
+  GOAL_CONTRIBUTIONS: (id) => `/saving-goals/${id}/contributions`,
+  ADD_GOAL_CONTRIBUTION: (id) => `/saving-goals/${id}/contributions`,
 
   // Filters
   APPLY_FILTERS: "/filter",

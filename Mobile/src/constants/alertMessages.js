@@ -5,7 +5,7 @@ export const SUCCESS_ALERT_MESSAGES = {
     income: "Đã thêm khoản thu thành công.",
     expense: "Đã thêm khoản chi thành công.",
     category: "Đã thêm danh mục thành công.",
-    savingGoal: "Đã tạo mục tiêu tiết kiệm thành công."
+    goal: "Đã tạo mục tiêu tiết kiệm thành công."
   },
   update: {
     profile: "Đã cập nhật hồ sơ thành công.",
@@ -17,9 +17,9 @@ export const SUCCESS_ALERT_MESSAGES = {
     expense: "Đã xóa khoản chi thành công.",
     budget: "Đã xóa hạn mức ngân sách thành công.",
     category: "Đã xóa danh mục thành công.",
-    savingGoal: "Đã xóa mục tiêu tiết kiệm thành công."
+    goal: "Đã xóa mục tiêu tiết kiệm thành công."
   },
   contribute: {
-    savingGoal: "Đóng góp vào mục tiêu thành công."
+    goal: "Đóng góp vào mục tiêu thành công."
   }
 };

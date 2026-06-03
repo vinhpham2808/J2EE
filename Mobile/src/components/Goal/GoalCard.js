@@ -5,7 +5,7 @@ import { formatMoney, formatDate } from "../../utils/format";
 import { getGoalVisual } from "./goalUtils";
 
 /**
- * Full detail card for a saving goal with progress bars, stats grid,
+ * Full detail card for a goal with progress bars, stats grid,
  * monthly progress, and action buttons (contribute / delete).
  */
 export default function GoalCard({ item, onContribute, onDelete }) {

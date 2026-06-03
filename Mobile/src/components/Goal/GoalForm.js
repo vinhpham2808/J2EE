@@ -5,7 +5,7 @@ import { formatCurrencyInput } from "../../utils/format";
 import { PickDateField } from "../../utils/pickDate";
 
 /**
- * Form card for creating a new saving goal.
+ * Form card for creating a new goal.
  *
  * Props are state + setters managed by the parent hook.
  */

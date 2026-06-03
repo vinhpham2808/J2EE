@@ -10,10 +10,9 @@ import DashboardScreen from "../screens/DashboardScreen";
 import CategoryScreen from "../screens/CategoryScreen";
 import ExpenseScreen from "../screens/ExpenseScreen";
 import MoreScreen from "../screens/MoreScreen";
-import AddIncomeScreen from "../screens/AddIncomeScreen";
 import IncomeScreen from "../screens/IncomeScreen";
 import BudgetScreen from "../screens/BudgetScreen";
-import SavingGoalScreen from "../screens/SavingGoalScreen";
+import GoalScreen from "../screens/GoalScreen";
 import ForecastScreen from "../screens/ForecastScreen";
 import ChatScreen from "../screens/ChatScreen";
 import ReportsScreen from "../screens/ReportsScreen";
@@ -71,10 +70,10 @@ function HomeStack() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Dashboard" component={DashboardScreen} />
       <Stack.Screen name="AddExpense" component={ExpenseScreen} />
-      <Stack.Screen name="AddIncome" component={AddIncomeScreen} />
+      <Stack.Screen name="AddIncome" component={IncomeScreen} />
       <Stack.Screen name="Income" component={IncomeScreen} />
       <Stack.Screen name="Budget" component={BudgetScreen} />
-      <Stack.Screen name="SavingGoal" component={SavingGoalScreen} />
+      <Stack.Screen name="Goal" component={GoalScreen} />
       <Stack.Screen name="Forecast" component={ForecastScreen} />
       <Stack.Screen name="Chat" component={ChatScreen} />
       <Stack.Screen name="Reports" component={ReportsScreen} />

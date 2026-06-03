@@ -2,7 +2,7 @@ import { COLORS } from "../../constants/colors";
 
 /**
  * Determine visual style (color, background, border, label)
- * for a saving goal based on its status and progress.
+ * for a goal based on its status and progress.
  */
 export function getGoalVisual(goal) {
   const progressPercent = Number(goal?.progressPercent || 0);

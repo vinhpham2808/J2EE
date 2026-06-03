@@ -5,7 +5,7 @@ import { formatCurrencyInput } from "../../utils/format";
 import { PickDateField } from "../../utils/pickDate";
 
 /**
- * Modal for contributing money to a saving goal.
+ * Modal for contributing money to a goal.
  *
  * Props are state + setters/callbacks managed by the parent hook.
  */

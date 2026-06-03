@@ -9,9 +9,9 @@ import { useVisibleItems } from "../components/ShowMoreButton";
 
 /**
  * Custom hook encapsulating all state, CRUD operations, and derived data
- * for the SavingGoalScreen.
+ * for the GoalScreen.
  */
-export default function useSavingGoals() {
+export default function useGoals() {
   // ── Goal list ──────────────────────────────────────────────
   const [goals, setGoals] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -53,7 +53,7 @@ export default function useSavingGoals() {
 
   // ── Fetch ──────────────────────────────────────────────────
   const fetchGoals = useCallback(async () => {
-    const response = await http.get(API_ENDPOINTS.GET_SAVING_GOALS);
+    const response = await http.get(API_ENDPOINTS.GET_GOALS);
     setGoals(Array.isArray(response.data) ? response.data : []);
   }, []);
 
@@ -97,7 +97,7 @@ export default function useSavingGoals() {
 
     setLoading(true);
     try {
-      await http.post(API_ENDPOINTS.ADD_SAVING_GOAL, {
+      await http.post(API_ENDPOINTS.ADD_GOAL, {
         name: name.trim(),
         targetAmount: amount,
         startDate,
@@ -109,7 +109,7 @@ export default function useSavingGoals() {
       setStartDate(todayIso());
       setTargetDate(todayIso());
       await fetchGoals();
-      Alert.alert(SUCCESS_ALERT_TITLE, SUCCESS_ALERT_MESSAGES.create.savingGoal);
+      Alert.alert(SUCCESS_ALERT_TITLE, SUCCESS_ALERT_MESSAGES.create.goal);
     } catch (error) {
       Alert.alert("Thất bại", getApiErrorMessage(error, "Không thể tạo mục tiêu"));
     } finally {
@@ -128,10 +128,10 @@ export default function useSavingGoals() {
         style: "destructive",
         onPress: async () => {
           try {
-            await http.delete(API_ENDPOINTS.DELETE_SAVING_GOAL(id));
+            await http.delete(API_ENDPOINTS.DELETE_GOAL(id));
             setDetailGoal(null);
             await fetchGoals();
-            Alert.alert(SUCCESS_ALERT_TITLE, SUCCESS_ALERT_MESSAGES.delete.savingGoal);
+            Alert.alert(SUCCESS_ALERT_TITLE, SUCCESS_ALERT_MESSAGES.delete.goal);
           } catch (error) {
             Alert.alert("Xóa thất bại", getApiErrorMessage(error, "Không thể xóa mục tiêu"));
           }
@@ -172,7 +172,7 @@ export default function useSavingGoals() {
     }
 
     try {
-      await http.post(API_ENDPOINTS.ADD_SAVING_GOAL_CONTRIBUTION(selectedGoal.id), {
+      await http.post(API_ENDPOINTS.ADD_GOAL_CONTRIBUTION(selectedGoal.id), {
         amount,
         contributionDate,
         note: contributionNote.trim(),
@@ -181,7 +181,7 @@ export default function useSavingGoals() {
       setReturnGoalAfterContribution(null);
       closeContributionModal();
       await fetchGoals();
-      Alert.alert(SUCCESS_ALERT_TITLE, SUCCESS_ALERT_MESSAGES.contribute.savingGoal);
+      Alert.alert(SUCCESS_ALERT_TITLE, SUCCESS_ALERT_MESSAGES.contribute.goal);
     } catch (error) {
       Alert.alert("Thất bại", getApiErrorMessage(error, "Không thể đóng góp cho mục tiêu"));
     }
