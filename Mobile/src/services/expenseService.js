@@ -13,6 +13,10 @@ export async function fetchExpensesByFilter(filterType) {
   return Array.isArray(response.data) ? response.data : [];
 }
 
+export async function createExpense(payload) {
+  return http.post(API_ENDPOINTS.ADD_EXPENSE, payload);
+}
+
 export async function deleteExpenseById(id) {
   return http.delete(API_ENDPOINTS.DELETE_EXPENSE(id));
 }

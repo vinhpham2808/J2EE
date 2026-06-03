@@ -3,45 +3,21 @@ import { Alert, FlatList, Pressable, RefreshControl, StyleSheet, Text, View, Dim
 import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path, G, Text as SvgText } from "react-native-svg";
-import http from "../services/http";
-import { API_ENDPOINTS } from "../constants/api";
-import { COLORS } from "../constants/colors";
-import { getApiErrorMessage, formatDate } from "../utils/format";
-import { CategoryVectorIcon, getIconColor } from "../utils/VectorIcons";
-import { getSafeAreaBottom, getSafeAreaTop } from "../utils/safeAreaSpacing";
+import http from "../../services/http";
+import { API_ENDPOINTS } from "../../constants/api";
+import { COLORS } from "../../constants/colors";
+import { getApiErrorMessage, formatDate } from "../../utils/format";
+import {
+  describeDonutArc,
+  formatJarMoney,
+  getJarActualPercent,
+  getJarProgressWidth,
+  JAR_CATEGORY_COLORS
+} from "../../utils/jarUtils";
+import { CategoryVectorIcon, getIconColor } from "../../utils/VectorIcons";
+import { getSafeAreaBottom, getSafeAreaTop } from "../../utils/safeAreaSpacing";
 
 const screenWidth = Dimensions.get("window").width;
-const formatMoney = (n) =>
-  new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(n ?? 0);
-
-// Helper functions for SVG donut slices
-function polarToCartesian(cx, cy, r, angleDeg) {
-  const rad = ((angleDeg - 90) * Math.PI) / 180;
-  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
-}
-
-function describeArc(cx, cy, outerR, innerR, startAngle, endAngle) {
-  const sweep = Math.min(endAngle - startAngle, 359.999);
-  const end = startAngle + sweep;
-  const largeArc = sweep > 180 ? 1 : 0;
-
-  const oStart = polarToCartesian(cx, cy, outerR, startAngle);
-  const oEnd = polarToCartesian(cx, cy, outerR, end);
-  const iStart = polarToCartesian(cx, cy, innerR, end);
-  const iEnd = polarToCartesian(cx, cy, innerR, startAngle);
-
-  return [
-    `M ${oStart.x} ${oStart.y}`,
-    `A ${outerR} ${outerR} 0 ${largeArc} 1 ${oEnd.x} ${oEnd.y}`,
-    `L ${iStart.x} ${iStart.y}`,
-    `A ${innerR} ${innerR} 0 ${largeArc} 0 ${iEnd.x} ${iEnd.y}`,
-    "Z",
-  ].join(" ");
-}
-
-const CATEGORY_COLORS = [
-  "#8B5CF6", "#F59E0B", "#10B981", "#3B82F6", "#EF4444", "#EC4899", "#F97316", "#14B8A6"
-];
 
 function ExpenseItem({ item, onDelete }) {
   const amount = Number(item?.amount || 0);
@@ -68,7 +44,7 @@ function ExpenseItem({ item, onDelete }) {
       </View>
 
       <View style={styles.itemRight}>
-        <Text style={styles.itemAmount}>- {formatMoney(amount)}</Text>
+        <Text style={styles.itemAmount}>- {formatJarMoney(amount)}</Text>
         <Pressable onPress={() => onDelete(item?.id)} style={styles.deleteButton}>
           <Text style={styles.deleteText}>Xóa</Text>
         </Pressable>
@@ -77,7 +53,7 @@ function ExpenseItem({ item, onDelete }) {
   );
 }
 
-export default function JarDetailScreen() {
+export default function JarDetailView() {
   const navigation = useNavigation();
   const route = useRoute();
   const insets = useSafeAreaInsets();
@@ -147,7 +123,7 @@ export default function JarDetailScreen() {
       .map(([name, value], index) => ({
         name,
         value,
-        color: CATEGORY_COLORS[index % CATEGORY_COLORS.length]
+        color: JAR_CATEGORY_COLORS[index % JAR_CATEGORY_COLORS.length]
       }))
       .sort((a, b) => b.value - a.value);
 
@@ -222,14 +198,8 @@ export default function JarDetailScreen() {
     );
   }
 
-  const actualPercent = totalBalance > 0
-    ? ((selectedJar.currentBalance / totalBalance) * 100).toFixed(1)
-    : "0.0";
-
-  const progressWidth = Math.min(
-    Math.abs(selectedJar.currentBalance) / (totalBalance > 0 ? totalBalance : 1) * 100,
-    100
-  );
+  const actualPercent = getJarActualPercent(selectedJar.currentBalance, totalBalance);
+  const progressWidth = getJarProgressWidth(selectedJar.currentBalance, totalBalance);
 
   const isNegative = selectedJar.currentBalance < 0;
 
@@ -283,7 +253,7 @@ export default function JarDetailScreen() {
               <View style={styles.balanceRow}>
                 <Text style={styles.balanceLabel}>Số dư hiện tại</Text>
                 <Text style={[styles.cardBalance, isNegative && { color: COLORS.EXPENSE }]}>
-                  {formatMoney(selectedJar.currentBalance)}
+                  {formatJarMoney(selectedJar.currentBalance)}
                 </Text>
               </View>
 
@@ -314,7 +284,7 @@ export default function JarDetailScreen() {
                   <Svg width={svgSize} height={svgSize} viewBox={`0 0 ${svgSize} ${svgSize}`}>
                     <G>
                       {chartData.map((slice, idx) => {
-                        const d = describeArc(cx, cy, outerR, innerR, slice.startAngle, slice.endAngle);
+                        const d = describeDonutArc(cx, cy, outerR, innerR, slice.startAngle, slice.endAngle);
                         return (
                           <Path
                             key={idx}

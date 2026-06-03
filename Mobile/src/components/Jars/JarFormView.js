@@ -2,45 +2,14 @@ import React, { useEffect, useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View, Modal, Dimensions } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import http from "../services/http";
-import { API_ENDPOINTS } from "../constants/api";
-import { COLORS } from "../constants/colors";
-import { getApiErrorMessage } from "../utils/format";
-import { getSafeAreaContentStyle } from "../utils/safeAreaSpacing";
+import http from "../../services/http";
+import { API_ENDPOINTS } from "../../constants/api";
+import { COLORS } from "../../constants/colors";
+import { getApiErrorMessage } from "../../utils/format";
+import { JAR_COLORS, JAR_EMOJI_CATEGORIES } from "../../utils/jarUtils";
+import { getSafeAreaContentStyle } from "../../utils/safeAreaSpacing";
 
-const JAR_COLORS = [
-  { value: "#8B5CF6", label: "Tím" },
-  { value: "#10B981", label: "Xanh lá" },
-  { value: "#F59E0B", label: "Vàng" },
-  { value: "#EF4444", label: "Đỏ" },
-  { value: "#3B82F6", label: "Xanh dương" },
-  { value: "#EC4899", label: "Hồng" },
-  { value: "#F97316", label: "Cam" },
-  { value: "#06B6D4", label: "Xanh ngọc" },
-  { value: "#6366F1", label: "Chàm" },
-  { value: "#84CC16", label: "Xanh chuối" },
-];
-
-const EMOJI_CATEGORIES = [
-  {
-    title: "💰 Tài chính & Tiết kiệm",
-    emojis: ["🏺", "🐖", "💰", "💵", "💳", "🏦", "📈", "📉", "💸", "🪙", "💎", "🔑"]
-  },
-  {
-    title: "🏠 Đời sống & Đi lại",
-    emojis: ["🏠", "🚗", "🛵", "✈️", "🛒", "🛍️", "👕", "👠", "🔌", "📦", "🏥", "🎓"]
-  },
-  {
-    title: "🍔 Ăn uống & Giải trí",
-    emojis: ["🍔", "🍕", "🍜", "🍣", "☕", "🍿", "🍰", "🍺", "🎮", "🎬", "🎤", "🎧"]
-  },
-  {
-    title: "🎪 Khác",
-    emojis: ["🏋️‍♂️", "🎫", "🎪", "🎨", "🎁", "👶", "👵", "🔒", "💼", "📊", "🚨", "✨"]
-  }
-];
-
-export default function JarFormScreen() {
+export default function JarFormView() {
   const navigation = useNavigation();
   const route = useRoute();
   const insets = useSafeAreaInsets();
@@ -193,7 +162,7 @@ export default function JarFormScreen() {
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.modalScroll}>
-              {EMOJI_CATEGORIES.map((cat, catIdx) => (
+              {JAR_EMOJI_CATEGORIES.map((cat, catIdx) => (
                 <View key={catIdx} style={styles.catSection}>
                   <Text style={styles.catTitle}>{cat.title}</Text>
                   <View style={styles.emojiGrid}>

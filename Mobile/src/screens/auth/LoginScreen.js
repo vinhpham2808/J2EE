@@ -13,18 +13,18 @@ import {
   Platform
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { AuthContext } from "../components/AuthContext";
-import Loader from "../components/Loader";
-import { getApiErrorMessage } from "../utils/format";
+import { AuthContext } from "../../components/AuthContext";
+import Loader from "../../components/Loader";
+import { getApiErrorMessage } from "../../utils/format";
 import {
   getActivationEmail,
   isActivationRequiredError,
   openActivationOtp
-} from "../utils/accountActivation";
-import { tokenStorage } from "../storage/tokenStorage";
-import appLogo from "../assets/applogo.png";
-import { COLORS } from "../constants/colors";
-import { scale, clampScale } from "../utils/dimensions";
+} from "../../utils/accountActivation";
+import { tokenStorage } from "../../storage/tokenStorage";
+import appLogo from "../../assets/applogo.png";
+import { COLORS } from "../../constants/colors";
+import { scale, clampScale } from "../../utils/dimensions";
 
 export default function LoginScreen() {
   const navigation = useNavigation();

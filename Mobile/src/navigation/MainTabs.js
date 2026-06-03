@@ -10,7 +10,6 @@ import DashboardScreen from "../screens/DashboardScreen";
 import CategoryScreen from "../screens/CategoryScreen";
 import ExpenseScreen from "../screens/ExpenseScreen";
 import MoreScreen from "../screens/MoreScreen";
-import AddExpenseScreen from "../screens/AddExpenseScreen";
 import AddIncomeScreen from "../screens/AddIncomeScreen";
 import IncomeScreen from "../screens/IncomeScreen";
 import BudgetScreen from "../screens/BudgetScreen";
@@ -19,9 +18,6 @@ import ForecastScreen from "../screens/ForecastScreen";
 import ChatScreen from "../screens/ChatScreen";
 import ReportsScreen from "../screens/ReportsScreen";
 import JarScreen from "../screens/JarScreen";
-import JarDetailScreen from "../screens/JarDetailScreen";
-import JarFormScreen from "../screens/JarFormScreen";
-import JarTransferScreen from "../screens/JarTransferScreen";
 import ReceiptPreviewScreen from "../screens/ReceiptPreviewScreen";
 import FilterScreen from "../screens/FilterScreen";
 import ProfileScreen from "../screens/ProfileScreen";
@@ -74,7 +70,7 @@ function HomeStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Dashboard" component={DashboardScreen} />
-      <Stack.Screen name="AddExpense" component={AddExpenseScreen} />
+      <Stack.Screen name="AddExpense" component={ExpenseScreen} />
       <Stack.Screen name="AddIncome" component={AddIncomeScreen} />
       <Stack.Screen name="Income" component={IncomeScreen} />
       <Stack.Screen name="Budget" component={BudgetScreen} />
@@ -83,9 +79,9 @@ function HomeStack() {
       <Stack.Screen name="Chat" component={ChatScreen} />
       <Stack.Screen name="Reports" component={ReportsScreen} />
       <Stack.Screen name="Jars" component={JarScreen} />
-      <Stack.Screen name="JarDetail" component={JarDetailScreen} />
-      <Stack.Screen name="JarForm" component={JarFormScreen} />
-      <Stack.Screen name="JarTransfer" component={JarTransferScreen} />
+      <Stack.Screen name="JarDetail" component={JarScreen} />
+      <Stack.Screen name="JarForm" component={JarScreen} />
+      <Stack.Screen name="JarTransfer" component={JarScreen} />
       <Stack.Screen name="ReceiptPreview" component={ReceiptPreviewScreen} />
     </Stack.Navigator>
   );
@@ -104,6 +100,7 @@ function ExpenseStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="ExpenseMain" component={ExpenseScreen} />
+      <Stack.Screen name="AddExpense" component={ExpenseScreen} />
     </Stack.Navigator>
   );
 }

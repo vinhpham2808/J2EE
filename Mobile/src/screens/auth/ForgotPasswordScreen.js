@@ -1,19 +1,19 @@
 import React, { useState } from "react";
-import { Alert, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import http from "../services/http";
-import { API_ENDPOINTS } from "../constants/api";
-import { getApiErrorMessage } from "../utils/format";
+import http from "../../services/http";
+import { API_ENDPOINTS } from "../../constants/api";
+import { getApiErrorMessage } from "../../utils/format";
 import {
   getActivationEmail,
   isActivationRequiredError,
   openActivationOtp
-} from "../utils/accountActivation";
-import appLogo from "../assets/applogo.png";
-import { COLORS } from "../constants/colors";
-import { scale, clampScale } from "../utils/dimensions";
+} from "../../utils/accountActivation";
+import appLogo from "../../assets/applogo.png";
+import { COLORS } from "../../constants/colors";
+import { scale, clampScale } from "../../utils/dimensions";
 
-export default function SignupScreen() {
+export default function ForgotPasswordScreen() {
   const navigation = useNavigation();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -21,7 +21,7 @@ export default function SignupScreen() {
   const showActivationOption = (activationEmail) => {
     Alert.alert(
       "Tài khoản chưa được kích hoạt",
-      "Email này đã được đăng ký nhưng chưa xác thực OTP. Bạn có muốn tiếp tục kích hoạt tài khoản không?",
+      "Tài khoản này cần được xác thực OTP trước khi đặt lại mật khẩu.",
       [
         { text: "Để sau", style: "cancel" },
         {
@@ -39,39 +39,33 @@ export default function SignupScreen() {
     );
   };
 
-  const onSubmit = async () => {
+  const onSend = async () => {
     const normalizedEmail = email.trim();
 
     if (!normalizedEmail) {
-      Alert.alert("Thiếu thông tin", "Vui lòng nhập email.");
+      Alert.alert("Thiếu email", "Vui lòng nhập email của bạn.");
       return;
     }
 
     setLoading(true);
     try {
-      await http.post(API_ENDPOINTS.REGISTER, {
-        email: normalizedEmail
-      });
-
-      navigation.navigate("VerifyOtp", { email: normalizedEmail });
+      await http.post(API_ENDPOINTS.FORGOT_PASSWORD, { email: normalizedEmail });
+      navigation.navigate("ForgotPasswordOtp", { email: normalizedEmail });
     } catch (error) {
       if (isActivationRequiredError(error)) {
         showActivationOption(getActivationEmail(error, normalizedEmail));
         return;
       }
 
-      const message = getApiErrorMessage(error, "Không thể đăng ký. Vui lòng thử lại.");
-      Alert.alert("Đăng ký thất bại", message);
+      const message = getApiErrorMessage(error, "Không thể gửi yêu cầu. Vui lòng thử lại.");
+      Alert.alert("Thất bại", message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.screen}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
+    <View style={styles.screen}>
       <View style={styles.bgGlowTop} />
       <View style={styles.bgGlowBottom} />
 
@@ -84,8 +78,8 @@ export default function SignupScreen() {
           <Image source={appLogo} style={styles.brandLogo} resizeMode="contain" />
         </View>
 
-        <Text style={styles.title}>Tạo tài khoản</Text>
-        <Text style={styles.subtitle}>Nhập email để bắt đầu.</Text>
+        <Text style={styles.title}>Quên mật khẩu</Text>
+        <Text style={styles.subtitle}>Nhập email để nhận liên kết đặt lại mật khẩu.</Text>
 
         <View style={styles.formCard}>
           <View style={styles.inputWrap}>
@@ -95,25 +89,21 @@ export default function SignupScreen() {
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
-              placeholder="Email"
+              placeholder="Nhập email"
               placeholderTextColor="#7f9085"
             />
           </View>
 
-          <Pressable
-            style={[styles.actionButton, loading && styles.actionButtonDisabled]}
-            onPress={onSubmit}
-            disabled={loading}
-          >
-            <Text style={styles.actionButtonText}>{loading ? "Đang xử lý..." : "Tiếp theo"}</Text>
+          <Pressable style={[styles.actionButton, loading && styles.actionButtonDisabled]} onPress={onSend} disabled={loading}>
+            <Text style={styles.actionButtonText}>{loading ? "Đang gửi..." : "Gửi yêu cầu"}</Text>
           </Pressable>
 
           <Pressable style={styles.backButton} onPress={() => navigation.navigate("Login")}>
-            <Text style={styles.backButtonText}>Đã có tài khoản? Đăng nhập</Text>
+            <Text style={styles.backButtonText}>Quay lại đăng nhập</Text>
           </Pressable>
         </View>
       </ScrollView>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -143,74 +133,72 @@ const styles = StyleSheet.create({
   content: {
     flexGrow: 1,
     justifyContent: "center",
-    paddingHorizontal: scale(20),
-    paddingVertical: scale(40)
+    paddingHorizontal: scale(16),
+    paddingTop: scale(70),
+    paddingBottom: scale(30)
   },
   brandRow: {
-    alignItems: "center",
-    marginBottom: scale(16)
+    alignSelf: "center",
+    marginBottom: scale(20)
   },
   brandLogo: {
     width: 90,
     height: 90
   },
   title: {
-    fontSize: clampScale(28, 24, 32),
-    fontWeight: "800",
     color: COLORS.DARK_TEXT,
-    textAlign: "center",
-    marginBottom: scale(6)
+    fontSize: clampScale(24, 20, 28),
+    fontWeight: "700",
+    textAlign: "center"
   },
   subtitle: {
-    fontSize: clampScale(14, 12, 16),
+    marginTop: scale(8),
     color: COLORS.DARK_TEXT_SECONDARY,
-    textAlign: "center",
-    marginBottom: scale(24)
+    fontSize: clampScale(13, 11, 15),
+    textAlign: "center"
   },
   formCard: {
-    backgroundColor: COLORS.DARK_CARD_SOLID,
-    borderRadius: scale(18),
+    marginTop: scale(24),
+    borderRadius: scale(16),
     borderWidth: 1,
-    borderColor: COLORS.DARK_BORDER,
-    padding: scale(18),
-    gap: scale(12)
+    borderColor: COLORS.DARK_BORDER_LIGHT,
+    backgroundColor: COLORS.DARK_CARD,
+    padding: scale(14)
   },
   inputWrap: {
-    backgroundColor: COLORS.DARK_INPUT_BG,
-    borderRadius: scale(12),
+    borderRadius: scale(10),
     borderWidth: 1,
     borderColor: COLORS.DARK_BORDER,
-    paddingHorizontal: scale(14),
-    height: scale(48),
-    justifyContent: "center"
+    backgroundColor: COLORS.DARK_INPUT_BG,
+    marginBottom: scale(10)
   },
   input: {
-    color: COLORS.DARK_TEXT,
-    fontSize: clampScale(15, 13, 17)
+    paddingVertical: scale(12),
+    paddingHorizontal: scale(12),
+    color: COLORS.DARK_TEXT
   },
   actionButton: {
+    marginTop: scale(4),
+    borderRadius: scale(10),
     backgroundColor: COLORS.PRIMARY,
-    borderRadius: scale(14),
-    height: scale(50),
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: scale(4)
+    paddingVertical: scale(12),
+    alignItems: "center"
   },
   actionButtonDisabled: {
-    opacity: 0.6
+    opacity: 0.7
   },
   actionButtonText: {
     color: COLORS.DARK_TEXT,
-    fontSize: clampScale(16, 14, 18),
-    fontWeight: "700"
+    fontSize: clampScale(15, 13, 17),
+    fontWeight: "800"
   },
   backButton: {
-    alignItems: "center",
-    paddingVertical: scale(8)
+    marginTop: scale(12),
+    alignItems: "center"
   },
   backButtonText: {
     color: COLORS.PRIMARY_LIGHT,
-    fontSize: clampScale(13, 11, 15),
-    fontWeight: "600"
+    fontSize: clampScale(12, 10, 14),
+    fontWeight: "700"
   }
 });

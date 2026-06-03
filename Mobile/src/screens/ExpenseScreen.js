@@ -1,10 +1,11 @@
 import React, { useCallback, useContext } from "react";
 import { FlatList, RefreshControl, StyleSheet, View } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AuthContext } from "../components/AuthContext";
 import ExpenseEmptyState from "../components/Expenses/ExpenseEmptyState";
 import ExpenseFilterTabs from "../components/Expenses/ExpenseFilterTabs";
+import ExpenseForm from "../components/Expenses/ExpenseForm";
 import ExpenseItem from "../components/Expenses/ExpenseItem";
 import ExpenseListOverview from "../components/Expenses/ExpenseListOverview";
 import ExpenseSearchBar from "../components/Expenses/ExpenseSearchBar";
@@ -12,10 +13,51 @@ import ExpenseSummaryActions from "../components/Expenses/ExpenseSummaryActions"
 import QuickExpenseTemplates from "../components/QuickExpenseTemplates";
 import { COLORS } from "../constants/colors";
 import useExpenseReceiptImport from "../hooks/useExpenseReceiptImport";
+import useExpenseForm from "../hooks/useExpenseForm";
 import useExpenses from "../hooks/useExpenses";
-import { getSafeAreaBottom, getSafeAreaTop } from "../utils/safeAreaSpacing";
+import { getSafeAreaBottom, getSafeAreaContentStyle, getSafeAreaTop } from "../utils/safeAreaSpacing";
 
 export default function ExpenseScreen() {
+  const route = useRoute();
+
+  if (route.name === "AddExpense") {
+    return <ExpenseFormRoute />;
+  }
+
+  return <ExpenseListRoute />;
+}
+
+function ExpenseFormRoute() {
+  const navigation = useNavigation();
+  const route = useRoute();
+  const insets = useSafeAreaInsets();
+  const { user } = useContext(AuthContext);
+  const subscriptionPlan = String(user?.subscriptionPlan || "FREE").toUpperCase();
+  const isPremium = subscriptionPlan === "PREMIUM";
+
+  const { handleScanReceipt, isScanning } = useExpenseReceiptImport({
+    isPremium,
+    navigation
+  });
+
+  const expenseForm = useExpenseForm({
+    defaultJarId: route.params?.defaultJarId,
+    initialData: route.params?.initialData,
+    onSaved: () => navigation.goBack()
+  });
+
+  return (
+    <ExpenseForm
+      form={expenseForm}
+      insetsStyle={getSafeAreaContentStyle(insets)}
+      isPremium={isPremium}
+      isScanning={isScanning}
+      onImportReceipt={handleScanReceipt}
+    />
+  );
+}
+
+function ExpenseListRoute() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { user } = useContext(AuthContext);
@@ -52,10 +94,7 @@ export default function ExpenseScreen() {
 
   const navigateToAddExpense = useCallback(
     (initialData) => {
-      navigation.navigate("HomeTab", {
-        screen: "AddExpense",
-        params: initialData ? { initialData } : undefined
-      });
+      navigation.navigate("AddExpense", initialData ? { initialData } : undefined);
     },
     [navigation]
   );

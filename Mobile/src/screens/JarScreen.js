@@ -1,55 +1,26 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { Alert, FlatList, Pressable, RefreshControl, StyleSheet, Text, View, Dimensions } from "react-native";
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path, G, Text as SvgText, Defs, LinearGradient, Stop } from "react-native-svg";
 import http from "../services/http";
 import { API_ENDPOINTS } from "../constants/api";
 import { COLORS } from "../constants/colors";
 import { AuthContext } from "../components/AuthContext";
+import JarDetailView from "../components/Jars/JarDetailView";
+import JarFormView from "../components/Jars/JarFormView";
+import JarTransferView from "../components/Jars/JarTransferView";
 import { getApiErrorMessage } from "../utils/format";
+import { describeDonutArc, formatJarMoney, getJarActualPercent, getJarProgressWidth } from "../utils/jarUtils";
 import { getSafeAreaBottom, getSafeAreaTop } from "../utils/safeAreaSpacing";
 
 const screenWidth = Dimensions.get("window").width;
-const formatMoney = (n) =>
-  new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(n ?? 0);
-
-// Helper functions for SVG donut slices
-function polarToCartesian(cx, cy, r, angleDeg) {
-  const rad = ((angleDeg - 90) * Math.PI) / 180;
-  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
-}
-
-function describeArc(cx, cy, outerR, innerR, startAngle, endAngle) {
-  const sweep = Math.min(endAngle - startAngle, 359.999);
-  const end = startAngle + sweep;
-  const largeArc = sweep > 180 ? 1 : 0;
-
-  const oStart = polarToCartesian(cx, cy, outerR, startAngle);
-  const oEnd = polarToCartesian(cx, cy, outerR, end);
-  const iStart = polarToCartesian(cx, cy, innerR, end);
-  const iEnd = polarToCartesian(cx, cy, innerR, startAngle);
-
-  return [
-    `M ${oStart.x} ${oStart.y}`,
-    `A ${outerR} ${outerR} 0 ${largeArc} 1 ${oEnd.x} ${oEnd.y}`,
-    `L ${iStart.x} ${iStart.y}`,
-    `A ${innerR} ${innerR} 0 ${largeArc} 0 ${iEnd.x} ${iEnd.y}`,
-    "Z",
-  ].join(" ");
-}
 
 function JarCard({ item, totalBalance, onPress }) {
   const { name, icon, color, targetPercentage, currentBalance } = item;
 
-  const actualPercent = totalBalance > 0
-    ? ((currentBalance / totalBalance) * 100).toFixed(1)
-    : "0.0";
-
-  const progressWidth = Math.min(
-    Math.abs(currentBalance) / (totalBalance > 0 ? totalBalance : 1) * 100,
-    100
-  );
+  const actualPercent = getJarActualPercent(currentBalance, totalBalance);
+  const progressWidth = getJarProgressWidth(currentBalance, totalBalance);
 
   const isNegative = currentBalance < 0;
   const isMet = parseFloat(actualPercent) >= (targetPercentage ?? 0);
@@ -78,7 +49,7 @@ function JarCard({ item, totalBalance, onPress }) {
       </View>
 
       <Text style={[styles.cardBalance, isNegative && { color: COLORS.EXPENSE }]}>
-        {formatMoney(currentBalance)}
+        {formatJarMoney(currentBalance)}
       </Text>
 
       {/* Progress tracking */}
@@ -104,6 +75,24 @@ function JarCard({ item, totalBalance, onPress }) {
 }
 
 export default function JarScreen() {
+  const route = useRoute();
+
+  if (route.name === "JarDetail") {
+    return <JarDetailView />;
+  }
+
+  if (route.name === "JarForm") {
+    return <JarFormView />;
+  }
+
+  if (route.name === "JarTransfer") {
+    return <JarTransferView />;
+  }
+
+  return <JarListRoute />;
+}
+
+function JarListRoute() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { user } = useContext(AuthContext);
@@ -220,7 +209,7 @@ export default function JarScreen() {
             <View style={styles.overviewContainer}>
               <View style={styles.overviewBox}>
                 <Text style={styles.overviewLabel}>Tổng số dư hũ</Text>
-                <Text style={styles.overviewBalance}>{formatMoney(totalBalance)}</Text>
+                <Text style={styles.overviewBalance}>{formatJarMoney(totalBalance)}</Text>
               </View>
 
               <View style={styles.overviewRow}>
@@ -267,7 +256,7 @@ export default function JarScreen() {
                   <Svg width={svgSize} height={svgSize} viewBox={`0 0 ${svgSize} ${svgSize}`}>
                     <G>
                       {slices.map((slice) => {
-                        const d = describeArc(cx, cy, outerR, innerR, slice.startAngle, slice.endAngle);
+                        const d = describeDonutArc(cx, cy, outerR, innerR, slice.startAngle, slice.endAngle);
                         return (
                           <Path
                             key={slice.key}

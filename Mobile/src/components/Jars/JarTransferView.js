@@ -2,13 +2,14 @@ import React, { useEffect, useState } from "react";
 import { Alert, FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import http from "../services/http";
-import { API_ENDPOINTS } from "../constants/api";
-import { COLORS } from "../constants/colors";
-import { formatCurrencyInput, getApiErrorMessage, parseCurrencyInput, formatMoney } from "../utils/format";
-import { getSafeAreaBottom, getSafeAreaTop } from "../utils/safeAreaSpacing";
+import http from "../../services/http";
+import { API_ENDPOINTS } from "../../constants/api";
+import { COLORS } from "../../constants/colors";
+import { formatCurrencyInput, getApiErrorMessage, parseCurrencyInput } from "../../utils/format";
+import { formatJarMoney } from "../../utils/jarUtils";
+import { getSafeAreaBottom, getSafeAreaTop } from "../../utils/safeAreaSpacing";
 
-export default function JarTransferScreen() {
+export default function JarTransferView() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
 
@@ -72,7 +73,7 @@ export default function JarTransferScreen() {
     if (numericAmount > (fromJar.currentBalance || 0)) {
       Alert.alert(
         "Số dư không đủ",
-        `Số dư của hũ "${fromJar.name}" hiện tại là ${formatMoney(fromJar.currentBalance)}, không đủ để chuyển ${formatMoney(numericAmount)}.`
+        `Số dư của hũ "${fromJar.name}" hiện tại là ${formatJarMoney(fromJar.currentBalance)}, không đủ để chuyển ${formatJarMoney(numericAmount)}.`
       );
       return;
     }
@@ -86,7 +87,7 @@ export default function JarTransferScreen() {
       };
 
       await http.post(API_ENDPOINTS.TRANSFER_JAR, payload);
-      Alert.alert("Thành công", `Đã chuyển khoản thành công ${formatMoney(numericAmount)} từ hũ "${fromJar.name}" sang hũ "${toJar.name}".`);
+      Alert.alert("Thành công", `Đã chuyển khoản thành công ${formatJarMoney(numericAmount)} từ hũ "${fromJar.name}" sang hũ "${toJar.name}".`);
       navigation.goBack();
     } catch (err) {
       console.error("Lỗi chuyển tiền hũ:", err);
@@ -123,7 +124,7 @@ export default function JarTransferScreen() {
       </View>
       <View style={styles.itemInfo}>
         <Text style={styles.itemName}>{item.name}</Text>
-        <Text style={styles.itemBalance}>Số dư: {formatMoney(item.currentBalance)}</Text>
+        <Text style={styles.itemBalance}>Số dư: {formatJarMoney(item.currentBalance)}</Text>
       </View>
       <View style={[styles.colorIndicator, { backgroundColor: item.color || COLORS.PRIMARY }]} />
     </Pressable>
@@ -146,7 +147,7 @@ export default function JarTransferScreen() {
               </View>
               <View style={styles.selectedInfo}>
                 <Text style={styles.selectedName}>{fromJar.name}</Text>
-                <Text style={styles.selectedBalance}>Số dư khả dụng: {formatMoney(fromJar.currentBalance)}</Text>
+                <Text style={styles.selectedBalance}>Số dư khả dụng: {formatJarMoney(fromJar.currentBalance)}</Text>
               </View>
               <Text style={styles.arrowIcon}>▾</Text>
             </View>
@@ -174,7 +175,7 @@ export default function JarTransferScreen() {
               </View>
               <View style={styles.selectedInfo}>
                 <Text style={styles.selectedName}>{toJar.name}</Text>
-                <Text style={styles.selectedBalance}>Số dư khả dụng: {formatMoney(toJar.currentBalance)}</Text>
+                <Text style={styles.selectedBalance}>Số dư khả dụng: {formatJarMoney(toJar.currentBalance)}</Text>
               </View>
               <Text style={styles.arrowIcon}>▾</Text>
             </View>

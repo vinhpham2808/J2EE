@@ -11,10 +11,10 @@ import {
   View
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import http from "../services/http";
-import { API_ENDPOINTS } from "../constants/api";
-import { getApiErrorMessage } from "../utils/format";
-import { COLORS } from "../constants/colors";
+import http from "../../services/http";
+import { API_ENDPOINTS } from "../../constants/api";
+import { getApiErrorMessage } from "../../utils/format";
+import { COLORS } from "../../constants/colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 function meetsRequirements(password) {

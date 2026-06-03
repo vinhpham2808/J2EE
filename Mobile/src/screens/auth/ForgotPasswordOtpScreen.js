@@ -11,11 +11,11 @@ import {
   Platform
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import http from "../services/http";
-import { API_ENDPOINTS } from "../constants/api";
-import { getApiErrorMessage } from "../utils/format";
-import { getRetryAfterSeconds } from "../utils/otp";
-import { COLORS } from "../constants/colors";
+import http from "../../services/http";
+import { API_ENDPOINTS } from "../../constants/api";
+import { getApiErrorMessage } from "../../utils/format";
+import { getRetryAfterSeconds } from "../../utils/otp";
+import { COLORS } from "../../constants/colors";
 
 export default function ForgotPasswordOtpScreen() {
   const navigation = useNavigation();
