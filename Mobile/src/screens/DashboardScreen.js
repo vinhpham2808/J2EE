@@ -12,12 +12,10 @@ import { buildMonthlyFinanceSeries } from "../utils/financeStats";
 import { formatDate, formatMoney, getApiErrorMessage } from "../utils/format";
 import { COLORS } from "../constants/colors";
 import { scale, clampScale } from "../utils/dimensions";
-import {
-  AiInsightButton,
-  AiInsightSheet,
-  AiInsightLockedModal,
-  useAiInsight,
-} from "../ai-insight";
+import AiInsightButton from "../components/AiInsight/AiInsightButton";
+import AiInsightSheet from "../components/AiInsight/AiInsightSheet";
+import AiInsightLockedModal from "../components/AiInsight/AiInsightLockedModal";
+import { useAiInsight } from "../hooks/useAiInsight";
 import ShowMoreButton, { useVisibleItems } from "../components/ShowMoreButton";
 import { getSafeAreaBottom } from "../utils/safeAreaSpacing";
 

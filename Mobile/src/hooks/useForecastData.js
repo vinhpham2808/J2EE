@@ -5,7 +5,7 @@ import {
   fetchCategoryTrend,
   fetchInsights,
 } from "../services/forecastService";
-import { getAiForecastDraft } from "../ai-insight/services/forecastDraftCache";
+import { getAiForecastDraft } from "../services/forecastDraftCache";
 import {
   getRouteForecastMonth,
   buildForecastFromDraft,
