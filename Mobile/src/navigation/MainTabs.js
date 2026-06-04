@@ -202,7 +202,10 @@ export default function MainTabs() {
             paddingBottom: 6,
             position: "absolute",
             shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
+            shadowOffset: {
+              width: 0,
+              height: 2,
+            },
             shadowOpacity: 0.06,
             shadowRadius: 8,
             elevation: 3,

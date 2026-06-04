@@ -10,7 +10,7 @@ import {
   getRouteForecastMonth,
   buildForecastFromDraft,
   buildInsightFromDraft,
-} from "../constants/forecastConfig";
+} from "../utils/forecast";
 import {
   buildForecastBarChartData,
   buildMonthOptions,

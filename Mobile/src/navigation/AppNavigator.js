@@ -8,7 +8,7 @@ import MainTabs from "./MainTabs";
 import { COLORS } from "../constants/colors";
 import LoginScreen from "../screens/auth/LoginScreen";
 import SignupScreen from "../screens/auth/SignupScreen";
-import SetupProfileScreen from "../screens/auth/CreateNameScreen";
+import SetupProfileScreen from "../screens/auth/SetupProfileScreen";
 import CreatePasswordScreen from "../screens/auth/CreatePasswordScreen";
 import ForgotPasswordScreen from "../screens/auth/ForgotPasswordScreen";
 import ForgotPasswordOtpScreen from "../screens/auth/ForgotPasswordOtpScreen";

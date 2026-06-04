@@ -80,7 +80,10 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     letterSpacing: 0.5,
     textShadowColor: "rgba(0, 0, 0, 0.4)", // Đổ bóng chữ để hiển thị rõ trên nền sáng
-    textShadowOffset: { width: 0, height: 1 },
+    textShadowOffset: {
+      width: 0,
+      height: 1,
+    },
     textShadowRadius: 3,
   },
   progressBarTrack: {
@@ -97,7 +100,10 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.PRIMARY,
     borderRadius: 4,
     shadowColor: COLORS.PRIMARY,
-    shadowOffset: { width: 0, height: 0 },
+    shadowOffset: {
+      width: 0,
+      height: 0,
+    },
     shadowOpacity: 0.8,
     shadowRadius: 4,
   },
@@ -108,7 +114,10 @@ const styles = StyleSheet.create({
     marginTop: 4,
     letterSpacing: 0.3,
     textShadowColor: "rgba(0, 0, 0, 0.5)",
-    textShadowOffset: { width: 0, height: 1 },
+    textShadowOffset: {
+      width: 0,
+      height: 1,
+    },
     textShadowRadius: 3,
   },
 });

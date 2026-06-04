@@ -84,9 +84,22 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 12,
   },
-  title: { fontWeight: "800", color: COLORS.TEXT, marginBottom: 4, fontSize: 18 },
-  subtitle: { color: COLORS.TEXT_SECONDARY, marginBottom: 10, fontSize: 12 },
-  label: { color: COLORS.TEXT, marginBottom: 6, fontWeight: "700" },
+  title: {
+    fontWeight: "800",
+    color: COLORS.TEXT,
+    marginBottom: 4,
+    fontSize: 18,
+  },
+  subtitle: {
+    color: COLORS.TEXT_SECONDARY,
+    marginBottom: 10,
+    fontSize: 12,
+  },
+  label: {
+    color: COLORS.TEXT,
+    marginBottom: 6,
+    fontWeight: "700",
+  },
   input: {
     backgroundColor: COLORS.BG,
     borderRadius: 12,
@@ -97,15 +110,26 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     color: COLORS.TEXT,
   },
-  dateRow: { flexDirection: "row" },
-  dateCol: { flex: 1 },
-  dateColLeft: { marginRight: 8 },
+  dateRow: {
+    flexDirection: "row",
+  },
+  dateCol: {
+    flex: 1,
+  },
+  dateColLeft: {
+    marginRight: 8,
+  },
   saveButton: {
     backgroundColor: COLORS.PRIMARY,
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: "center",
   },
-  saveButtonDisabled: { opacity: 0.6 },
-  saveButtonText: { color: COLORS.WHITE, fontWeight: "800" },
+  saveButtonDisabled: {
+    opacity: 0.6,
+  },
+  saveButtonText: {
+    color: COLORS.WHITE,
+    fontWeight: "800",
+  },
 });

@@ -30,13 +30,69 @@ export default function JarOverview({ jarCount, maxJars, totalBalance, totalPerc
 }
 
 const styles = StyleSheet.create({
-  overviewContainer: { backgroundColor: COLORS.WHITE, borderRadius: 18, borderWidth: 1, borderColor: COLORS.CARD_BORDER, padding: 14, marginBottom: 12, shadowColor: COLORS.TEXT, shadowOpacity: 0.04, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 1 },
-  overviewBox: { alignItems: "center", paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: COLORS.CARD_BORDER, marginBottom: 12 },
-  overviewLabel: { fontSize: 12, color: COLORS.TEXT_SECONDARY, fontWeight: "700" },
-  overviewBalance: { fontSize: 26, fontWeight: "800", color: COLORS.PRIMARY, marginTop: 4 },
-  overviewRow: { flexDirection: "row", justifyContent: "space-between" },
-  smallOverviewBox: { flex: 1, alignItems: "center", backgroundColor: COLORS.BG, borderRadius: 12, paddingVertical: 10 },
-  overviewValue: { fontSize: 16, fontWeight: "800", color: COLORS.TEXT, marginTop: 4 },
-  warningBanner: { backgroundColor: COLORS.EXPENSE_LIGHT, borderRadius: 10, borderWidth: 1, borderColor: "#fecdca", padding: 8, marginTop: 12 },
-  warningText: { color: COLORS.EXPENSE, fontSize: 11, fontWeight: "600", textAlign: "center" }
+  overviewContainer: {
+    backgroundColor: COLORS.WHITE,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: COLORS.CARD_BORDER,
+    padding: 14,
+    marginBottom: 12,
+    shadowColor: COLORS.TEXT,
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    elevation: 1,
+  },
+  overviewBox: {
+    alignItems: "center",
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.CARD_BORDER,
+    marginBottom: 12,
+  },
+  overviewLabel: {
+    fontSize: 12,
+    color: COLORS.TEXT_SECONDARY,
+    fontWeight: "700",
+  },
+  overviewBalance: {
+    fontSize: 26,
+    fontWeight: "800",
+    color: COLORS.PRIMARY,
+    marginTop: 4,
+  },
+  overviewRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  smallOverviewBox: {
+    flex: 1,
+    alignItems: "center",
+    backgroundColor: COLORS.BG,
+    borderRadius: 12,
+    paddingVertical: 10,
+  },
+  overviewValue: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: COLORS.TEXT,
+    marginTop: 4,
+  },
+  warningBanner: {
+    backgroundColor: COLORS.EXPENSE_LIGHT,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#fecdca",
+    padding: 8,
+    marginTop: 12,
+  },
+  warningText: {
+    color: COLORS.EXPENSE,
+    fontSize: 11,
+    fontWeight: "600",
+    textAlign: "center",
+  }
 });

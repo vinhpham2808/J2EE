@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { BarChart } from "react-native-chart-kit";
 import { COLORS } from "../../constants/colors";
-import { barChartConfig } from "../../constants/forecastConfig";
+import { barChartConfig } from "../../utils/forecast";
 
 export default function ForecastBarChart({ barChartData, categories }) {
   const { width: screenWidth } = useWindowDimensions();

@@ -11,6 +11,8 @@ export default function CategoryGridSelector({
   recentIds = [],
   label = "Danh mục",
   placeholder = "Chọn danh mục",
+  hintText,
+  highlighted = false,
   loading = false,
   emptyText = "Chưa có danh mục. Hãy tạo danh mục ở tab Danh mục.",
 }) {
@@ -49,8 +51,8 @@ export default function CategoryGridSelector({
 
   if (loading) {
     return (
-      <View style={styles.row}>
-        <Text style={styles.rowLabel}>{label}</Text>
+      <View style={[styles.row, highlighted && styles.rowHighlighted]}>
+        <Text style={[styles.rowLabel, highlighted && styles.rowLabelHighlighted]}>{label}</Text>
         <View style={styles.rowRight}>
           <Text style={styles.rowPlaceholder}>Đang tải...</Text>
         </View>
@@ -60,8 +62,11 @@ export default function CategoryGridSelector({
 
   return (
     <>
-      <Pressable style={styles.row} onPress={() => setModalVisible(true)}>
-        <Text style={styles.rowLabel}>{label}</Text>
+      <Pressable style={[styles.row, highlighted && styles.rowHighlighted]} onPress={() => setModalVisible(true)}>
+        <View style={styles.rowTextBlock}>
+          <Text style={[styles.rowLabel, highlighted && styles.rowLabelHighlighted]}>{label}</Text>
+          {highlighted && hintText ? <Text style={styles.rowHint}>{hintText}</Text> : null}
+        </View>
         <View style={styles.rowRight}>
           {selectedCategory ? (
             <View style={styles.selectedWrap}>
@@ -91,7 +96,7 @@ export default function CategoryGridSelector({
           ) : (
             <Text style={styles.rowPlaceholder}>{placeholder}</Text>
           )}
-
+          {highlighted && <Text style={styles.rowChevron}>›</Text>}
         </View>
       </Pressable>
 
@@ -261,10 +266,34 @@ const styles = StyleSheet.create({
     borderColor: COLORS.CARD_BORDER,
     marginBottom: 16,
   },
+  rowHighlighted: {
+    borderColor: COLORS.PRIMARY,
+    borderWidth: 1.5,
+    backgroundColor: COLORS.WHITE,
+    shadowColor: COLORS.PRIMARY,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+  rowTextBlock: {
+    flex: 1,
+    paddingRight: 12,
+  },
   rowLabel: {
     fontSize: 15,
     fontWeight: "600",
     color: COLORS.TEXT,
+  },
+  rowLabelHighlighted: {
+    color: COLORS.PRIMARY,
+    fontWeight: "800",
+  },
+  rowHint: {
+    marginTop: 3,
+    fontSize: 11,
+    color: COLORS.TEXT_SECONDARY,
+    fontWeight: "500",
   },
   rowRight: {
     flexDirection: "row",
@@ -290,6 +319,13 @@ const styles = StyleSheet.create({
   rowPlaceholder: {
     fontSize: 15,
     color: COLORS.TEXT_SECONDARY,
+  },
+  rowChevron: {
+    marginLeft: 8,
+    fontSize: 22,
+    lineHeight: 22,
+    color: COLORS.PRIMARY,
+    fontWeight: "800",
   },
 
 

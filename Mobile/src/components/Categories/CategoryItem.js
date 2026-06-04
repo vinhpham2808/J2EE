@@ -168,7 +168,10 @@ const styles = StyleSheet.create({
     shadowColor: COLORS.TEXT,
     shadowOpacity: 0.12,
     shadowRadius: 16,
-    shadowOffset: { width: 0, height: 6 },
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
     elevation: 8
   },
   menuItem: {

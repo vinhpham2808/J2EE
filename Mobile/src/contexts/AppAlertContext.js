@@ -16,7 +16,7 @@ import {
   DEFAULT_ALERT_BUTTON_TEXT,
   DEFAULT_ALERT_TITLE,
   resolveAlertVariant
-} from "../constants/appAlertConfig";
+} from "../utils/appAlertConfig";
 import { COLORS } from "../constants/colors";
 
 const originalAlert = NativeAlert.alert.bind(NativeAlert);
@@ -266,7 +266,10 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255, 255, 255, 0.34)",
     backgroundColor: COLORS.CARD,
     overflow: "hidden",
-    shadowOffset: { width: 0, height: 22 },
+    shadowOffset: {
+      width: 0,
+      height: 22,
+    },
     shadowOpacity: Platform.OS === "ios" ? 0.26 : 0.36,
     shadowRadius: 30,
     elevation: 24
@@ -311,7 +314,10 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
-    shadowOffset: { width: 0, height: 10 },
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
     shadowOpacity: 0.18,
     shadowRadius: 14,
     elevation: 8

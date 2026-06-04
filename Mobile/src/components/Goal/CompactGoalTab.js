@@ -67,8 +67,16 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginLeft: 8,
   },
-  name: { color: COLORS.TEXT, fontWeight: "800", fontSize: 16, marginBottom: 2 },
-  period: { color: COLORS.TEXT_SECONDARY, fontSize: 12 },
+  name: {
+    color: COLORS.TEXT,
+    fontWeight: "800",
+    fontSize: 16,
+    marginBottom: 2,
+  },
+  period: {
+    color: COLORS.TEXT_SECONDARY,
+    fontSize: 12,
+  },
   track: {
     marginTop: 7,
     height: 5,
@@ -76,11 +84,16 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.CARD_BORDER,
     overflow: "hidden",
   },
-  fill: { height: "100%" },
+  fill: {
+    height: "100%",
+  },
   statusBadge: {
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
-  statusText: { fontWeight: "700", fontSize: 12 },
+  statusText: {
+    fontWeight: "700",
+    fontSize: 12,
+  },
 });

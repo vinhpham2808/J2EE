@@ -87,7 +87,11 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     marginTop: 2,
   },
-  label: { color: COLORS.TEXT, marginBottom: 6, fontWeight: "700" },
+  label: {
+    color: COLORS.TEXT,
+    marginBottom: 6,
+    fontWeight: "700",
+  },
   input: {
     backgroundColor: COLORS.BG,
     borderRadius: 12,

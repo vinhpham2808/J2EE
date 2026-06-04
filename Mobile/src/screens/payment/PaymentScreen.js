@@ -4,9 +4,9 @@ import { useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import apiClient from "../../services/apiClient";
 import { API_ENDPOINTS } from "../../constants/api";
-import { PAYMENT_PLANS } from "../../constants/paymentPlans";
 import { formatMoney, getApiErrorMessage } from "../../utils/format";
 import { getSafeAreaContentStyle } from "../../utils/safeArea";
+import { PAYMENT_PLANS } from "./paymentPlans";
 
 export default function PaymentScreen() {
   const navigation = useNavigation();

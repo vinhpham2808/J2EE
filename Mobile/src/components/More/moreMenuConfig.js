@@ -23,17 +23,11 @@ export const MORE_MENU_GROUPS = [
     ]
   },
   {
-    title: "TRỢ LÝ AI",
-    items: [
-      { key: "chat", icon: "✨", title: "Trò chuyện Gemini AI", route: "HomeTab", params: { screen: "Chat" } }
-    ]
-  },
-  {
     title: "THÔNG TIN ỨNG DỤNG",
     items: [
       { key: "help", icon: "❓", title: "Trợ giúp & Hỗ trợ", hasChevron: true },
       { key: "privacy", icon: "🛡️", title: "Chính sách bảo mật", hasChevron: true },
-      { key: "version", icon: "ℹ️", title: "Phiên bản", value: "1.0.0 (Build 42)", hasChevron: false }
+      { key: "version", icon: "ℹ️", title: "Phiên bản", value: "1.0.0", hasChevron: false }
     ]
   }
 ];

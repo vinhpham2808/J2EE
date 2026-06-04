@@ -76,7 +76,10 @@ const styles = StyleSheet.create({
     shadowColor: COLORS.PRIMARY,
     shadowOpacity: 0.06,
     shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
     elevation: 1
   },
   chipPressed: {

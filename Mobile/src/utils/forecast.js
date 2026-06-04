@@ -1,10 +1,22 @@
-import { COLORS } from "./colors";
+import { COLORS } from "../constants/colors";
 
 // ─── Trend Labels ────────────────────────────────────────────
 export const TREND_CONFIG = {
-  UP: { label: "Tăng", color: COLORS.EXPENSE, icon: "🔺" },
-  DOWN: { label: "Giảm", color: COLORS.INCOME, icon: "🔻" },
-  STABLE: { label: "Ổn định", color: COLORS.INFO, icon: "➖" },
+  UP: {
+    label: "Tăng",
+    color: COLORS.EXPENSE,
+    icon: "🔺",
+  },
+  DOWN: {
+    label: "Giảm",
+    color: COLORS.INCOME,
+    icon: "🔻",
+  },
+  STABLE: {
+    label: "Ổn định",
+    color: COLORS.INFO,
+    icon: "➖",
+  },
 };
 
 // ─── Month Labels ────────────────────────────────────────────
@@ -33,7 +45,9 @@ export const barChartConfig = {
   color: (opacity = 1) => `rgba(232, 89, 122, ${opacity})`,
   labelColor: () => COLORS.TEXT_SECONDARY,
   barPercentage: 0.5,
-  propsForLabels: { fontSize: 10 },
+  propsForLabels: {
+    fontSize: 10,
+  },
   propsForBackgroundLines: {
     strokeDasharray: "4 4",
     stroke: COLORS.CARD_BORDER,
@@ -49,8 +63,14 @@ export const lineChartConfig = {
   decimalPlaces: 0,
   color: (opacity = 1) => `rgba(232, 89, 122, ${opacity})`,
   labelColor: () => COLORS.TEXT_SECONDARY,
-  propsForDots: { r: "4", strokeWidth: "2", stroke: COLORS.PRIMARY },
-  propsForLabels: { fontSize: 10 },
+  propsForDots: {
+    r: "4",
+    strokeWidth: "2",
+    stroke: COLORS.PRIMARY,
+  },
+  propsForLabels: {
+    fontSize: 10,
+  },
   propsForBackgroundLines: {
     strokeDasharray: "4 4",
     stroke: COLORS.CARD_BORDER,

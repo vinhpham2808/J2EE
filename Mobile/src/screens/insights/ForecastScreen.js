@@ -10,7 +10,7 @@ import { useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AuthContext } from "../../contexts/AuthContext";
 import { COLORS } from "../../constants/colors";
-import { TREND_CONFIG } from "../../constants/forecastConfig";
+import { TREND_CONFIG } from "../../utils/forecast";
 import { formatMoney } from "../../utils/format";
 import { getSafeAreaContentStyle } from "../../utils/safeArea";
 import useForecastData from "../../hooks/useForecastData";

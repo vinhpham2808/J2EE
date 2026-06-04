@@ -1,4 +1,4 @@
-import { COLORS } from "./colors";
+import { COLORS } from "../constants/colors";
 
 export const DEFAULT_ALERT_TITLE = "Thông báo";
 export const DEFAULT_ALERT_BUTTON_TEXT = "Đã hiểu";

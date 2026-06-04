@@ -123,7 +123,10 @@ const styles = StyleSheet.create({
     shadowColor: "#000",
     shadowOpacity: 0.25,
     shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 }
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    }
   },
   header: {
     flexDirection: "row",
@@ -207,7 +210,10 @@ const styles = StyleSheet.create({
     shadowColor: COLORS.PRIMARY,
     shadowOpacity: 0.2,
     shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 }
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    }
   },
   saveBtnDisabled: {
     backgroundColor: "rgba(232, 89, 122, 0.4)",

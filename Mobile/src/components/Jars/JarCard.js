@@ -42,21 +42,96 @@ export default function JarCard({ item, totalBalance, onPress }) {
 }
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: COLORS.WHITE, borderRadius: 16, borderWidth: 1, borderColor: COLORS.CARD_BORDER, padding: 14, marginBottom: 10, position: "relative", overflow: "hidden" },
-  cardAccentBar: { position: "absolute", top: 0, left: 0, right: 0, height: 4 },
-  cardHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
-  cardInfoCol: { flexDirection: "row", alignItems: "center", flex: 1 },
-  iconContainer: { width: 38, height: 38, borderRadius: 10, alignItems: "center", justifyContent: "center", marginRight: 10 },
-  iconText: { fontSize: 20 },
-  cardTitleWrap: { flex: 1 },
-  cardName: { fontSize: 15, fontWeight: "800", color: COLORS.TEXT },
-  cardTarget: { fontSize: 11, color: COLORS.TEXT_SECONDARY, marginTop: 2 },
-  statusBadge: { borderRadius: 999, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3 },
-  statusBadgeText: { fontSize: 10, fontWeight: "700" },
-  cardBalance: { fontSize: 22, fontWeight: "800", color: COLORS.TEXT, marginTop: 10 },
-  progressRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 8 },
-  progressLabel: { fontSize: 11, color: COLORS.TEXT_MUTED },
-  progressValue: { fontSize: 11, fontWeight: "700" },
-  progressBarBg: { height: 6, backgroundColor: COLORS.CARD_BORDER, borderRadius: 3, overflow: "hidden", marginTop: 6 },
-  progressBarFill: { height: "100%", borderRadius: 3 }
+  card: {
+    backgroundColor: COLORS.WHITE,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.CARD_BORDER,
+    padding: 14,
+    marginBottom: 10,
+    position: "relative",
+    overflow: "hidden",
+  },
+  cardAccentBar: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 4,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+  cardInfoCol: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  iconContainer: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
+  },
+  iconText: {
+    fontSize: 20,
+  },
+  cardTitleWrap: {
+    flex: 1,
+  },
+  cardName: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: COLORS.TEXT,
+  },
+  cardTarget: {
+    fontSize: 11,
+    color: COLORS.TEXT_SECONDARY,
+    marginTop: 2,
+  },
+  statusBadge: {
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  statusBadgeText: {
+    fontSize: 10,
+    fontWeight: "700",
+  },
+  cardBalance: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: COLORS.TEXT,
+    marginTop: 10,
+  },
+  progressRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 8,
+  },
+  progressLabel: {
+    fontSize: 11,
+    color: COLORS.TEXT_MUTED,
+  },
+  progressValue: {
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  progressBarBg: {
+    height: 6,
+    backgroundColor: COLORS.CARD_BORDER,
+    borderRadius: 3,
+    overflow: "hidden",
+    marginTop: 6,
+  },
+  progressBarFill: {
+    height: "100%",
+    borderRadius: 3,
+  }
 });

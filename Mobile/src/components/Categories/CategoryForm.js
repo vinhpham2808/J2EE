@@ -85,7 +85,10 @@ const styles = StyleSheet.create({
     shadowColor: COLORS.TEXT,
     shadowOpacity: 0.06,
     shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
     elevation: 2
   },
   modalBody: {
@@ -173,7 +176,10 @@ const styles = StyleSheet.create({
     shadowColor: COLORS.PRIMARY,
     shadowOpacity: 0.25,
     shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
     elevation: 3
   },
   saveButtonDisabled: {

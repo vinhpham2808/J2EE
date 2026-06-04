@@ -2,9 +2,10 @@ import { useCallback, useState } from "react";
 import { Alert } from "react-native";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
-import { EXPENSE_RECEIPT_MAX_FILE_SIZE } from "../constants/expenseConfig";
 import { analyzeReceiptFile } from "../services/receiptImportService";
 import { getApiErrorMessage } from "../utils/format";
+
+const EXPENSE_RECEIPT_MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 export default function useExpenseReceiptImport({ isPremium, navigation }) {
   const [isScanning, setIsScanning] = useState(false);
@@ -130,10 +131,10 @@ export default function useExpenseReceiptImport({ isPremium, navigation }) {
     }
 
     Alert.alert("Nhập từ hóa đơn", "Chọn nguồn tệp hóa đơn:", [
-      { text: "Chụp ảnh", onPress: pickCamera },
-      { text: "Chọn ảnh từ thư viện", onPress: pickImage },
-      { text: "Chọn file PDF", onPress: pickPdf },
-      { text: "Hủy", style: "cancel" }
+      { text: "📷", onPress: pickCamera },
+      { text: "🖼️", onPress: pickImage },
+      { text: "📄", onPress: pickPdf },
+      { text: "✕", style: "cancel" }
     ]);
   }, [isPremium, navigation, pickCamera, pickImage, pickPdf]);
 

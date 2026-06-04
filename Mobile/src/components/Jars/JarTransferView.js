@@ -362,7 +362,10 @@ const styles = StyleSheet.create({
     shadowColor: COLORS.PRIMARY,
     shadowOpacity: 0.2,
     shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
     elevation: 3,
   },
   disabledButton: {

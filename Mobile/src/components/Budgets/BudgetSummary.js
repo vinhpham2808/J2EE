@@ -15,9 +15,31 @@ export default function BudgetSummary({ summary }) {
 }
 
 const styles = StyleSheet.create({
-  overviewCard: { backgroundColor: COLORS.PRIMARY, borderRadius: 18, padding: 14, marginBottom: 12 },
-  overviewTitle: { color: COLORS.PEACH, fontWeight: "700", fontSize: 13 },
-  overviewLimit: { marginTop: 6, color: COLORS.WHITE, fontWeight: "800", fontSize: 20 },
-  overviewSpent: { marginTop: 2, color: COLORS.PEACH, fontWeight: "700" },
-  overviewHint: { marginTop: 8, color: COLORS.ROSE_MIST, fontSize: 12 }
+  overviewCard: {
+    backgroundColor: COLORS.PRIMARY,
+    borderRadius: 18,
+    padding: 14,
+    marginBottom: 12,
+  },
+  overviewTitle: {
+    color: COLORS.PEACH,
+    fontWeight: "700",
+    fontSize: 13,
+  },
+  overviewLimit: {
+    marginTop: 6,
+    color: COLORS.WHITE,
+    fontWeight: "800",
+    fontSize: 20,
+  },
+  overviewSpent: {
+    marginTop: 2,
+    color: COLORS.PEACH,
+    fontWeight: "700",
+  },
+  overviewHint: {
+    marginTop: 8,
+    color: COLORS.ROSE_MIST,
+    fontSize: 12,
+  }
 });

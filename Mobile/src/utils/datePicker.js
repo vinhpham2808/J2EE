@@ -122,7 +122,10 @@ function DatePickerModal({
       backgroundColor: COLORS.PRIMARY,
       borderRadius: 14,
       shadowColor: COLORS.PRIMARY,
-      shadowOffset: { width: 0, height: 2 },
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
       shadowOpacity: 0.3,
       shadowRadius: 4,
       elevation: 3
@@ -410,7 +413,10 @@ const styles = StyleSheet.create({
     width: Dimensions.get("window").width - 32,
     maxHeight: Dimensions.get("window").height * 0.82,
     shadowColor: "#c20d0d",
-    shadowOffset: { width: 0, height: 6 },
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
     shadowOpacity: 0.4,
     shadowRadius: 14,
     elevation: 14
@@ -457,7 +463,10 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     alignItems: "center",
     shadowColor: COLORS.PRIMARY,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 3

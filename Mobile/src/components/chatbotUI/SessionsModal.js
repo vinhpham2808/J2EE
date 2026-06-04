@@ -235,7 +235,10 @@ const styles = StyleSheet.create({
     shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 }
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    }
   },
   newChatButtonText: {
     color: "#ffffff",

@@ -116,28 +116,42 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     marginBottom: 8,
   },
-  headerLeft: { flex: 1, paddingRight: 10 },
+  headerLeft: {
+    flex: 1,
+    paddingRight: 10,
+  },
   title: {
     color: COLORS.TEXT,
     fontWeight: "900",
     fontSize: 18,
     marginBottom: 3,
   },
-  period: { color: COLORS.TEXT_SECONDARY, fontSize: 12 },
+  period: {
+    color: COLORS.TEXT_SECONDARY,
+    fontSize: 12,
+  },
   statusBadge: {
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
-  statusText: { fontWeight: "700", fontSize: 12 },
+  statusText: {
+    fontWeight: "700",
+    fontSize: 12,
+  },
   progressRow: {
     marginTop: 10,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  progressLabel: { color: COLORS.TEXT_SECONDARY, fontSize: 12 },
-  progressValue: { fontWeight: "800" },
+  progressLabel: {
+    color: COLORS.TEXT_SECONDARY,
+    fontSize: 12,
+  },
+  progressValue: {
+    fontWeight: "800",
+  },
   progressTrack: {
     marginTop: 6,
     height: 8,
@@ -145,7 +159,9 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.CARD_BORDER,
     overflow: "hidden",
   },
-  progressFill: { height: "100%" },
+  progressFill: {
+    height: "100%",
+  },
   statsGrid: {
     marginTop: 10,
     flexDirection: "row",
@@ -160,19 +176,40 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     marginBottom: 8,
   },
-  statLabel: { color: COLORS.TEXT_SECONDARY, fontSize: 11, marginBottom: 2 },
-  statValue: { color: COLORS.TEXT, fontWeight: "700", fontSize: 12 },
-  statGood: { color: COLORS.INCOME },
-  statWarn: { color: COLORS.EXPENSE },
-  statInfo: { color: COLORS.INFO },
+  statLabel: {
+    color: COLORS.TEXT_SECONDARY,
+    fontSize: 11,
+    marginBottom: 2,
+  },
+  statValue: {
+    color: COLORS.TEXT,
+    fontWeight: "700",
+    fontSize: 12,
+  },
+  statGood: {
+    color: COLORS.INCOME,
+  },
+  statWarn: {
+    color: COLORS.EXPENSE,
+  },
+  statInfo: {
+    color: COLORS.INFO,
+  },
   monthlyCard: {
     backgroundColor: COLORS.BG,
     borderRadius: 10,
     padding: 10,
     marginTop: 2,
   },
-  monthlyLabel: { color: COLORS.TEXT_SECONDARY, fontSize: 12 },
-  monthlyValue: { color: COLORS.TEXT, fontSize: 11, fontWeight: "700" },
+  monthlyLabel: {
+    color: COLORS.TEXT_SECONDARY,
+    fontSize: 12,
+  },
+  monthlyValue: {
+    color: COLORS.TEXT,
+    fontSize: 11,
+    fontWeight: "700",
+  },
   monthlyTrack: {
     marginTop: 6,
     height: 6,
@@ -180,7 +217,10 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.CARD_BORDER,
     overflow: "hidden",
   },
-  monthlyFill: { height: "100%", backgroundColor: COLORS.PRIMARY },
+  monthlyFill: {
+    height: "100%",
+    backgroundColor: COLORS.PRIMARY,
+  },
   actions: {
     marginTop: 10,
     flexDirection: "row",
@@ -203,7 +243,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
-  deleteText: { color: COLORS.EXPENSE, fontWeight: "700" },
+  deleteText: {
+    color: COLORS.EXPENSE,
+    fontWeight: "700",
+  },
   primaryButton: {
     backgroundColor: "#4f46e5",
     borderRadius: 10,

@@ -225,7 +225,10 @@ const styles = StyleSheet.create({
     shadowColor: COLORS.TEXT,
     shadowOpacity: 0.16,
     shadowRadius: 18,
-    shadowOffset: { width: 0, height: -4 },
+    shadowOffset: {
+      width: 0,
+      height: -4,
+    },
     elevation: 14
   },
   handle: {

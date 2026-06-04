@@ -9,11 +9,15 @@ import ExpenseListOverview from "../../components/Expenses/ExpenseListOverview";
 import ExpenseSummaryActions from "../../components/Expenses/ExpenseSummaryActions";
 import QuickExpenseTemplates from "../../components/Expenses/QuickExpenseTemplates";
 import { COLORS } from "../../constants/colors";
-import { EXPENSE_FILTER_TYPES } from "../../constants/expenseConfig";
 import useExpenseReceiptImport from "../../hooks/useExpenseReceiptImport";
 import useExpenseForm from "../../hooks/useExpenseForm";
 import useExpenses from "../../hooks/useExpenses";
 import { getSafeAreaBottom, getSafeAreaContentStyle, getSafeAreaTop } from "../../utils/safeArea";
+
+const EXPENSE_FILTER_TYPES = {
+  current: "current",
+  all: "all"
+};
 
 const FILTER_OPTIONS = [
   { label: "Tháng này", value: EXPENSE_FILTER_TYPES.current },

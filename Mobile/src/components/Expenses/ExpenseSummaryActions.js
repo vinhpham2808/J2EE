@@ -1,9 +1,10 @@
 import React from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../../constants/colors";
-import { EXPENSE_FILTER_TYPES } from "../../constants/expenseConfig";
 import { formatMoney } from "../../utils/format";
 import VoiceInputButton from "../common/VoiceInputButton";
+
+const ALL_EXPENSE_FILTER = "all";
 
 export default function ExpenseSummaryActions({
   expenseCount,
@@ -55,7 +56,7 @@ export default function ExpenseSummaryActions({
         <Text style={styles.exportText}>
           {isExporting
             ? "Đang tạo báo cáo..."
-            : filterType === EXPENSE_FILTER_TYPES.all
+            : filterType === ALL_EXPENSE_FILTER
               ? "Tải báo cáo tất cả tháng"
               : "Tải báo cáo tháng này"}
         </Text>
@@ -75,7 +76,10 @@ const styles = StyleSheet.create({
     shadowColor: COLORS.TEXT,
     shadowOpacity: 0.06,
     shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
     elevation: 2
   },
   summaryContent: {
@@ -112,7 +116,10 @@ const styles = StyleSheet.create({
     shadowColor: COLORS.PRIMARY,
     shadowOpacity: 0.25,
     shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
     elevation: 3
   },
   addButtonText: {

@@ -8,34 +8,6 @@ import ExpenseNoteField from "./ExpenseNoteField";
 export default function ExpenseForm({ form, insetsStyle, isPremium, isScanning, onImportReceipt }) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={[styles.content, insetsStyle]}>
-      <Pressable
-        style={[styles.importBanner, isScanning && styles.importBannerScanning]}
-        onPress={onImportReceipt}
-        disabled={isScanning}
-      >
-        {isScanning ? (
-          <View style={styles.importBannerInner}>
-            <ActivityIndicator color={COLORS.PRIMARY} size="small" />
-            <Text style={styles.importBannerText}>Đang phân tích hóa đơn...</Text>
-          </View>
-        ) : (
-          <View style={styles.importBannerInner}>
-            <Text style={styles.importBannerIcon}>📎</Text>
-            <View style={styles.importBannerBody}>
-              <Text style={styles.importBannerTitle}>Nhập từ hóa đơn</Text>
-              <Text style={styles.importBannerSub}>Chọn ảnh hoặc PDF{!isPremium ? "  •  Premium" : ""}</Text>
-            </View>
-            <Text style={styles.importBannerChevron}>›</Text>
-          </View>
-        )}
-      </Pressable>
-
-      <View style={styles.dividerRow}>
-        <View style={styles.dividerLine} />
-        <Text style={styles.dividerText}>hoặc nhập tay</Text>
-        <View style={styles.dividerLine} />
-      </View>
-
       <Text style={styles.label}>Tên khoản chi</Text>
       <TextInput
         style={styles.input}
@@ -105,8 +77,35 @@ export default function ExpenseForm({ form, insetsStyle, isPremium, isScanning, 
         selectedId={form.categoryId}
         onSelect={form.setCategoryId}
         loading={form.categoryLoading}
+        highlighted
+        hintText="Chạm để chọn đúng nhóm chi tiêu"
+        placeholder="Chọn ngay"
         emptyText="Chưa có danh mục chi tiêu. Hãy tạo danh mục ở tab Danh mục."
       />
+
+      <Pressable
+        style={[styles.importBanner, isScanning && styles.importBannerScanning]}
+        onPress={onImportReceipt}
+        disabled={isScanning}
+      >
+        {isScanning ? (
+          <View style={styles.importBannerInner}>
+            <ActivityIndicator color={COLORS.PRIMARY} size="small" />
+            <Text style={styles.importBannerText}>Đang phân tích hóa đơn...</Text>
+          </View>
+        ) : (
+          <View style={styles.importBannerInner}>
+            <View style={styles.importBannerIconBox}>
+              <Text style={styles.importBannerIcon}>📎</Text>
+            </View>
+            <View style={styles.importBannerBody}>
+              <Text style={styles.importBannerTitle}>Nhập từ hóa đơn</Text>
+              <Text style={styles.importBannerSub}>Chọn ảnh hoặc PDF{!isPremium ? "  •  Premium" : ""}</Text>
+            </View>
+            <Text style={styles.importBannerChevron}>›</Text>
+          </View>
+        )}
+      </Pressable>
 
       <Pressable style={[styles.saveButton, form.submitting && styles.saveButtonDisabled]} onPress={form.onSave} disabled={form.submitting}>
         <Text style={styles.saveButtonText}>{form.submitting ? "Đang lưu..." : "Lưu chi tiêu"}</Text>
@@ -124,14 +123,19 @@ const styles = StyleSheet.create({
     padding: 16
   },
   importBanner: {
-    backgroundColor: COLORS.CARD,
-    borderRadius: 14,
+    backgroundColor: COLORS.WHITE,
+    borderRadius: 18,
     borderWidth: 1.5,
-    borderColor: `${COLORS.PRIMARY}40`,
+    borderColor: COLORS.PRIMARY,
     borderStyle: "dashed",
-    paddingVertical: 13,
-    paddingHorizontal: 14,
-    marginBottom: 6
+    paddingVertical: 15,
+    paddingHorizontal: 16,
+    marginBottom: 6,
+    shadowColor: COLORS.PRIMARY,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 3
   },
   importBannerScanning: {
     opacity: 0.7
@@ -139,21 +143,29 @@ const styles = StyleSheet.create({
   importBannerInner: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10
+    gap: 12
+  },
+  importBannerIconBox: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: COLORS.ROSE_MIST
   },
   importBannerIcon: {
-    fontSize: 22
+    fontSize: 21
   },
   importBannerBody: {
     flex: 1
   },
   importBannerTitle: {
-    fontSize: 14,
-    fontWeight: "700",
+    fontSize: 15,
+    fontWeight: "800",
     color: COLORS.PRIMARY
   },
   importBannerSub: {
-    fontSize: 11,
+    fontSize: 12,
     color: COLORS.TEXT_MUTED,
     marginTop: 1
   },
@@ -167,22 +179,6 @@ const styles = StyleSheet.create({
     fontSize: 22,
     color: COLORS.PRIMARY,
     fontWeight: "700"
-  },
-  dividerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 14,
-    gap: 8
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: COLORS.CARD_BORDER
-  },
-  dividerText: {
-    fontSize: 11,
-    color: COLORS.TEXT_MUTED,
-    fontWeight: "600"
   },
   label: {
     color: COLORS.TEXT,

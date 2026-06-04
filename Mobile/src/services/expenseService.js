@@ -1,11 +1,12 @@
 import apiClient from "./apiClient";
 import { API_ENDPOINTS } from "../constants/api";
-import { EXPENSE_FILTER_TYPES } from "../constants/expenseConfig";
 import { downloadAndShareFile } from "../utils/downloadFile";
+
+const ALL_EXPENSE_FILTER = "all";
 
 export async function fetchExpensesByFilter(filterType) {
   const params = {};
-  if (filterType === EXPENSE_FILTER_TYPES.all) {
+  if (filterType === ALL_EXPENSE_FILTER) {
     params.all = true;
   }
 
@@ -28,7 +29,7 @@ export async function parseExpenseVoice(text) {
 
 export async function exportExpenseReport(filterType) {
   const now = new Date();
-  const isAllReport = filterType === EXPENSE_FILTER_TYPES.all;
+  const isAllReport = filterType === ALL_EXPENSE_FILTER;
   const payload = isAllReport
     ? { all: true, month: now.getMonth() + 1, year: now.getFullYear() }
     : { month: now.getMonth() + 1, year: now.getFullYear() };

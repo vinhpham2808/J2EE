@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { LineChart } from "react-native-chart-kit";
 import { COLORS } from "../../constants/colors";
-import { lineChartConfig } from "../../constants/forecastConfig";
+import { lineChartConfig } from "../../utils/forecast";
 import ForecastEmptyState from "./ForecastEmptyState";
 
 export default function ForecastTrendChart({

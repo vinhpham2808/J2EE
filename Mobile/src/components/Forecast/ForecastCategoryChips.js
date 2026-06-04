@@ -4,7 +4,7 @@ import { COLORS } from "../../constants/colors";
 import {
   CATEGORY_COLORS,
   TREND_CONFIG,
-} from "../../constants/forecastConfig";
+} from "../../utils/forecast";
 import { formatMoney } from "../../utils/format";
 
 export default function ForecastCategoryChips({

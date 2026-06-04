@@ -2,7 +2,6 @@ import { useCallback, useMemo, useState } from "react";
 import { Alert } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { SUCCESS_ALERT_MESSAGES, SUCCESS_ALERT_TITLE } from "../constants/alertMessages";
-import { EXPENSE_FILTER_TYPES } from "../constants/expenseConfig";
 import { useVisibleItems } from "../components/common/ShowMoreButton";
 import {
   deleteExpenseById,
@@ -11,6 +10,8 @@ import {
   parseExpenseVoice
 } from "../services/expenseService";
 import { getApiErrorMessage } from "../utils/format";
+
+const CURRENT_EXPENSE_FILTER = "current";
 
 function searchExpenses(expenses, searchQuery) {
   const keyword = searchQuery.toLowerCase().trim();
@@ -30,7 +31,7 @@ export default function useExpenses() {
   const [expenses, setExpenses] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterType, setFilterType] = useState(EXPENSE_FILTER_TYPES.current);
+  const [filterType, setFilterType] = useState(CURRENT_EXPENSE_FILTER);
   const [isExporting, setIsExporting] = useState(false);
 
   const filteredExpenses = useMemo(

@@ -56,8 +56,14 @@ export default function EditProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.BG },
-  content: { padding: 16, paddingTop: 16 },
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.BG,
+  },
+  content: {
+    padding: 16,
+    paddingTop: 16,
+  },
   card: {
     backgroundColor: COLORS.CARD,
     borderRadius: 20,
@@ -67,7 +73,10 @@ const styles = StyleSheet.create({
     shadowColor: COLORS.BLACK,
     shadowOpacity: 0.04,
     shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
     elevation: 2
   },
   title: {
@@ -90,7 +99,10 @@ const styles = StyleSheet.create({
     shadowColor: COLORS.PRIMARY,
     shadowOpacity: 0.15,
     shadowRadius: 6,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
     elevation: 2
   },
   saveButtonDisabled: {
