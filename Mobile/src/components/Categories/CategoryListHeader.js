@@ -1,16 +1,18 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import ShowMoreButton from "../common/ShowMoreButton";
 
 export default function CategoryListHeader({ canExpand, hasCategories, onToggle, showAll }) {
+  const colors = useAppColors();
+
   if (!hasCategories) {
     return null;
   }
 
   return (
     <View style={styles.listHeader}>
-      <Text style={styles.listTitle}>Danh mục gần đây</Text>
+      <Text style={[styles.listTitle, { color: colors.TEXT }]}>Danh mục gần đây</Text>
       <ShowMoreButton visible={canExpand} expanded={showAll} onPress={onToggle} />
     </View>
   );

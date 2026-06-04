@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 
 export default function CategoryTypeSegmentedControl({ value, onChange }) {
+  const colors = useAppColors();
   const slideAnim = useRef(new Animated.Value(value === "expense" ? 1 : 0)).current;
   const thumbScaleAnim = useRef(new Animated.Value(1)).current;
   const [width, setWidth] = useState(0);
@@ -41,7 +42,7 @@ export default function CategoryTypeSegmentedControl({ value, onChange }) {
   });
 
   return (
-    <View style={styles.typeRow} onLayout={(event) => setWidth(event.nativeEvent.layout.width)}>
+    <View style={[styles.typeRow, { backgroundColor: colors.BG, borderColor: colors.PRIMARY }]} onLayout={(event) => setWidth(event.nativeEvent.layout.width)}>
       {segmentWidth > 0 ? (
         <Animated.View
           pointerEvents="none"
@@ -49,6 +50,8 @@ export default function CategoryTypeSegmentedControl({ value, onChange }) {
             styles.typeActiveIndicator,
             {
               width: segmentWidth,
+              backgroundColor: colors.PRIMARY,
+              shadowColor: colors.PRIMARY,
               transform: [{ translateX: indicatorTranslateX }, { scale: thumbScaleAnim }]
             }
           ]}
@@ -56,10 +59,10 @@ export default function CategoryTypeSegmentedControl({ value, onChange }) {
       ) : null}
 
       <Pressable style={styles.typeButton} onPress={() => onChange("income")}>
-        <Text style={[styles.typeText, value === "income" && styles.typeTextActive]}>Thu nhập</Text>
+        <Text style={[styles.typeText, { color: value === "income" ? colors.WHITE : colors.TEXT_SECONDARY }]}>Thu nhập</Text>
       </Pressable>
       <Pressable style={styles.typeButton} onPress={() => onChange("expense")}>
-        <Text style={[styles.typeText, value === "expense" && styles.typeTextActive]}>Chi tiêu</Text>
+        <Text style={[styles.typeText, { color: value === "expense" ? colors.WHITE : colors.TEXT_SECONDARY }]}>Chi tiêu</Text>
       </Pressable>
     </View>
   );

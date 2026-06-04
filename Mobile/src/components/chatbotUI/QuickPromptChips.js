@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, View, Pressable, FlatList } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 
 const QUICK_ACTIONS = [
   {
@@ -22,9 +22,11 @@ const QUICK_ACTIONS = [
 ];
 
 export default function QuickPromptChips({ onSelect }) {
+  const colors = useAppColors();
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Thử gõ nhanh các gợi ý sau:</Text>
+      <Text style={[styles.title, { color: colors.TEXT_MUTED }]}>Thử gõ nhanh các gợi ý sau:</Text>
       <FlatList
         data={QUICK_ACTIONS}
         horizontal
@@ -35,11 +37,16 @@ export default function QuickPromptChips({ onSelect }) {
           <Pressable 
             style={({ pressed }) => [
               styles.chip,
+              {
+                backgroundColor: colors.CARD,
+                borderColor: colors.CHAT_BORDER,
+                shadowColor: colors.PRIMARY,
+              },
               pressed && styles.chipPressed
             ]} 
             onPress={() => onSelect(item)}
           >
-            <Text style={styles.chipText}>{item.label}</Text>
+            <Text style={[styles.chipText, { color: colors.PRIMARY }]}>{item.label}</Text>
           </Pressable>
         )}
       />

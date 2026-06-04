@@ -1,14 +1,14 @@
 import React from "react";
 import { Pressable, StyleSheet, Switch, Text, View } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import { MORE_MENU_GROUPS } from "./moreMenuConfig";
 
-function SettingGroup({ title, children }) {
+function SettingGroup({ colors, title, children }) {
   return (
-    <View style={styles.groupCard}>
+    <View style={[styles.groupCard, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }]}>
       {title ? (
-        <View style={styles.groupHeader}>
-          <Text style={styles.groupHeaderText}>{title}</Text>
+        <View style={[styles.groupHeader, { borderBottomColor: colors.CARD_BORDER }]}>
+          <Text style={[styles.groupHeaderText, { color: colors.PRIMARY }]}>{title}</Text>
         </View>
       ) : null}
       <View style={styles.groupContent}>{children}</View>
@@ -16,31 +16,31 @@ function SettingGroup({ title, children }) {
   );
 }
 
-function SettingItem({ icon, title, value, onPress, hasChevron = true, isSwitch = false, switchValue, onSwitchChange, disabled = false }) {
+function SettingItem({ colors, icon, title, value, onPress, hasChevron = true, isSwitch = false, switchValue, onSwitchChange, disabled = false }) {
   return (
     <Pressable
-      style={({ pressed }) => [styles.itemRow, pressed && !isSwitch && styles.itemRowPressed, disabled && styles.itemRowDisabled]}
+      style={({ pressed }) => [styles.itemRow, { borderBottomColor: colors.BG }, pressed && !isSwitch && styles.itemRowPressed, disabled && styles.itemRowDisabled]}
       onPress={onPress}
       disabled={isSwitch || disabled}
     >
       <View style={styles.itemLeft}>
-        <View style={styles.itemIconWrap}>
+        <View style={[styles.itemIconWrap, { backgroundColor: colors.BG, borderColor: colors.CARD_BORDER }]}>
           <Text style={styles.itemIconText}>{icon}</Text>
         </View>
-        <Text style={styles.itemTitle}>{title}</Text>
+        <Text style={[styles.itemTitle, { color: colors.TEXT }]}>{title}</Text>
       </View>
       <View style={styles.itemRight}>
-        {value ? <Text style={styles.itemValueText}>{value}</Text> : null}
+        {value ? <Text style={[styles.itemValueText, { color: colors.TEXT_SECONDARY }]}>{value}</Text> : null}
         {isSwitch ? (
           <Switch
             value={switchValue}
             onValueChange={onSwitchChange}
             disabled={disabled}
-            trackColor={{ false: COLORS.CARD_BORDER, true: COLORS.PRIMARY }}
-            thumbColor={COLORS.WHITE}
+            trackColor={{ false: colors.CARD_BORDER, true: colors.PRIMARY }}
+            thumbColor={colors.WHITE}
           />
         ) : hasChevron ? (
-          <Text style={styles.itemChevron}>›</Text>
+          <Text style={[styles.itemChevron, { color: colors.TEXT_SECONDARY }]}>›</Text>
         ) : null}
       </View>
     </Pressable>
@@ -48,28 +48,33 @@ function SettingItem({ icon, title, value, onPress, hasChevron = true, isSwitch 
 }
 
 export function LogoutButton({ onPress }) {
+  const colors = useAppColors();
+
   return (
-    <Pressable style={({ pressed }) => [styles.logoutButton, pressed && styles.logoutButtonPressed]} onPress={onPress}>
-      <Text style={styles.logoutText}>Đăng xuất</Text>
+    <Pressable style={({ pressed }) => [styles.logoutButton, { backgroundColor: colors.CARD }, pressed && styles.logoutButtonPressed]} onPress={onPress}>
+      <Text style={[styles.logoutText, { color: colors.EXPENSE }]}>Đăng xuất</Text>
     </Pressable>
   );
 }
 
 export default function MoreSettings({ appNotifications, emailPreferences, onAppNotificationsChange, onItemPress }) {
+  const colors = useAppColors();
+
   return (
     <>
       {MORE_MENU_GROUPS.map((group) => (
-        <SettingGroup key={group.title} title={group.title}>
+        <SettingGroup key={group.title} colors={colors} title={group.title}>
           {group.items.map((item) => {
             const { key, ...settingItemProps } = item;
 
-            return <SettingItem key={key} {...settingItemProps} onPress={() => onItemPress(item)} />;
+            return <SettingItem key={key} colors={colors} {...settingItemProps} onPress={() => onItemPress(item)} />;
           })}
         </SettingGroup>
       ))}
 
-      <SettingGroup title="THÔNG BÁO">
+      <SettingGroup colors={colors} title="THÔNG BÁO">
         <SettingItem
+          colors={colors}
           icon="🔔"
           title="Thông báo ứng dụng"
           isSwitch
@@ -77,6 +82,7 @@ export default function MoreSettings({ appNotifications, emailPreferences, onApp
           onSwitchChange={onAppNotificationsChange}
         />
         <SettingItem
+          colors={colors}
           icon="✉️"
           title="Nhắc nhở qua Email"
           isSwitch

@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { StyleSheet, Text, View, TextInput, Pressable, Platform, Animated } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path, Rect } from "react-native-svg";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import { getSafeAreaBottom } from "../../utils/safeArea";
 
 export default function ChatInputBar({
@@ -16,6 +16,7 @@ export default function ChatInputBar({
   onMicPress,
   isRecording
 }) {
+  const colors = useAppColors();
 
   const insets = useSafeAreaInsets();
   const isDisabled = loading || disabled;
@@ -124,16 +125,16 @@ export default function ChatInputBar({
   };
 
   return (
-    <View style={[styles.inputShell, { paddingBottom: getSafeAreaBottom(insets, 86) }]}>
-      <View style={styles.inputInner}>
+    <View style={[styles.inputShell, { paddingBottom: getSafeAreaBottom(insets, 86) }]}> 
+      <View style={[styles.inputInner, { backgroundColor: colors.CHAT_BUBBLE, borderColor: colors.CHAT_BORDER, shadowColor: colors.PRIMARY }]}> 
         <View style={styles.inputSparkle}>
           <Text style={styles.inputSparkleText}>✦</Text>
         </View>
 
         <TextInput
-          style={[styles.input, isDisabled && styles.inputDisabled]}
+          style={[styles.input, { color: colors.CHAT_TEXT }, isDisabled && styles.inputDisabled]}
           placeholder={placeholder}
-          placeholderTextColor={COLORS.CHAT_MUTED}
+          placeholderTextColor={colors.CHAT_MUTED}
           value={value}
           onChangeText={isDisabled ? undefined : onChangeText}
           editable={!isDisabled}

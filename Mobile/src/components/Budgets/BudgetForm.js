@@ -1,13 +1,13 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import { CategoryVectorIcon, getIconColor } from "../../utils/categoryIcons";
 
-function BudgetCategoryChip({ category, active, onPress }) {
+function BudgetCategoryChip({ category, active, colors, onPress }) {
   return (
-    <Pressable style={[styles.chip, active && styles.chipActive]} onPress={onPress}>
+    <Pressable style={[styles.chip, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }, active && { backgroundColor: colors.ROSE_MIST, borderColor: colors.PRIMARY }]} onPress={onPress}>
       <CategoryVectorIcon iconValue={category?.icon} size={16} color={getIconColor(category?.icon)} />
-      <Text style={[styles.chipText, active && styles.chipTextActive]} numberOfLines={1}>
+      <Text style={[styles.chipText, { color: active ? colors.PRIMARY : colors.TEXT }, active && styles.chipTextActive]} numberOfLines={1}>
         {category?.name || "Danh mục"}
       </Text>
     </Pressable>
@@ -15,38 +15,41 @@ function BudgetCategoryChip({ category, active, onPress }) {
 }
 
 export default function BudgetForm({ budget }) {
+  const colors = useAppColors();
+
   return (
-    <View style={styles.formCard}>
-      <Text style={styles.formTitle}>Thiết lập hạn mức</Text>
-      <Text style={styles.formSubTitle}>Chọn danh mục chi tiêu và nhập giới hạn theo tháng.</Text>
-      <Text style={styles.label}>Danh mục chi</Text>
+    <View style={[styles.formCard, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }]}> 
+      <Text style={[styles.formTitle, { color: colors.TEXT }]}>Thiết lập hạn mức</Text>
+      <Text style={[styles.formSubTitle, { color: colors.TEXT_SECONDARY }]}>Chọn danh mục chi tiêu và nhập giới hạn theo tháng.</Text>
+      <Text style={[styles.label, { color: colors.TEXT }]}>Danh mục chi</Text>
       <View style={styles.chipRow}>
         {budget.categories.map((category) => (
           <BudgetCategoryChip
             key={String(category.id)}
             category={category}
+            colors={colors}
             active={String(category.id) === String(budget.categoryId)}
             onPress={() => budget.setCategoryId(String(category.id))}
           />
         ))}
       </View>
-      <Text style={styles.label}>Hạn mức (VND)</Text>
+      <Text style={[styles.label, { color: colors.TEXT }]}>Hạn mức (VND)</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { backgroundColor: colors.BG, borderColor: colors.CARD_BORDER, color: colors.TEXT }]}
         keyboardType="numeric"
         value={budget.amountLimit}
         onChangeText={budget.setAmountLimit}
         placeholder="Ví dụ: 3.000.000"
-        placeholderTextColor="#98a2b3"
+        placeholderTextColor={colors.TEXT_MUTED}
       />
       <View style={styles.dateRow}>
         <View style={[styles.dateCol, styles.dateColLeft]}>
-          <Text style={styles.label}>Tháng</Text>
-          <TextInput style={styles.input} keyboardType="numeric" value={budget.month} onChangeText={budget.setMonth} placeholder="1-12" placeholderTextColor="#98a2b3" />
+          <Text style={[styles.label, { color: colors.TEXT }]}>Tháng</Text>
+          <TextInput style={[styles.input, { backgroundColor: colors.BG, borderColor: colors.CARD_BORDER, color: colors.TEXT }]} keyboardType="numeric" value={budget.month} onChangeText={budget.setMonth} placeholder="1-12" placeholderTextColor={colors.TEXT_MUTED} />
         </View>
         <View style={styles.dateCol}>
-          <Text style={styles.label}>Năm</Text>
-          <TextInput style={styles.input} keyboardType="numeric" value={budget.year} onChangeText={budget.setYear} placeholder="2026" placeholderTextColor="#98a2b3" />
+          <Text style={[styles.label, { color: colors.TEXT }]}>Năm</Text>
+          <TextInput style={[styles.input, { backgroundColor: colors.BG, borderColor: colors.CARD_BORDER, color: colors.TEXT }]} keyboardType="numeric" value={budget.year} onChangeText={budget.setYear} placeholder="2026" placeholderTextColor={colors.TEXT_MUTED} />
         </View>
       </View>
       <Pressable style={[styles.saveButton, budget.submitting && styles.saveButtonDisabled]} onPress={budget.onSave} disabled={budget.submitting}>

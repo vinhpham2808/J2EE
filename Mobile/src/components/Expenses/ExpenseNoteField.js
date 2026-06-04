@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import VoiceInputButton from "../common/VoiceInputButton";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 
 /**
  * ExpenseNoteField — TextInput + VoiceInputButton cho ghi chú chi tiêu
@@ -20,6 +20,8 @@ export default function ExpenseNoteField({
   placeholder = "Nhập ghi chú chi tiết...",
   multiline = true
 }) {
+  const colors = useAppColors();
+
   const handleVoiceResult = (text) => {
     // Nếu có text hiện tại, thêm vào cuối
     const newText = value ? `${value}\n${text}` : text;
@@ -29,17 +31,17 @@ export default function ExpenseNoteField({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>
+      <Text style={[styles.label, { color: colors.TEXT }]}> 
         <Text style={styles.labelIcon}>📝</Text> Ghi chú chi tiết
       </Text>
 
       <View style={styles.inputRow}>
         <TextInput
-          style={[styles.input, multiline && styles.inputMultiline]}
+          style={[styles.input, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER, color: colors.TEXT }, multiline && styles.inputMultiline]}
           value={value}
           onChangeText={onChange}
           placeholder={placeholder}
-          placeholderTextColor={COLORS.TEXT_MUTED}
+          placeholderTextColor={colors.TEXT_MUTED}
           multiline={multiline}
           textAlignVertical="top"
         />

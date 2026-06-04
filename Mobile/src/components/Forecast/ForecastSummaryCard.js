@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 
 /**
  * Compact summary metric card used in the forecast dashboard header row.
@@ -13,14 +13,16 @@ import { COLORS } from "../../constants/colors";
  * @param {string}  [props.accent] - Accent border/text color
  */
 export default function ForecastSummaryCard({ icon, label, value, sub, accent }) {
+  const colors = useAppColors();
+
   return (
-    <View style={[styles.card, accent ? { borderColor: accent, borderWidth: 1.5 } : null]}>
+    <View style={[styles.card, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }, accent ? { borderColor: accent, borderWidth: 1.5 } : null]}>
       <Text style={styles.icon}>{icon}</Text>
-      <Text style={styles.label}>{label}</Text>
+      <Text style={[styles.label, { color: colors.TEXT_SECONDARY }]}>{label}</Text>
       <Text style={[styles.value, accent ? { color: accent } : null]} numberOfLines={1}>
         {value}
       </Text>
-      {sub ? <Text style={styles.sub}>{sub}</Text> : null}
+      {sub ? <Text style={[styles.sub, { color: colors.TEXT_MUTED }]}>{sub}</Text> : null}
     </View>
   );
 }

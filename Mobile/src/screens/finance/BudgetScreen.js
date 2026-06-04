@@ -4,22 +4,23 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import BudgetCard from "../../components/Budgets/BudgetCard";
 import BudgetForm from "../../components/Budgets/BudgetForm";
 import BudgetSummary from "../../components/Budgets/BudgetSummary";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import useBudget from "../../hooks/useBudget";
 import { getSafeAreaBottom, getSafeAreaTop } from "../../utils/safeArea";
 
-function BudgetEmptyState() {
+function BudgetEmptyState({ colors }) {
   return (
     <View style={styles.emptyState}>
       <Text style={styles.emptyIcon}>💸</Text>
-      <Text style={styles.emptyTitle}>Chưa có hạn mức nào</Text>
-      <Text style={styles.emptyText}>Hãy tạo hạn mức đầu tiên để kiểm soát chi tiêu tốt hơn trong tháng.</Text>
+      <Text style={[styles.emptyTitle, { color: colors.TEXT }]}>Chưa có hạn mức nào</Text>
+      <Text style={[styles.emptyText, { color: colors.TEXT_SECONDARY }]}>Hãy tạo hạn mức đầu tiên để kiểm soát chi tiêu tốt hơn trong tháng.</Text>
     </View>
   );
 }
 
 export default function BudgetScreen() {
   const insets = useSafeAreaInsets();
+  const colors = useAppColors();
   const budget = useBudget();
 
   const renderBudget = useCallback(
@@ -34,16 +35,16 @@ export default function BudgetScreen() {
         <BudgetForm budget={budget} />
         {budget.budgets.length ? (
           <View style={styles.listHeader}>
-            <Text style={styles.listTitle}>Danh sách hạn mức</Text>
+            <Text style={[styles.listTitle, { color: colors.TEXT }]}>Danh sách hạn mức</Text>
           </View>
         ) : null}
       </View>
     ),
-    [budget]
+    [budget, colors]
   );
 
   return (
-    <View style={[styles.container, { paddingTop: getSafeAreaTop(insets) }]}>
+    <View style={[styles.container, { backgroundColor: colors.BG, paddingTop: getSafeAreaTop(insets) }]}> 
       <FlatList
         data={budget.budgets}
         keyExtractor={(item) => String(item?.id)}
@@ -55,7 +56,7 @@ export default function BudgetScreen() {
         ]}
         refreshControl={<RefreshControl refreshing={budget.refreshing} onRefresh={budget.onRefresh} />}
         ListHeaderComponent={renderHeader}
-        ListEmptyComponent={<BudgetEmptyState />}
+        ListEmptyComponent={<BudgetEmptyState colors={colors} />}
       />
     </View>
   );

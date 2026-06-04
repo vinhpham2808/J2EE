@@ -9,16 +9,16 @@ import JarDetailView from "../../components/Jars/JarDetailView";
 import JarFormView from "../../components/Jars/JarFormView";
 import JarOverview from "../../components/Jars/JarOverview";
 import JarTransferView from "../../components/Jars/JarTransferView";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import useJarList from "../../hooks/useJarList";
 import { getSafeAreaBottom, getSafeAreaTop } from "../../utils/safeArea";
 
-function JarActions({ jarCount, onCreate, onTransfer }) {
+function JarActions({ colors, jarCount, onCreate, onTransfer }) {
   return (
     <View style={styles.actionsRow}>
       {jarCount >= 2 && (
-        <Pressable style={styles.secondaryButton} onPress={onTransfer}>
-          <Text style={styles.secondaryButtonText}>⇅ Chuyển tiền</Text>
+        <Pressable style={[styles.secondaryButton, { backgroundColor: colors.ROSE_MIST, borderColor: colors.CARD_BORDER }]} onPress={onTransfer}>
+          <Text style={[styles.secondaryButtonText, { color: colors.PRIMARY }]}>⇅ Chuyển tiền</Text>
         </Pressable>
       )}
       <Pressable style={styles.primaryButton} onPress={onCreate}>
@@ -28,12 +28,12 @@ function JarActions({ jarCount, onCreate, onTransfer }) {
   );
 }
 
-function JarEmptyState({ onCreate }) {
+function JarEmptyState({ colors, onCreate }) {
   return (
     <View style={styles.emptyState}>
       <Text style={styles.emptyIcon}>🏺</Text>
-      <Text style={styles.emptyTitle}>Chưa có hũ chi tiêu nào</Text>
-      <Text style={styles.emptyText}>Phân bổ thu nhập của bạn thành các hũ nhỏ (ví dụ: ăn uống, đi lại, tiết kiệm) để quản lý ngân sách thông minh hơn.</Text>
+      <Text style={[styles.emptyTitle, { color: colors.TEXT }]}>Chưa có hũ chi tiêu nào</Text>
+      <Text style={[styles.emptyText, { color: colors.TEXT_SECONDARY }]}>Phân bổ thu nhập của bạn thành các hũ nhỏ (ví dụ: ăn uống, đi lại, tiết kiệm) để quản lý ngân sách thông minh hơn.</Text>
       <Pressable style={styles.emptyAction} onPress={onCreate}>
         <Text style={styles.emptyActionText}>+ Tạo hũ đầu tiên</Text>
       </Pressable>
@@ -54,6 +54,7 @@ export default function JarScreen() {
 function JarListRoute() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const colors = useAppColors();
   const { user } = useContext(AuthContext);
   const jarList = useJarList(user);
 
@@ -83,17 +84,18 @@ function JarListRoute() {
           totalPercentage={jarList.totalPercentage}
         />
         <JarActions
+          colors={colors}
           jarCount={jarList.jars.length}
           onCreate={handleCreateJar}
           onTransfer={() => navigation.navigate("JarTransfer")}
         />
         <JarAllocationChart jarCount={jarList.jars.length} slices={jarList.slices} />
         <View style={styles.listHeader}>
-          <Text style={styles.listTitle}>Danh sách ví phụ</Text>
+          <Text style={[styles.listTitle, { color: colors.TEXT }]}>Danh sách ví phụ</Text>
         </View>
       </View>
     ),
-    [handleCreateJar, jarList.jars.length, jarList.maxJars, jarList.slices, jarList.totalBalance, jarList.totalPercentage, navigation]
+    [colors, handleCreateJar, jarList.jars.length, jarList.maxJars, jarList.slices, jarList.totalBalance, jarList.totalPercentage, navigation]
   );
 
   const renderJar = useCallback(
@@ -108,7 +110,7 @@ function JarListRoute() {
   );
 
   return (
-    <View style={[styles.container, { paddingTop: getSafeAreaTop(insets) }]}>
+    <View style={[styles.container, { backgroundColor: colors.BG, paddingTop: getSafeAreaTop(insets) }]}> 
       <FlatList
         data={jarList.jars}
         keyExtractor={(item) => String(item.id)}
@@ -116,7 +118,7 @@ function JarListRoute() {
         contentContainerStyle={[styles.scrollContent, { paddingBottom: getSafeAreaBottom(insets) }]}
         refreshControl={<RefreshControl refreshing={jarList.refreshing} onRefresh={jarList.onRefresh} />}
         ListHeaderComponent={renderHeader}
-        ListEmptyComponent={!jarList.loading && <JarEmptyState onCreate={handleCreateJar} />}
+        ListEmptyComponent={!jarList.loading && <JarEmptyState colors={colors} onCreate={handleCreateJar} />}
       />
     </View>
   );

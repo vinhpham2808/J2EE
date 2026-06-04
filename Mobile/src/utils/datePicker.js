@@ -12,7 +12,7 @@ import DateTimePicker, { useDefaultStyles } from "react-native-ui-datepicker";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { todayIso } from "./format";
-import { COLORS } from "../constants/colors";
+import { COLORS, useAppColors } from "../constants/colors";
 
 dayjs.extend(customParseFormat);
 
@@ -306,6 +306,7 @@ export function PickDateField({
   minimumDate,
   maximumDate
 }) {
+  const colors = useAppColors();
   const [visible, setVisible] = useState(false);
   const displayValue = value || placeholder;
   const scale = useRef(new Animated.Value(1)).current;
@@ -330,16 +331,16 @@ export function PickDateField({
 
   return (
     <View style={styles.wrapper}>
-      {label ? <Text style={styles.label}>{label}</Text> : null}
+      {label ? <Text style={[styles.label, { color: colors.TEXT }]}>{label}</Text> : null}
 
       <Animated.View style={{ transform: [{ scale }] }}>
         <Pressable
-          style={styles.field}
+          style={[styles.field, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }]}
           onPress={() => setVisible(true)}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
         >
-          <Text style={[styles.fieldText, !value && styles.fieldPlaceholder]}>
+          <Text style={[styles.fieldText, { color: value ? colors.TEXT : colors.TEXT_MUTED }]}>
             {displayValue}
           </Text>
           <Text style={styles.calendarIcon}>📅</Text>

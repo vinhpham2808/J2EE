@@ -1,3 +1,4 @@
+import { useTheme, THEME_MODES } from "../contexts/ThemeContext";
 
 export const COLORS = {
   // ─── Primary — Rose Gold / Pink ──────────────────────────
@@ -67,3 +68,47 @@ export const COLORS = {
   OVERLAY: 'rgba(0, 0, 0, 0.5)',
   TRANSPARENT: 'transparent',
 };
+
+export const DARK_COLORS = {
+  ...COLORS,
+
+  // ─── Override for Dark Mode ─────────────────────────────
+  BG: '#0F0D0C',
+  CARD: '#1A1817',
+  CARD_BORDER: '#2E2A28',
+  TEXT: '#F3EEEC',
+  TEXT_SECONDARY: '#B8ACA6',
+  TEXT_MUTED: '#7A6E68',
+
+  TAB_BG: '#1A1817',
+  TAB_ACTIVE: '#E8A87C',
+  TAB_ACTIVE_BG: '#2A2624',
+  TAB_INACTIVE: '#7A6E68',
+  TAB_BORDER: 'rgba(255, 255, 255, 0.06)',
+  TAB_SHADOW: 'rgba(0, 0, 0, 0.3)',
+
+  CHAT_BG: '#0F0A0F',
+  CHAT_BORDER: 'rgba(139, 61, 255, 0.12)',
+  CHAT_SHADOW: 'rgba(139, 61, 255, 0.08)',
+  CHAT_TEXT: '#F3EEEC',
+  CHAT_MUTED: '#8B7D90',
+  CHAT_BUBBLE: '#1F1A1F',
+
+  INCOME_LIGHT: '#1A2F2C',
+  EXPENSE_LIGHT: '#2F1A18',
+  WARNING_LIGHT: '#2F2418',
+  INFO_LIGHT: '#18222F',
+
+  ROSE_MIST: '#2A181E',
+  OVERLAY: 'rgba(0, 0, 0, 0.7)',
+};
+
+/**
+ * Returns the appropriate color palette based on current theme.
+ * Use this hook in components to get theme-aware colors.
+ */
+export function useAppColors() {
+  const { theme } = useTheme();
+  return theme === THEME_MODES.DARK ? DARK_COLORS : COLORS;
+}
+

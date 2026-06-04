@@ -1,11 +1,12 @@
 import React, { useMemo } from "react";
 import { View, Text, StyleSheet, Dimensions } from "react-native";
 import { LineChart } from "react-native-chart-kit";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 
 const screenWidth = Dimensions.get("window").width;
 
 const IncomeExpenseChart = ({ data, title, colorPrimary }) => {
+  const colors = useAppColors();
   const chartData = useMemo(() => {
     if (!data || data.length === 0) return null;
 
@@ -39,14 +40,14 @@ const IncomeExpenseChart = ({ data, title, colorPrimary }) => {
 
   if (!chartData) {
     return (
-      <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>Chưa có dữ liệu để vẽ biểu đồ.</Text>
+      <View style={[styles.emptyContainer, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }]}>
+        <Text style={[styles.emptyText, { color: colors.TEXT_SECONDARY }]}>Chưa có dữ liệu để vẽ biểu đồ.</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }]}>
       <Text style={[styles.title, { color: colorPrimary }]}>{title}</Text>
       
       <LineChart
@@ -57,12 +58,12 @@ const IncomeExpenseChart = ({ data, title, colorPrimary }) => {
         width={screenWidth - 60}
         height={220}
         chartConfig={{
-          backgroundColor: "#fff",
-          backgroundGradientFrom: "#fff",
-          backgroundGradientTo: "#fff",
+          backgroundColor: colors.CARD,
+          backgroundGradientFrom: colors.CARD,
+          backgroundGradientTo: colors.CARD,
           decimalPlaces: 0,
           color: (opacity = 1) => colorPrimary,
-          labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity + 0.3})`,
+          labelColor: () => colors.TEXT_SECONDARY,
           style: {
             borderRadius: 16
           },

@@ -1,6 +1,6 @@
 import React from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import { formatMoney } from "../../utils/format";
 import VoiceInputButton from "../common/VoiceInputButton";
 
@@ -18,26 +18,28 @@ export default function ExpenseSummaryActions({
   onVoiceResult,
   totalExpense
 }) {
+  const colors = useAppColors();
+
   return (
-    <View style={styles.summaryCard}>
+    <View style={[styles.summaryCard, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER, shadowColor: colors.TEXT }]}>
       <View style={styles.summaryContent}>
-        <Text style={styles.summaryLabel}>Tổng chi tiêu</Text>
-        <Text style={styles.summaryAmount}>{formatMoney(totalExpense)}</Text>
-        <Text style={styles.summaryHint}>{expenseCount} giao dịch</Text>
+        <Text style={[styles.summaryLabel, { color: colors.TEXT_SECONDARY }]}>Tổng chi tiêu</Text>
+        <Text style={[styles.summaryAmount, { color: colors.EXPENSE }]}>{formatMoney(totalExpense)}</Text>
+        <Text style={[styles.summaryHint, { color: colors.TEXT_SECONDARY }]}>{expenseCount} giao dịch</Text>
       </View>
 
       <View style={styles.actionRowMain}>
-        <Pressable style={styles.addButtonMain} onPress={onAddExpense}>
+        <Pressable style={[styles.addButtonMain, { backgroundColor: colors.PRIMARY, shadowColor: colors.PRIMARY }]} onPress={onAddExpense}>
           <Text style={styles.addButtonText}>+ Thêm chi tiêu</Text>
         </Pressable>
         <VoiceInputButton onResult={onVoiceResult} />
         <Pressable
-          style={[styles.scanButton, isScanning && { opacity: 0.6 }]}
+          style={[styles.scanButton, { backgroundColor: colors.CARD, borderColor: `${colors.PRIMARY}40` }, isScanning && { opacity: 0.6 }]}
           onPress={onScanReceipt}
           disabled={isScanning}
         >
           {isScanning ? (
-            <ActivityIndicator color={COLORS.PRIMARY} size="small" />
+            <ActivityIndicator color={colors.PRIMARY} size="small" />
           ) : (
             <Text style={styles.scanButtonIcon}>📷</Text>
           )}
@@ -45,15 +47,15 @@ export default function ExpenseSummaryActions({
       </View>
 
       {!isPremium && (
-        <Text style={styles.premiumHint}>🔒 Quét hóa đơn là tính năng Premium</Text>
+        <Text style={[styles.premiumHint, { color: colors.TEXT_MUTED }]}>🔒 Quét hóa đơn là tính năng Premium</Text>
       )}
 
       <Pressable
-        style={[styles.exportButton, isExporting && { opacity: 0.7 }]}
+        style={[styles.exportButton, { backgroundColor: colors.BG, borderColor: colors.PRIMARY_LIGHT }, isExporting && { opacity: 0.7 }]}
         onPress={onExport}
         disabled={isExporting}
       >
-        <Text style={styles.exportText}>
+        <Text style={[styles.exportText, { color: colors.PRIMARY }]}>
           {isExporting
             ? "Đang tạo báo cáo..."
             : filterType === ALL_EXPENSE_FILTER

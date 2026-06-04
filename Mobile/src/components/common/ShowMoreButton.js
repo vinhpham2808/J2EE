@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 
 export function useVisibleItems(items, options = {}) {
   const {
@@ -58,6 +58,8 @@ export default function ShowMoreButton({
   style,
   textStyle
 }) {
+  const colors = useAppColors();
+
   if (!visible) return null;
 
   return (
@@ -66,7 +68,7 @@ export default function ShowMoreButton({
       style={({ pressed }) => [styles.button, pressed && styles.buttonPressed, style]}
       accessibilityRole="button"
     >
-      <Text style={[styles.text, textStyle]}>{label || (expanded ? lessLabel : moreLabel)}</Text>
+      <Text style={[styles.text, { color: colors.PRIMARY }, textStyle]}>{label || (expanded ? lessLabel : moreLabel)}</Text>
     </Pressable>
   );
 }

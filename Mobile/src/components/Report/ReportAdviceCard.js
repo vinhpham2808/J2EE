@@ -1,28 +1,29 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 
 export default function ReportAdviceCard({ strengths, improvements }) {
+  const colors = useAppColors();
   const hasStrengths = strengths && strengths.length > 0;
   const hasImprovements = improvements && improvements.length > 0;
 
   if (!hasStrengths && !hasImprovements) return null;
 
   return (
-    <View style={styles.card}>
-      <Text style={styles.cardTitle}>💡 Đánh giá & Khuyên nghị</Text>
+    <View style={[styles.card, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }]}> 
+      <Text style={[styles.cardTitle, { color: colors.TEXT }]}>💡 Đánh giá & Khuyên nghị</Text>
 
       {hasStrengths && strengths.map((str, idx) => (
         <View key={`str-${idx}`} style={styles.tipRow}>
           <Text style={styles.tipIcon}>🌟</Text>
-          <Text style={styles.tipText}>{str}</Text>
+          <Text style={[styles.tipText, { color: colors.TEXT_SECONDARY }]}>{str}</Text>
         </View>
       ))}
 
       {hasImprovements && improvements.map((imp, idx) => (
         <View key={`imp-${idx}`} style={styles.tipRow}>
           <Text style={styles.tipIcon}>⚠️</Text>
-          <Text style={styles.tipText}>{imp}</Text>
+          <Text style={[styles.tipText, { color: colors.TEXT_SECONDARY }]}>{imp}</Text>
         </View>
       ))}
     </View>

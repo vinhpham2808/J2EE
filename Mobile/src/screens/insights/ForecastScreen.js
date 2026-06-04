@@ -9,7 +9,7 @@ import {
 import { useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AuthContext } from "../../contexts/AuthContext";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import { TREND_CONFIG } from "../../utils/forecast";
 import { formatMoney } from "../../utils/format";
 import { getSafeAreaContentStyle } from "../../utils/safeArea";
@@ -27,6 +27,7 @@ import ForecastEmptyState from "../../components/Forecast/ForecastEmptyState";
 export default function ForecastScreen() {
   const route = useRoute();
   const insets = useSafeAreaInsets();
+  const colors = useAppColors();
   const { user } = useContext(AuthContext);
   const isPremium = String(user?.subscriptionPlan || "").toUpperCase() === "PREMIUM";
 
@@ -64,7 +65,7 @@ export default function ForecastScreen() {
 
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.BG }]}
       contentContainerStyle={[styles.content, getSafeAreaContentStyle(insets)]}
       showsVerticalScrollIndicator={false}
     >
@@ -82,8 +83,8 @@ export default function ForecastScreen() {
 
       {isLoading ? (
         <View style={styles.loadingWrap}>
-          <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-          <Text style={styles.loadingText}>Đang tải dữ liệu dự báo...</Text>
+          <ActivityIndicator size="large" color={colors.PRIMARY} />
+          <Text style={[styles.loadingText, { color: colors.TEXT_SECONDARY }]}>Đang tải dữ liệu dự báo...</Text>
         </View>
       ) : (
         <>
@@ -92,20 +93,20 @@ export default function ForecastScreen() {
               icon="💰"
               label="Dự báo tổng"
               value={formatMoney(totalPredicted)}
-              accent={COLORS.EXPENSE}
+              accent={colors.EXPENSE}
             />
             <ForecastSummaryCard
               icon={topCategory ? TREND_CONFIG[topCategory.trend]?.icon || "📊" : "📊"}
               label="Tăng mạnh nhất"
               value={topCategory ? topCategory.categoryName : "—"}
               sub={topCategory ? formatMoney(topCategory.predictedAmount) : ""}
-              accent={COLORS.WARNING}
+              accent={colors.WARNING}
             />
             <ForecastSummaryCard
               icon="🚨"
               label="Bất thường"
               value={`${anomalies.length}`}
-              accent={anomalies.length > 0 ? COLORS.EXPENSE : COLORS.TEXT_MUTED}
+              accent={anomalies.length > 0 ? colors.EXPENSE : colors.TEXT_MUTED}
             />
           </View>
 

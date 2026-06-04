@@ -1,6 +1,6 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import { formatCurrencyInput } from "../../utils/format";
 import { PickDateField } from "../../utils/datePicker";
 
@@ -21,25 +21,27 @@ export default function GoalForm({
   onTargetDateChange,
   onSubmit,
 }) {
-  return (
-    <View style={styles.card}>
-      <Text style={styles.title}>Tạo mục tiêu mới</Text>
-      <Text style={styles.subtitle}>Nhập mục tiêu và thời gian để theo dõi tiến độ tự động.</Text>
+  const colors = useAppColors();
 
-      <Text style={styles.label}>Tên mục tiêu</Text>
+  return (
+    <View style={[styles.card, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }]}> 
+      <Text style={[styles.title, { color: colors.TEXT }]}>Tạo mục tiêu mới</Text>
+      <Text style={[styles.subtitle, { color: colors.TEXT_SECONDARY }]}>Nhập mục tiêu và thời gian để theo dõi tiến độ tự động.</Text>
+
+      <Text style={[styles.label, { color: colors.TEXT }]}>Tên mục tiêu</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { backgroundColor: colors.BG, borderColor: colors.CARD_BORDER, color: colors.TEXT }]}
         placeholder="Ví dụ: Quỹ du lịch"
-        placeholderTextColor="#98a2b3"
+        placeholderTextColor={colors.TEXT_MUTED}
         value={name}
         onChangeText={onNameChange}
       />
 
-      <Text style={styles.label}>Số tiền mục tiêu</Text>
+      <Text style={[styles.label, { color: colors.TEXT }]}>Số tiền mục tiêu</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { backgroundColor: colors.BG, borderColor: colors.CARD_BORDER, color: colors.TEXT }]}
         placeholder="Ví dụ: 30.000.000"
-        placeholderTextColor="#98a2b3"
+        placeholderTextColor={colors.TEXT_MUTED}
         keyboardType="numeric"
         value={targetAmount}
         onChangeText={(value) => onAmountChange(formatCurrencyInput(value))}

@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import { Dimensions, Modal, Pressable, StyleSheet, Text, View } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import { CategoryVectorIcon, getIconColor } from "../../utils/categoryIcons";
 import { CATEGORY_TYPE_META } from "./categoryTypeMeta";
 
@@ -9,6 +9,7 @@ const MENU_BOTTOM_MARGIN = 88;
 const MENU_SCREEN_PADDING = 12;
 
 export default function CategoryItem({ item, onEditCategory, onDeleteCategory }) {
+  const colors = useAppColors();
   const normalizedType = String(item?.type || "").toLowerCase();
   const iconColor = getIconColor(item?.icon);
   const meta = CATEGORY_TYPE_META[normalizedType] || {
@@ -40,12 +41,12 @@ export default function CategoryItem({ item, onEditCategory, onDeleteCategory })
   };
 
   return (
-    <View style={styles.itemCard}>
+    <View style={[styles.itemCard, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }]}> 
       <View style={styles.itemLeft}>
         <View style={[styles.itemIconBubble, { backgroundColor: `${iconColor}18` }]}>
           <CategoryVectorIcon iconValue={item?.icon} size={18} color={iconColor} style={styles.itemIconText} />
         </View>
-        <Text style={styles.itemName}>{item?.name || "Chưa đặt tên"}</Text>
+        <Text style={[styles.itemName, { color: colors.TEXT }]}>{item?.name || "Chưa đặt tên"}</Text>
       </View>
 
       <View style={styles.itemRight}>
@@ -59,13 +60,13 @@ export default function CategoryItem({ item, onEditCategory, onDeleteCategory })
           onPress={openMenu}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Text style={styles.menuDotsText}>⋮</Text>
+          <Text style={[styles.menuDotsText, { color: colors.TEXT_SECONDARY }]}>⋮</Text>
         </Pressable>
       </View>
 
       <Modal visible={menuVisible} transparent animationType="fade" onRequestClose={() => setMenuVisible(false)}>
         <Pressable style={styles.menuOverlay} onPress={() => setMenuVisible(false)}>
-          <View style={[styles.menuDropdown, menuPosition]}>
+          <View style={[styles.menuDropdown, menuPosition, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER, shadowColor: colors.TEXT }]}> 
             <Pressable
               style={styles.menuItem}
               onPress={() => {
@@ -74,9 +75,9 @@ export default function CategoryItem({ item, onEditCategory, onDeleteCategory })
               }}
             >
               <Text style={styles.menuItemIcon}>✏️</Text>
-              <Text style={styles.menuItemText}>Chỉnh sửa</Text>
+              <Text style={[styles.menuItemText, { color: colors.TEXT }]}>Chỉnh sửa</Text>
             </Pressable>
-            <View style={styles.menuDivider} />
+            <View style={[styles.menuDivider, { backgroundColor: colors.CARD_BORDER }]} />
             <Pressable
               style={styles.menuItem}
               onPress={() => {
@@ -85,7 +86,7 @@ export default function CategoryItem({ item, onEditCategory, onDeleteCategory })
               }}
             >
               <Text style={styles.menuItemIcon}>🗑️</Text>
-              <Text style={[styles.menuItemText, { color: COLORS.EXPENSE }]}>Xóa</Text>
+              <Text style={[styles.menuItemText, { color: colors.EXPENSE }]}>Xóa</Text>
             </Pressable>
           </View>
         </Pressable>

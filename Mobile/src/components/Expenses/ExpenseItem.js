@@ -1,6 +1,6 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import { formatDate, formatMoney } from "../../utils/format";
 import { CategoryVectorIcon, getIconColor } from "../../utils/categoryIcons";
 
@@ -8,17 +8,17 @@ function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function HighlightText({ text, keyword }) {
+function HighlightText({ colors, text, keyword }) {
   if (!keyword || !text) {
-    return <Text style={styles.itemName}>{text}</Text>;
+    return <Text style={[styles.itemName, { color: colors.TEXT }]}>{text}</Text>;
   }
 
   const parts = text.split(new RegExp(`(${escapeRegex(keyword)})`, "gi"));
   return (
-    <Text style={styles.itemName}>
+    <Text style={[styles.itemName, { color: colors.TEXT }]}>
       {parts.map((part, index) =>
         part.toLowerCase() === keyword.toLowerCase() ? (
-          <Text key={`${part}-${index}`} style={styles.highlight}>
+          <Text key={`${part}-${index}`} style={[styles.highlight, { color: colors.TEXT }]}>
             {part}
           </Text>
         ) : (
@@ -30,24 +30,25 @@ function HighlightText({ text, keyword }) {
 }
 
 export default function ExpenseItem({ item, onDelete, searchKeyword }) {
+  const colors = useAppColors();
   const amount = Number(item?.amount || 0);
   const note = item?.note || "";
   const iconColor = getIconColor(item?.icon);
 
   return (
-    <View style={styles.itemCard}>
+    <View style={[styles.itemCard, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }]}>
       <View style={styles.itemMain}>
         <View style={[styles.iconBubble, { backgroundColor: `${iconColor}18` }]}>
           <CategoryVectorIcon iconValue={item?.icon} size={18} color={iconColor} />
         </View>
 
         <View style={styles.itemContent}>
-          <HighlightText text={item?.name || "Chi tiêu"} keyword={searchKeyword} />
-          <Text style={styles.itemMeta}>{formatDate(item?.date)} • {item?.categoryName || "Khác"}</Text>
+          <HighlightText colors={colors} text={item?.name || "Chi tiêu"} keyword={searchKeyword} />
+          <Text style={[styles.itemMeta, { color: colors.TEXT_SECONDARY }]}>{formatDate(item?.date)} • {item?.categoryName || "Khác"}</Text>
           {note ? (
             <View style={styles.noteRow}>
               <Text style={styles.noteIcon}>📝</Text>
-              <Text style={styles.noteText} numberOfLines={2}>
+              <Text style={[styles.noteText, { color: colors.TEXT_SECONDARY }]} numberOfLines={2}>
                 {note}
               </Text>
             </View>
@@ -56,14 +57,14 @@ export default function ExpenseItem({ item, onDelete, searchKeyword }) {
       </View>
 
       <View style={styles.itemRight}>
-        <Text style={styles.itemAmount}>- {formatMoney(amount)}</Text>
+        <Text style={[styles.itemAmount, { color: colors.EXPENSE }]}>- {formatMoney(amount)}</Text>
         <Pressable
           onPress={() => onDelete(item?.id)}
           style={styles.deleteButton}
           accessibilityRole="button"
           accessibilityLabel="Xóa chi tiêu"
         >
-          <Text style={styles.deleteIcon}>🗑️</Text>
+          <Text style={[styles.deleteIcon, { color: colors.EXPENSE }]}>🗑️</Text>
         </Pressable>
       </View>
     </View>

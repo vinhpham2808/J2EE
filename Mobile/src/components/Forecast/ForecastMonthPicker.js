@@ -7,7 +7,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 
 export default function ForecastMonthPicker({
   label,
@@ -20,19 +20,21 @@ export default function ForecastMonthPicker({
   onSelect,
   onClose,
 }) {
+  const colors = useAppColors();
+
   return (
     <>
       <View style={styles.monthPickerRow}>
         <Pressable
-          style={({ pressed }) => [styles.monthPicker, pressed && styles.monthPickerPressed]}
+          style={({ pressed }) => [styles.monthPicker, { backgroundColor: colors.CARD, borderColor: colors.PRIMARY_LIGHT }, pressed && styles.monthPickerPressed]}
           onPress={onOpen}
           accessibilityRole="button"
           accessibilityLabel="Chọn tháng dự báo"
         >
           <Text style={styles.monthPickerIcon}>{"\uD83D\uDCC5"}</Text>
-          <Text style={styles.monthLabel}>{label}</Text>
+          <Text style={[styles.monthLabel, { color: colors.TEXT }]}>{label}</Text>
         </Pressable>
-        <Text style={styles.monthHint}>{hint}</Text>
+        <Text style={[styles.monthHint, { color: colors.TEXT_SECONDARY }]}>{hint}</Text>
       </View>
 
       <Modal
@@ -43,17 +45,17 @@ export default function ForecastMonthPicker({
       >
         <View style={styles.monthModalOverlay}>
           <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
-          <View style={styles.monthModalCard}>
+          <View style={[styles.monthModalCard, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }]}> 
             <ScrollView showsVerticalScrollIndicator={false}>
               {options.map((option) => {
                 const active = option.month === selectedMonth && option.year === selectedYear;
                 return (
                   <Pressable
                     key={`${option.year}-${option.month}`}
-                    style={[styles.monthOption, active && styles.monthOptionActive]}
+                    style={[styles.monthOption, { borderBottomColor: colors.CARD_BORDER }, active && { backgroundColor: colors.ROSE_MIST }]}
                     onPress={() => onSelect(option.month, option.year)}
                   >
-                    <Text style={[styles.monthOptionText, active && styles.monthOptionTextActive]}>
+                    <Text style={[styles.monthOptionText, { color: active ? colors.PRIMARY : colors.TEXT }, active && styles.monthOptionTextActive]}>
                       {option.label}
                     </Text>
                   </Pressable>

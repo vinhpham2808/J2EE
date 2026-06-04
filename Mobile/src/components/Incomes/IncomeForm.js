@@ -1,56 +1,59 @@
 import React from "react";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import CategoryGridSelector from "../common/CategoryGridSelector";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import { formatCurrencyInput, formatMoney } from "../../utils/format";
 import { PickDateField } from "../../utils/datePicker";
 
 export default function IncomeForm({ form, insetsStyle }) {
-  return (
-    <ScrollView style={styles.container} contentContainerStyle={[styles.content, insetsStyle]}>
-      <Text style={styles.label}>Tên khoản thu</Text>
-      <TextInput style={styles.input} value={form.name} onChangeText={form.setName} placeholder="Ví dụ: Lương tháng" />
+  const colors = useAppColors();
 
-      <Text style={styles.label}>Số tiền</Text>
+  return (
+    <ScrollView style={[styles.container, { backgroundColor: colors.BG }]} contentContainerStyle={[styles.content, insetsStyle]}>
+      <Text style={[styles.label, { color: colors.TEXT }]}>Tên khoản thu</Text>
+      <TextInput style={[styles.input, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER, color: colors.TEXT }]} value={form.name} onChangeText={form.setName} placeholder="Ví dụ: Lương tháng" placeholderTextColor={colors.TEXT_MUTED} />
+
+      <Text style={[styles.label, { color: colors.TEXT }]}>Số tiền</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER, color: colors.TEXT }]}
         value={form.amount}
         onChangeText={form.setAmount}
         keyboardType="numeric"
         placeholder="Ví dụ: 15.000.000"
+        placeholderTextColor={colors.TEXT_MUTED}
       />
 
       {form.jars.length > 0 && form.incomeAmount > 0 && (
-        <View style={styles.allocSection}>
-          <Pressable style={styles.allocHeader} onPress={() => form.setShowAllocations(!form.showAllocations)}>
-            <Text style={styles.allocHeaderTitle}>
+        <View style={[styles.allocSection, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }]}> 
+          <Pressable style={[styles.allocHeader, { backgroundColor: colors.ROSE_MIST }]} onPress={() => form.setShowAllocations(!form.showAllocations)}>
+            <Text style={[styles.allocHeaderTitle, { color: colors.PRIMARY }]}> 
               💰 Phân bổ vào {form.jars.length} hũ ({formatMoney(form.totalAllocated)} / {formatMoney(form.incomeAmount)})
             </Text>
-            <Text style={styles.allocHeaderArrow}>{form.showAllocations ? "▲" : "▼"}</Text>
+            <Text style={[styles.allocHeaderArrow, { color: colors.PRIMARY }]}>{form.showAllocations ? "▲" : "▼"}</Text>
           </Pressable>
 
           {form.showAllocations && (
             <View style={styles.allocList}>
               {form.allocations.map((allocation, index) => (
-                <View key={allocation.jarId} style={styles.allocRow}>
+                <View key={allocation.jarId} style={[styles.allocRow, { borderBottomColor: colors.BG }]}> 
                   <View style={styles.allocRowLeft}>
                     <View style={[styles.allocJarIconBox, { backgroundColor: (allocation.jarColor || COLORS.PRIMARY) + "18" }]}>
                       <Text style={styles.allocJarIcon}>{allocation.jarIcon || "🏺"}</Text>
                     </View>
                     <View style={styles.allocJarInfo}>
-                      <Text style={styles.allocJarName} numberOfLines={1}>
+                      <Text style={[styles.allocJarName, { color: colors.TEXT }]} numberOfLines={1}>
                         {allocation.jarName}
                       </Text>
-                      <Text style={styles.allocJarPct}>Mục tiêu: {allocation.percentage}%</Text>
+                      <Text style={[styles.allocJarPct, { color: colors.TEXT_MUTED }]}>Mục tiêu: {allocation.percentage}%</Text>
                     </View>
                   </View>
                   <TextInput
-                    style={styles.allocInput}
+                    style={[styles.allocInput, { borderBottomColor: colors.CARD_BORDER, color: colors.PRIMARY }]}
                     value={formatCurrencyInput(String(allocation.amount))}
                     onChangeText={(value) => form.handleAllocationAmountChange(index, value)}
                     keyboardType="numeric"
                     placeholder="0"
-                    placeholderTextColor={COLORS.TEXT_MUTED}
+                    placeholderTextColor={colors.TEXT_MUTED}
                   />
                 </View>
               ))}
@@ -69,7 +72,7 @@ export default function IncomeForm({ form, insetsStyle }) {
 
       <PickDateField label="Ngày" value={form.date} onChange={form.setDate} />
 
-      <Text style={styles.label}>Danh mục</Text>
+      <Text style={[styles.label, { color: colors.TEXT }]}>Danh mục</Text>
       <CategoryGridSelector
         categories={form.categories}
         selectedId={form.categoryId}

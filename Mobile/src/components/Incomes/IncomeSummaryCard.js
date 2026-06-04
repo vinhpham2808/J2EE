@@ -1,6 +1,6 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import { INCOME_FILTER_TYPES } from "../../hooks/useIncomes";
 import { formatMoney } from "../../utils/format";
 import VoiceInputButton from "../common/VoiceInputButton";
@@ -14,24 +14,26 @@ export default function IncomeSummaryCard({
   onVoiceResult,
   totalIncome
 }) {
+  const colors = useAppColors();
+
   return (
-    <View style={styles.summaryCard}>
-      <Text style={styles.summaryLabel}>Tổng thu nhập</Text>
-      <Text style={styles.summaryAmount}>{formatMoney(totalIncome)}</Text>
-      <Text style={styles.summaryHint}>{incomeCount} giao dịch</Text>
+    <View style={[styles.summaryCard, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER, shadowColor: colors.TEXT }]}> 
+      <Text style={[styles.summaryLabel, { color: colors.TEXT_SECONDARY }]}>Tổng thu nhập</Text>
+      <Text style={[styles.summaryAmount, { color: colors.INCOME }]}>{formatMoney(totalIncome)}</Text>
+      <Text style={[styles.summaryHint, { color: colors.TEXT_SECONDARY }]}>{incomeCount} giao dịch</Text>
 
       <View style={styles.actionRowMain}>
-        <Pressable style={styles.addButtonMain} onPress={onAddIncome}>
+        <Pressable style={[styles.addButtonMain, { backgroundColor: colors.PRIMARY }]} onPress={onAddIncome}>
           <Text style={styles.addButtonText}>+ Thêm thu nhập</Text>
         </Pressable>
         <VoiceInputButton onResult={onVoiceResult} />
       </View>
       <Pressable
-        style={[styles.exportButton, isExporting && styles.exportButtonDisabled]}
+        style={[styles.exportButton, { backgroundColor: colors.BG, borderColor: colors.PRIMARY_LIGHT }, isExporting && styles.exportButtonDisabled]}
         onPress={onExport}
         disabled={isExporting}
       >
-        <Text style={styles.exportText}>
+        <Text style={[styles.exportText, { color: colors.PRIMARY }]}> 
           {isExporting
             ? "Đang tạo báo cáo..."
             : filterType === INCOME_FILTER_TYPES.all

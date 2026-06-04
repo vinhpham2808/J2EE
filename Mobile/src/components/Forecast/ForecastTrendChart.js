@@ -7,8 +7,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { LineChart } from "react-native-chart-kit";
-import { COLORS } from "../../constants/colors";
-import { lineChartConfig } from "../../utils/forecast";
+import { COLORS, useAppColors } from "../../constants/colors";
 import ForecastEmptyState from "./ForecastEmptyState";
 
 export default function ForecastTrendChart({
@@ -16,34 +15,54 @@ export default function ForecastTrendChart({
   lineChartData,
   isTrendLoading,
 }) {
+  const colors = useAppColors();
   const { width: screenWidth } = useWindowDimensions();
   const chartWidth = Math.max(screenWidth - 48, 300);
+  const chartConfig = {
+    backgroundColor: colors.CARD,
+    backgroundGradientFrom: colors.CARD,
+    backgroundGradientTo: colors.CARD,
+    decimalPlaces: 0,
+    color: (opacity = 1) => `rgba(232, 89, 122, ${opacity})`,
+    labelColor: () => colors.TEXT_SECONDARY,
+    propsForDots: {
+      r: "4",
+      strokeWidth: "2",
+      stroke: colors.PRIMARY,
+    },
+    propsForLabels: { fontSize: 10 },
+    propsForBackgroundLines: {
+      strokeDasharray: "4 4",
+      stroke: colors.CARD_BORDER,
+      strokeWidth: 1,
+    },
+  };
 
   if (!categoryName) return null;
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>
+      <Text style={[styles.sectionTitle, { color: colors.TEXT }]}> 
         📈 Xu hướng: {categoryName}
       </Text>
       {isTrendLoading ? (
         <View style={styles.trendLoadingWrap}>
-          <ActivityIndicator size="small" color={COLORS.PRIMARY} />
+          <ActivityIndicator size="small" color={colors.PRIMARY} />
         </View>
       ) : lineChartData ? (
-        <View style={styles.chartCard}>
+        <View style={[styles.chartCard, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }]}> 
           <LineChart
             data={lineChartData}
             width={chartWidth}
             height={220}
-            chartConfig={lineChartConfig}
+            chartConfig={chartConfig}
             style={styles.chart}
             bezier
             fromZero
             yAxisLabel=""
             yAxisSuffix="đ"
           />
-          <Text style={styles.trendNote}>
+          <Text style={[styles.trendNote, { color: colors.TEXT_MUTED }]}> 
             Đường biểu diễn: chi tiêu thực tế 6 tháng gần nhất
           </Text>
         </View>

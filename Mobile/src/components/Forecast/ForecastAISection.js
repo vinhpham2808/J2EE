@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import { formatDate } from "../../utils/format";
 
 export default function ForecastAISection({
@@ -8,14 +8,16 @@ export default function ForecastAISection({
   generatedAt,
   hasError,
 }) {
+  const colors = useAppColors();
+
   if (narrative) {
     return (
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>🤖 Phân tích AI</Text>
-        <View style={styles.insightCard}>
-          <Text style={styles.insightText}>{narrative}</Text>
+        <Text style={[styles.sectionTitle, { color: colors.TEXT }]}>🤖 Phân tích AI</Text>
+        <View style={[styles.insightCard, { backgroundColor: colors.CARD, borderColor: colors.PRIMARY_LIGHT }]}> 
+          <Text style={[styles.insightText, { color: colors.TEXT }]}>{narrative}</Text>
           {generatedAt ? (
-            <Text style={styles.insightTime}>{formatDate(generatedAt)}</Text>
+            <Text style={[styles.insightTime, { color: colors.TEXT_MUTED }]}>{formatDate(generatedAt)}</Text>
           ) : null}
         </View>
       </View>
@@ -25,8 +27,8 @@ export default function ForecastAISection({
   if (hasError) {
     return (
       <View style={styles.section}>
-        <View style={styles.insightFallback}>
-          <Text style={styles.insightFallbackText}>
+        <View style={[styles.insightFallback, { backgroundColor: colors.WARNING_LIGHT, borderColor: colors.WARNING }]}> 
+          <Text style={[styles.insightFallbackText, { color: colors.TEXT }]}> 
             ⚠️ Không thể tạo phân tích AI lúc này. Vui lòng thử lại sau.
           </Text>
         </View>

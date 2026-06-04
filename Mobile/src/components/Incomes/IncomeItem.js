@@ -1,31 +1,33 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import { formatDate, formatMoney } from "../../utils/format";
 
 export default function IncomeItem({ item, onDelete }) {
+  const colors = useAppColors();
+
   return (
-    <View style={styles.itemCard}>
+    <View style={[styles.itemCard, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }]}> 
       <View style={styles.itemMain}>
-        <View style={styles.iconBubble}>
+        <View style={[styles.iconBubble, { backgroundColor: colors.ROSE_MIST }]}> 
           <Text style={styles.iconText}>{item?.icon || "💰"}</Text>
         </View>
 
         <View style={styles.itemContent}>
-          <Text style={styles.itemName}>{item?.name || "Thu nhập"}</Text>
-          <Text style={styles.itemMeta}>{formatDate(item?.date)} • {item?.categoryName || "Khác"}</Text>
+          <Text style={[styles.itemName, { color: colors.TEXT }]}>{item?.name || "Thu nhập"}</Text>
+          <Text style={[styles.itemMeta, { color: colors.TEXT_SECONDARY }]}>{formatDate(item?.date)} • {item?.categoryName || "Khác"}</Text>
         </View>
       </View>
 
       <View style={styles.itemRight}>
-        <Text style={styles.itemAmount}>+ {formatMoney(item?.amount)}</Text>
+        <Text style={[styles.itemAmount, { color: colors.INCOME }]}>+ {formatMoney(item?.amount)}</Text>
         <Pressable
           onPress={() => onDelete(item?.id)}
           style={styles.deleteButton}
           accessibilityRole="button"
           accessibilityLabel="Xóa thu nhập"
         >
-          <Text style={styles.deleteIcon}>🗑️</Text>
+          <Text style={[styles.deleteIcon, { color: colors.EXPENSE }]}>🗑️</Text>
         </Pressable>
       </View>
     </View>

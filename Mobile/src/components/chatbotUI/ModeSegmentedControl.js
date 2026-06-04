@@ -1,7 +1,7 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 
 export default function ModeSegmentedControl({
   activeMode,
@@ -9,35 +9,36 @@ export default function ModeSegmentedControl({
   onChangeMode,
   embedded = false,
 }) {
+  const colors = useAppColors();
   const modes = [
     { value: "chat", label: "Trò chuyện", icon: "message-reply-text-outline" },
     { value: "agent", label: "Tác vụ", icon: "robot-outline" },
   ];
 
   return (
-    <View style={[styles.modeContainer, embedded && styles.modeContainerEmbedded]}>
+    <View style={[styles.modeContainer, { backgroundColor: colors.BG, borderColor: colors.CHAT_BORDER }, embedded && styles.modeContainerEmbedded]}>
       {modes.map((mode) => {
         const isActive = activeMode === mode.value;
 
         return (
           <Pressable
             key={mode.value}
-            style={[styles.modeTab, isActive && styles.modeTabActive]}
+            style={[styles.modeTab, isActive && [styles.modeTabActive, { backgroundColor: colors.PRIMARY, borderColor: colors.PRIMARY_LIGHT, shadowColor: colors.PRIMARY }]]}
             onPress={() => onChangeMode(mode.value)}
           >
             <MaterialCommunityIcons
               name={mode.icon}
               size={18}
-              color={isActive ? COLORS.WHITE : COLORS.TEXT_SECONDARY}
+              color={isActive ? colors.WHITE : colors.TEXT_SECONDARY}
             />
-            <Text style={[styles.modeText, isActive && styles.modeTextActive]}>
+            <Text style={[styles.modeText, { color: isActive ? colors.WHITE : colors.TEXT_SECONDARY }, isActive && styles.modeTextActive]}>
               {mode.label}
             </Text>
             {mode.value === "agent" && isFreePlan ? (
               <MaterialCommunityIcons
                 name="lock-outline"
                 size={12}
-                color={isActive ? COLORS.WHITE : COLORS.TEXT_MUTED}
+                color={isActive ? colors.WHITE : colors.TEXT_MUTED}
               />
             ) : null}
           </Pressable>

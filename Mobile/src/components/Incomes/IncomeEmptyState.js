@@ -1,13 +1,15 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 
 export default function IncomeEmptyState() {
+  const colors = useAppColors();
+
   return (
     <View style={styles.emptyState}>
       <Text style={styles.emptyIcon}>💹</Text>
-      <Text style={styles.emptyTitle}>Chưa có dữ liệu thu nhập</Text>
-      <Text style={styles.emptyText}>Hãy thêm khoản thu đầu tiên để theo dõi tài chính rõ ràng hơn.</Text>
+      <Text style={[styles.emptyTitle, { color: colors.TEXT }]}>Chưa có dữ liệu thu nhập</Text>
+      <Text style={[styles.emptyText, { color: colors.TEXT_SECONDARY }]}>Hãy thêm khoản thu đầu tiên để theo dõi tài chính rõ ràng hơn.</Text>
     </View>
   );
 }

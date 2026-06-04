@@ -1,28 +1,30 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import { formatJarMoney } from "../../utils/jar";
 
 export default function JarOverview({ jarCount, maxJars, totalBalance, totalPercentage }) {
+  const colors = useAppColors();
+
   return (
-    <View style={styles.overviewContainer}>
-      <View style={styles.overviewBox}>
-        <Text style={styles.overviewLabel}>Tổng số dư hũ</Text>
-        <Text style={styles.overviewBalance}>{formatJarMoney(totalBalance)}</Text>
+    <View style={[styles.overviewContainer, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER, shadowColor: colors.TEXT }]}> 
+      <View style={[styles.overviewBox, { borderBottomColor: colors.CARD_BORDER }]}> 
+        <Text style={[styles.overviewLabel, { color: colors.TEXT_SECONDARY }]}>Tổng số dư hũ</Text>
+        <Text style={[styles.overviewBalance, { color: colors.PRIMARY }]}>{formatJarMoney(totalBalance)}</Text>
       </View>
       <View style={styles.overviewRow}>
-        <View style={[styles.smallOverviewBox, { marginRight: 8 }]}>
-          <Text style={styles.overviewLabel}>Số hũ đang dùng</Text>
-          <Text style={styles.overviewValue}>{jarCount} / {maxJars === Infinity ? "∞" : maxJars}</Text>
+        <View style={[styles.smallOverviewBox, { marginRight: 8, backgroundColor: colors.BG }]}> 
+          <Text style={[styles.overviewLabel, { color: colors.TEXT_SECONDARY }]}>Số hũ đang dùng</Text>
+          <Text style={[styles.overviewValue, { color: colors.TEXT }]}>{jarCount} / {maxJars === Infinity ? "∞" : maxJars}</Text>
         </View>
-        <View style={styles.smallOverviewBox}>
-          <Text style={styles.overviewLabel}>Tổng phân bổ %</Text>
-          <Text style={[styles.overviewValue, totalPercentage > 100 && { color: COLORS.EXPENSE }]}>{totalPercentage.toFixed(1)}%</Text>
+        <View style={[styles.smallOverviewBox, { backgroundColor: colors.BG }]}> 
+          <Text style={[styles.overviewLabel, { color: colors.TEXT_SECONDARY }]}>Tổng phân bổ %</Text>
+          <Text style={[styles.overviewValue, { color: colors.TEXT }, totalPercentage > 100 && { color: colors.EXPENSE }]}>{totalPercentage.toFixed(1)}%</Text>
         </View>
       </View>
       {totalPercentage > 100 && (
-        <View style={styles.warningBanner}>
-          <Text style={styles.warningText}>🚨 Tổng tỉ lệ phân bổ đã vượt quá 100%! Vui lòng điều chỉnh lại tỉ lệ các hũ.</Text>
+        <View style={[styles.warningBanner, { backgroundColor: colors.EXPENSE_LIGHT, borderColor: colors.EXPENSE }]}> 
+          <Text style={[styles.warningText, { color: colors.EXPENSE }]}>🚨 Tổng tỉ lệ phân bổ đã vượt quá 100%! Vui lòng điều chỉnh lại tỉ lệ các hũ.</Text>
         </View>
       )}
     </View>

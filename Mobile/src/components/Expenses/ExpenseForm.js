@@ -1,53 +1,55 @@
 import React from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import { PickDateField } from "../../utils/datePicker";
 import CategoryGridSelector from "../common/CategoryGridSelector";
 import ExpenseNoteField from "./ExpenseNoteField";
 
 export default function ExpenseForm({ form, insetsStyle, isPremium, isScanning, onImportReceipt }) {
+  const colors = useAppColors();
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={[styles.content, insetsStyle]}>
-      <Text style={styles.label}>Tên khoản chi</Text>
+    <ScrollView style={[styles.container, { backgroundColor: colors.BG }]} contentContainerStyle={[styles.content, insetsStyle]}>
+      <Text style={[styles.label, { color: colors.TEXT }]}>Tên khoản chi</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER, color: colors.TEXT }]}
         value={form.name}
         onChangeText={form.setName}
         placeholder="Ví dụ: Mua đồ ăn"
-        placeholderTextColor={COLORS.TEXT_MUTED}
+        placeholderTextColor={colors.TEXT_MUTED}
       />
 
-      <Text style={styles.label}>Số tiền</Text>
+      <Text style={[styles.label, { color: colors.TEXT }]}>Số tiền</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER, color: colors.TEXT }]}
         value={form.amount}
         onChangeText={form.setAmount}
         keyboardType="numeric"
         placeholder="Ví dụ: 120.000"
-        placeholderTextColor={COLORS.TEXT_MUTED}
+        placeholderTextColor={colors.TEXT_MUTED}
       />
 
       <ExpenseNoteField value={form.note} onChange={form.setNote} onVoiceResult={form.handleVoiceResult} />
 
       {form.splitInfo?.splits?.length > 0 && (
-        <View style={styles.splitBanner}>
-          <Text style={styles.splitTitle}>Phát hiện chia tiền</Text>
+        <View style={[styles.splitBanner, { backgroundColor: colors.INFO_LIGHT, borderColor: colors.INFO }]}> 
+          <Text style={[styles.splitTitle, { color: colors.INFO }]}>Phát hiện chia tiền</Text>
           {form.splitInfo.splits.map((split, index) => (
-            <Text key={`${split.label}-${index}`} style={styles.splitText}>
+            <Text key={`${split.label}-${index}`} style={[styles.splitText, { color: colors.TEXT }]}> 
               {split.label}
             </Text>
           ))}
-          {form.splitInfo.myShareLabel && <Text style={styles.splitMyShare}>{form.splitInfo.myShareLabel}</Text>}
+          {form.splitInfo.myShareLabel && <Text style={[styles.splitMyShare, { color: colors.PRIMARY }]}>{form.splitInfo.myShareLabel}</Text>}
         </View>
       )}
 
       <PickDateField label="Ngày" value={form.date} onChange={form.setDate} />
 
-      <Text style={styles.label}>Hũ chi tiêu liên kết</Text>
+      <Text style={[styles.label, { color: colors.TEXT }]}>Hũ chi tiêu liên kết</Text>
       {form.jarsLoading ? (
-        <Text style={styles.mutedText}>Đang tải danh sách hũ...</Text>
+        <Text style={[styles.mutedText, { color: colors.TEXT_MUTED }]}>Đang tải danh sách hũ...</Text>
       ) : form.jars.length === 0 ? (
-        <Text style={styles.mutedText}>Chưa tạo hũ chi tiêu nào. Hãy thiết lập trong Tiện ích khác.</Text>
+        <Text style={[styles.mutedText, { color: colors.TEXT_MUTED }]}>Chưa tạo hũ chi tiêu nào. Hãy thiết lập trong Tiện ích khác.</Text>
       ) : (
         <View style={styles.jarsSection}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.jarsContainer}>
@@ -58,12 +60,12 @@ export default function ExpenseForm({ form, insetsStyle, isPremium, isScanning, 
                 <Pressable
                   key={jar.id}
                   onPress={() => form.setJarId(isSelected ? "" : String(jar.id))}
-                  style={[styles.jarItem, isSelected && { borderColor: color, backgroundColor: `${color}12` }]}
+                  style={[styles.jarItem, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }, isSelected && { borderColor: color, backgroundColor: `${color}12` }]}
                 >
                   <View style={[styles.jarEmojiBox, { backgroundColor: `${color}18` }]}>
                     <Text style={styles.jarEmoji}>{jar.icon || "🏺"}</Text>
                   </View>
-                  <Text style={[styles.jarName, isSelected && { color, fontWeight: "800" }]}>{jar.name}</Text>
+                  <Text style={[styles.jarName, { color: colors.TEXT }, isSelected && { color, fontWeight: "800" }]}>{jar.name}</Text>
                 </Pressable>
               );
             })}
@@ -71,7 +73,7 @@ export default function ExpenseForm({ form, insetsStyle, isPremium, isScanning, 
         </View>
       )}
 
-      <Text style={styles.label}>Danh mục</Text>
+      <Text style={[styles.label, { color: colors.TEXT }]}>Danh mục</Text>
       <CategoryGridSelector
         categories={form.categories}
         selectedId={form.categoryId}
@@ -84,25 +86,25 @@ export default function ExpenseForm({ form, insetsStyle, isPremium, isScanning, 
       />
 
       <Pressable
-        style={[styles.importBanner, isScanning && styles.importBannerScanning]}
+        style={[styles.importBanner, { backgroundColor: colors.CARD, borderColor: colors.PRIMARY, shadowColor: colors.PRIMARY }, isScanning && styles.importBannerScanning]}
         onPress={onImportReceipt}
         disabled={isScanning}
       >
         {isScanning ? (
           <View style={styles.importBannerInner}>
-            <ActivityIndicator color={COLORS.PRIMARY} size="small" />
-            <Text style={styles.importBannerText}>Đang phân tích hóa đơn...</Text>
+            <ActivityIndicator color={colors.PRIMARY} size="small" />
+            <Text style={[styles.importBannerText, { color: colors.TEXT_SECONDARY }]}>Đang phân tích hóa đơn...</Text>
           </View>
         ) : (
           <View style={styles.importBannerInner}>
-            <View style={styles.importBannerIconBox}>
+            <View style={[styles.importBannerIconBox, { backgroundColor: colors.ROSE_MIST }]}> 
               <Text style={styles.importBannerIcon}>📎</Text>
             </View>
             <View style={styles.importBannerBody}>
-              <Text style={styles.importBannerTitle}>Nhập từ hóa đơn</Text>
-              <Text style={styles.importBannerSub}>Chọn ảnh hoặc PDF{!isPremium ? "  •  Premium" : ""}</Text>
+              <Text style={[styles.importBannerTitle, { color: colors.PRIMARY }]}>Nhập từ hóa đơn</Text>
+              <Text style={[styles.importBannerSub, { color: colors.TEXT_MUTED }]}>Chọn ảnh hoặc PDF{!isPremium ? "  •  Premium" : ""}</Text>
             </View>
-            <Text style={styles.importBannerChevron}>›</Text>
+            <Text style={[styles.importBannerChevron, { color: colors.PRIMARY }]}>›</Text>
           </View>
         )}
       </Pressable>

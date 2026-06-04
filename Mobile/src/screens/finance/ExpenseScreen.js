@@ -8,7 +8,7 @@ import ExpenseItem from "../../components/Expenses/ExpenseItem";
 import ExpenseListOverview from "../../components/Expenses/ExpenseListOverview";
 import ExpenseSummaryActions from "../../components/Expenses/ExpenseSummaryActions";
 import QuickExpenseTemplates from "../../components/Expenses/QuickExpenseTemplates";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import useExpenseReceiptImport from "../../hooks/useExpenseReceiptImport";
 import useExpenseForm from "../../hooks/useExpenseForm";
 import useExpenses from "../../hooks/useExpenses";
@@ -67,6 +67,7 @@ function ExpenseFormRoute() {
 function ExpenseListRoute() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const colors = useAppColors();
   const { user } = useContext(AuthContext);
   const subscriptionPlan = String(user?.subscriptionPlan || "FREE").toUpperCase();
   const isPremium = subscriptionPlan === "PREMIUM";
@@ -121,7 +122,7 @@ function ExpenseListRoute() {
   const renderHeader = useCallback(
     () => (
       <View style={styles.header}>
-        <ExpenseFilterTabs filterType={filterType} onChange={setFilterType} />
+        <ExpenseFilterTabs colors={colors} filterType={filterType} onChange={setFilterType} />
         <ExpenseSummaryActions
           expenseCount={expenses.length}
           filterType={filterType}
@@ -136,6 +137,7 @@ function ExpenseListRoute() {
         />
         <QuickExpenseTemplates onRefreshList={fetchExpenses} />
         <ExpenseSearchBar
+          colors={colors}
           value={searchQuery}
           onChangeText={setSearchQuery}
           onClear={() => setSearchQuery("")}
@@ -168,12 +170,13 @@ function ExpenseListRoute() {
       setFilterType,
       setSearchQuery,
       toggleExpenses,
-      totalExpense
+      totalExpense,
+      colors
     ]
   );
 
   return (
-    <View style={[styles.container, { paddingTop: getSafeAreaTop(insets) }]}>
+    <View style={[styles.container, { backgroundColor: colors.BG, paddingTop: getSafeAreaTop(insets) }]}>
       <FlatList
         data={visibleExpenses}
         keyExtractor={(item) => String(item?.id)}
@@ -186,17 +189,17 @@ function ExpenseListRoute() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         ListHeaderComponent={renderHeader}
         ListEmptyComponent={
-          <ExpenseEmptyState hasSearch={Boolean(searchKeyword)} onAddExpense={() => navigateToAddExpense()} />
+          <ExpenseEmptyState colors={colors} hasSearch={Boolean(searchKeyword)} onAddExpense={() => navigateToAddExpense()} />
         }
       />
     </View>
   );
 }
 
-function ExpenseFilterTabs({ filterType, onChange }) {
+function ExpenseFilterTabs({ colors, filterType, onChange }) {
   return (
-    <View style={styles.filterCard}>
-      <Text style={styles.filterTitle}>Khung thời gian</Text>
+    <View style={[styles.filterCard, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }]}>
+      <Text style={[styles.filterTitle, { color: colors.TEXT }]}>Khung thời gian</Text>
       <View style={styles.filterRow}>
         {FILTER_OPTIONS.map((option, index) => {
           const isActive = filterType === option.value;
@@ -205,12 +208,13 @@ function ExpenseFilterTabs({ filterType, onChange }) {
               key={option.value}
               style={[
                 styles.filterChip,
+                { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER },
                 index === FILTER_OPTIONS.length - 1 && styles.filterChipLast,
-                isActive && styles.filterChipActive
+                isActive && { backgroundColor: colors.ROSE_MIST, borderColor: colors.PRIMARY }
               ]}
               onPress={() => onChange(option.value)}
             >
-              <Text style={[styles.filterChipText, isActive && styles.filterChipTextActive]}>
+              <Text style={[styles.filterChipText, { color: isActive ? colors.PRIMARY : colors.TEXT }]}>
                 {option.label}
               </Text>
             </Pressable>
@@ -221,34 +225,34 @@ function ExpenseFilterTabs({ filterType, onChange }) {
   );
 }
 
-function ExpenseSearchBar({ value, onChangeText, onClear }) {
+function ExpenseSearchBar({ colors, value, onChangeText, onClear }) {
   return (
-    <View style={styles.searchBar}>
+    <View style={[styles.searchBar, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }]}>
       <Text style={styles.searchIcon}>🔍</Text>
       <TextInput
-        style={styles.searchInput}
+        style={[styles.searchInput, { color: colors.TEXT }]}
         value={value}
         onChangeText={onChangeText}
         placeholder="Tìm kiếm ghi chú, tên chi tiêu..."
-        placeholderTextColor={COLORS.TEXT_MUTED}
+        placeholderTextColor={colors.TEXT_MUTED}
       />
       {value ? (
         <Pressable onPress={onClear} style={styles.searchClear}>
-          <Text style={styles.searchClearText}>✕</Text>
+          <Text style={[styles.searchClearText, { color: colors.TEXT_SECONDARY }]}>✕</Text>
         </Pressable>
       ) : null}
     </View>
   );
 }
 
-function ExpenseEmptyState({ hasSearch, onAddExpense }) {
+function ExpenseEmptyState({ colors, hasSearch, onAddExpense }) {
   return (
     <View style={styles.emptyState}>
       <Text style={styles.emptyIcon}>🧾</Text>
-      <Text style={styles.emptyTitle}>
+      <Text style={[styles.emptyTitle, { color: colors.TEXT }]}>
         {hasSearch ? "Không tìm thấy kết quả" : "Chưa có khoản chi nào"}
       </Text>
-      <Text style={styles.emptyText}>
+      <Text style={[styles.emptyText, { color: colors.TEXT_SECONDARY }]}>
         {hasSearch
           ? "Thử tìm kiếm với từ khóa khác."
           : "Hãy thêm giao dịch đầu tiên để bắt đầu theo dõi chi tiêu dễ hơn."}

@@ -1,12 +1,13 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import { clampScale, scale } from "../../utils/layoutScale";
 import { formatMoney } from "../../utils/format";
 import { DashboardSectionCard, DashboardSectionHeader } from "./DashboardSection";
 import ShowMoreButton from "../common/ShowMoreButton";
 
 function GoalPreviewCard({ goal, onPress }) {
+  const colors = useAppColors();
   const target = Number(goal?.targetAmount || 0);
   const current = Number(goal?.currentAmount || 0);
   const progress = Math.max(0, Math.min(100, Number(goal?.progressPercent || 0)));
@@ -15,17 +16,17 @@ function GoalPreviewCard({ goal, onPress }) {
   const progressColor = isCompleted ? COLORS.PRIMARY : progress >= 50 ? COLORS.PRIMARY : progress >= 25 ? COLORS.GOLD : COLORS.INFO;
 
   return (
-    <Pressable style={styles.goalCard} onPress={onPress}>
+    <Pressable style={[styles.goalCard, { borderBottomColor: colors.BG }]} onPress={onPress}>
       <View style={styles.goalHeader}>
         <View style={styles.goalInfo}>
-          <Text style={styles.goalName} numberOfLines={1}>{goal?.name || "Mục tiêu"}</Text>
-          <Text style={styles.goalStatus}>
+          <Text style={[styles.goalName, { color: colors.TEXT }]} numberOfLines={1}>{goal?.name || "Mục tiêu"}</Text>
+          <Text style={[styles.goalStatus, { color: colors.TEXT_MUTED }]}> 
             {isCompleted ? "Hoàn thành" : `Đang tích lũy · ${formatMoney(current)} / ${formatMoney(target)}`}
           </Text>
         </View>
         <Text style={[styles.goalPercent, { color: progressColor }]}>{Math.round(progress)}%</Text>
       </View>
-      <View style={styles.goalTrack}>
+      <View style={[styles.goalTrack, { backgroundColor: colors.CARD_BORDER }]}> 
         <View style={[styles.goalFill, { width: `${progress}%`, backgroundColor: progressColor }]} />
       </View>
     </Pressable>
@@ -33,6 +34,8 @@ function GoalPreviewCard({ goal, onPress }) {
 }
 
 export default function GoalsPreview({ goals, onCreate, onGoalPress, onMore }) {
+  const colors = useAppColors();
+
   return (
     <>
       <DashboardSectionHeader title="Mục tiêu tiết kiệm">
@@ -44,9 +47,9 @@ export default function GoalsPreview({ goals, onCreate, onGoalPress, onMore }) {
         ) : (
           <View style={styles.emptyGoalContainer}>
             <Text style={styles.emptyGoalIcon}>🎯</Text>
-            <Text style={styles.emptyGoalText}>Chưa có mục tiêu tiết kiệm nào.</Text>
-            <Pressable style={styles.createGoalButton} onPress={onCreate}>
-              <Text style={styles.createGoalButtonText}>Tạo mục tiêu</Text>
+            <Text style={[styles.emptyGoalText, { color: colors.TEXT_SECONDARY }]}>Chưa có mục tiêu tiết kiệm nào.</Text>
+            <Pressable style={[styles.createGoalButton, { backgroundColor: colors.ROSE_MIST, borderColor: colors.CARD_BORDER }]} onPress={onCreate}>
+              <Text style={[styles.createGoalButtonText, { color: colors.PRIMARY }]}>Tạo mục tiêu</Text>
             </Pressable>
           </View>
         )}

@@ -1,9 +1,10 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import { formatJarMoney, getJarActualPercent, getJarProgressWidth } from "../../utils/jar";
 
 export default function JarCard({ item, totalBalance, onPress }) {
+  const colors = useAppColors();
   const { name, icon, color, targetPercentage, currentBalance } = item;
   const actualPercent = getJarActualPercent(currentBalance, totalBalance);
   const progressWidth = getJarProgressWidth(currentBalance, totalBalance);
@@ -11,7 +12,7 @@ export default function JarCard({ item, totalBalance, onPress }) {
   const isMet = parseFloat(actualPercent) >= (targetPercentage ?? 0);
 
   return (
-    <Pressable style={styles.card} onPress={onPress}>
+    <Pressable style={[styles.card, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }]} onPress={onPress}>
       <View style={[styles.cardAccentBar, { backgroundColor: color || COLORS.PRIMARY }]} />
       <View style={styles.cardHeader}>
         <View style={styles.cardInfoCol}>
@@ -19,23 +20,23 @@ export default function JarCard({ item, totalBalance, onPress }) {
             <Text style={styles.iconText}>{icon || "🏺"}</Text>
           </View>
           <View style={styles.cardTitleWrap}>
-            <Text style={styles.cardName} numberOfLines={1}>{name}</Text>
-            <Text style={styles.cardTarget}>Mục tiêu: {targetPercentage ?? 0}%</Text>
+            <Text style={[styles.cardName, { color: colors.TEXT }]} numberOfLines={1}>{name}</Text>
+            <Text style={[styles.cardTarget, { color: colors.TEXT_SECONDARY }]}>Mục tiêu: {targetPercentage ?? 0}%</Text>
           </View>
         </View>
-        <View style={[styles.statusBadge, { backgroundColor: isMet ? COLORS.INCOME_LIGHT : COLORS.WARNING_LIGHT, borderColor: isMet ? "#abefc6" : "#fedf89" }]}>
-          <Text style={[styles.statusBadgeText, { color: isMet ? COLORS.INCOME : COLORS.WARNING }]}>
+        <View style={[styles.statusBadge, { backgroundColor: isMet ? colors.INCOME_LIGHT : colors.WARNING_LIGHT, borderColor: isMet ? colors.INCOME : colors.WARNING }]}> 
+          <Text style={[styles.statusBadgeText, { color: isMet ? colors.INCOME : colors.WARNING }]}> 
             {isMet ? "📈 Đạt mục tiêu" : "📉 Dưới mục tiêu"}
           </Text>
         </View>
       </View>
-      <Text style={[styles.cardBalance, isNegative && { color: COLORS.EXPENSE }]}>{formatJarMoney(currentBalance)}</Text>
+      <Text style={[styles.cardBalance, { color: colors.TEXT }, isNegative && { color: colors.EXPENSE }]}>{formatJarMoney(currentBalance)}</Text>
       <View style={styles.progressRow}>
-        <Text style={styles.progressLabel}>Tỷ trọng thực tế</Text>
+        <Text style={[styles.progressLabel, { color: colors.TEXT_MUTED }]}>Tỷ trọng thực tế</Text>
         <Text style={[styles.progressValue, { color: color || COLORS.PRIMARY }]}>{actualPercent}% / {targetPercentage ?? 0}%</Text>
       </View>
-      <View style={styles.progressBarBg}>
-        <View style={[styles.progressBarFill, { width: `${progressWidth}%`, backgroundColor: isNegative ? COLORS.EXPENSE : color || COLORS.PRIMARY }]} />
+      <View style={[styles.progressBarBg, { backgroundColor: colors.CARD_BORDER }]}> 
+        <View style={[styles.progressBarFill, { width: `${progressWidth}%`, backgroundColor: isNegative ? colors.EXPENSE : color || colors.PRIMARY }]} />
       </View>
     </Pressable>
   );

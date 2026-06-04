@@ -1,6 +1,6 @@
 import React from "react";
 import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import {
   CATEGORY_COLORS,
   TREND_CONFIG,
@@ -12,6 +12,8 @@ export default function ForecastCategoryChips({
   selectedCategoryId,
   onSelect,
 }) {
+  const colors = useAppColors();
+
   if (categories.length === 0) return null;
 
   return (
@@ -30,12 +32,13 @@ export default function ForecastCategoryChips({
             key={cat.categoryId}
             style={[
               styles.chip,
+              { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER },
               isSelected && { borderColor: accent, borderWidth: 2 },
             ]}
             onPress={() => onSelect(cat.categoryId)}
           >
             <Text style={styles.chipIcon}>{trend.icon}</Text>
-            <Text style={[styles.chipLabel, isSelected && { fontWeight: "800" }]}>
+            <Text style={[styles.chipLabel, { color: colors.TEXT }, isSelected && { fontWeight: "800" }]}> 
               {cat.categoryName}
             </Text>
             <Text style={[styles.chipAmount, { color: trend.color }]}>

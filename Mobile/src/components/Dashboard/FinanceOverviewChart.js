@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Dimensions, Pressable } from "react-native";
 import Svg, { Path, G, Defs, LinearGradient, Stop, Text as SvgText } from "react-native-svg";
 import { buildRecentMonthKeys, formatMonthKeyLabel, formatMonthShortLabel, toMonthKey } from "../../utils/financeStats";
 import { formatMoney } from "../../utils/format";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -116,10 +116,12 @@ function buildFallbackMonthlySeries(income = 0, expense = 0) {
 
 // ─── Legend ──────────────────────────────────────────────────────
 function LegendItem({ color, label, value, valueColor, valueGradient }) {
+  const colors = useAppColors();
+
   return (
     <View style={styles.legendItem}>
       <View style={[styles.legendDot, { backgroundColor: color }]} />
-      <Text style={styles.legendLabel}>{label}</Text>
+      <Text style={[styles.legendLabel, { color: colors.TEXT }]}>{label}</Text>
       <Svg width={128} height={18} style={styles.legendValueSvg}>
         <Defs>
           <LinearGradient id="legendValueGradient" x1="0" y1="0" x2="1" y2="0">
@@ -195,14 +197,16 @@ function SliceTooltip({ slice, cx, cy, outerR }) {
 }
 
 function MonthSwitcher({ label, canPrev, canNext, onPrev, onNext }) {
+  const colors = useAppColors();
+
   return (
     <View style={styles.monthSwitcherRow}>
-      <Pressable style={[styles.monthNavBtn, !canPrev && styles.monthNavBtnDisabled]} onPress={onPrev} disabled={!canPrev}>
-        <Text style={[styles.monthNavText, !canPrev && styles.monthNavTextDisabled]}>◀</Text>
+      <Pressable style={[styles.monthNavBtn, { backgroundColor: colors.ROSE_MIST, borderColor: colors.CARD_BORDER }, !canPrev && styles.monthNavBtnDisabled]} onPress={onPrev} disabled={!canPrev}>
+        <Text style={[styles.monthNavText, { color: canPrev ? colors.TEXT : colors.TEXT_MUTED }]}>◀</Text>
       </Pressable>
-      <Text style={styles.monthYearText}>{label}</Text>
-      <Pressable style={[styles.monthNavBtn, !canNext && styles.monthNavBtnDisabled]} onPress={onNext} disabled={!canNext}>
-        <Text style={[styles.monthNavText, !canNext && styles.monthNavTextDisabled]}>▶</Text>
+      <Text style={[styles.monthYearText, { color: colors.TEXT_SECONDARY }]}>{label}</Text>
+      <Pressable style={[styles.monthNavBtn, { backgroundColor: colors.ROSE_MIST, borderColor: colors.CARD_BORDER }, !canNext && styles.monthNavBtnDisabled]} onPress={onNext} disabled={!canNext}>
+        <Text style={[styles.monthNavText, { color: canNext ? colors.TEXT : colors.TEXT_MUTED }]}>▶</Text>
       </Pressable>
     </View>
   );
@@ -210,6 +214,8 @@ function MonthSwitcher({ label, canPrev, canNext, onPrev, onNext }) {
 
 // ─── Monthly Bar Chart ────────────────────────────────────────────
 function MonthlyBarsPlaceholder({ monthlySeries = [] }) {
+  const colors = useAppColors();
+
   if (!monthlySeries.length) return null;
 
   const barH = 90;
@@ -221,7 +227,7 @@ function MonthlyBarsPlaceholder({ monthlySeries = [] }) {
 
   return (
     <View style={styles.monthlySection}>
-      <Text style={styles.monthlyTitle}>So sánh các tháng</Text>
+      <Text style={[styles.monthlyTitle, { color: colors.TEXT_SECONDARY }]}>So sánh các tháng</Text>
       <View style={styles.monthlyBarRow}>
         {monthlySeries.map((item, idx) => {
           const incomeHeight = Math.max(6, (item.income / maxValue) * barH);
@@ -259,7 +265,7 @@ function MonthlyBarsPlaceholder({ monthlySeries = [] }) {
                   />
                 </View>
               </View>
-              <Text style={styles.monthlyBarLabel}>{formatMonthShortLabel(item.monthKey)}</Text>
+              <Text style={[styles.monthlyBarLabel, { color: colors.TEXT_MUTED }]}>{formatMonthShortLabel(item.monthKey)}</Text>
             </View>
           );
         })}
@@ -270,6 +276,7 @@ function MonthlyBarsPlaceholder({ monthlySeries = [] }) {
 
 // ─── Main Component ──────────────────────────────────────────────
 const FinanceOverviewChart = ({ totalBalance, totalIncome, totalExpense, monthlySeries = [] }) => {
+  const colors = useAppColors();
   const fallbackIncome = Number(totalIncome || 0);
   const fallbackExpense = Number(totalExpense || 0);
   const fallbackBalance = Number(totalBalance || 0);
@@ -314,9 +321,9 @@ const FinanceOverviewChart = ({ totalBalance, totalIncome, totalExpense, monthly
   // Build slices
   const slices = useMemo(() => {
     const raw = [
-      { key: "income", name: "Thu nhập", rawAmount: income, color: SLICE_COLORS.income, valueColor: VALUE_COLORS.income, sign: "+" },
-      { key: "expense", name: "Chi tiêu", rawAmount: expense, color: SLICE_COLORS.expense, valueColor: VALUE_COLORS.expense, sign: "-" },
-      { key: "balance", name: "Số dư", rawAmount: Math.abs(balance), color: SLICE_COLORS.balance, valueColor: VALUE_COLORS.balance, sign: "" },
+      { key: "income", name: "Thu nhập", rawAmount: income, color: colors.INCOME, valueColor: colors.INCOME, sign: "+" },
+      { key: "expense", name: "Chi tiêu", rawAmount: expense, color: colors.EXPENSE, valueColor: colors.EXPENSE, sign: "-" },
+      { key: "balance", name: "Số dư", rawAmount: Math.abs(balance), color: colors.PRIMARY, valueColor: colors.PRIMARY, sign: "" },
     ].filter((s) => s.rawAmount > 0);
 
     const total = raw.reduce((sum, s) => sum + s.rawAmount, 0);
@@ -335,7 +342,7 @@ const FinanceOverviewChart = ({ totalBalance, totalIncome, totalExpense, monthly
       currentAngle = baseEndAngle;
       return { ...s, percent, startAngle, endAngle };
     });
-  }, [income, expense, balance]);
+  }, [balance, colors.EXPENSE, colors.INCOME, colors.PRIMARY, expense, income]);
 
   const handleSliceTap = useCallback(
     (idx) => {
@@ -357,7 +364,7 @@ const FinanceOverviewChart = ({ totalBalance, totalIncome, totalExpense, monthly
   const isCurrentMonth = selectedMonthIndex === monthSeries.length - 1;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }]}> 
       <MonthSwitcher
         label={monthYearLabel}
         canPrev={selectedMonthIndex > 0}
@@ -369,24 +376,24 @@ const FinanceOverviewChart = ({ totalBalance, totalIncome, totalExpense, monthly
       {/* Legend */}
             <View style={styles.legendContainer}>
         <LegendItem
-          color={SLICE_COLORS.income}
+          color={colors.INCOME}
           label="Thu nhập"
           value={`+${formatMoney(income)}`}
-          valueColor={VALUE_COLORS.income}
+          valueColor={colors.INCOME}
           valueGradient={VALUE_GRADIENTS.income}
         />
         <LegendItem
-          color={SLICE_COLORS.expense}
+          color={colors.EXPENSE}
           label="Chi tiêu"
           value={`-${formatMoney(expense)}`}
-          valueColor={VALUE_COLORS.expense}
+          valueColor={colors.EXPENSE}
           valueGradient={VALUE_GRADIENTS.expense}
         />
         <LegendItem
-          color={SLICE_COLORS.balance}
+          color={colors.PRIMARY}
           label="Số dư"
           value={formatMoney(balance)}
-          valueColor={VALUE_COLORS.balance}
+          valueColor={colors.PRIMARY}
           valueGradient={VALUE_GRADIENTS.balance}
         />
       </View>
@@ -443,7 +450,7 @@ const FinanceOverviewChart = ({ totalBalance, totalIncome, totalExpense, monthly
                   textAnchor="middle"
                   fontSize="13"
                   fontWeight="600"
-                  fill="#94a3b8"
+                  fill={colors.TEXT_SECONDARY}
                 >
                   Số dư
                 </SvgText>
@@ -476,8 +483,8 @@ const FinanceOverviewChart = ({ totalBalance, totalIncome, totalExpense, monthly
           </View>
         </Pressable>
       ) : (
-        <View style={styles.chartEmptyWrap}>
-          <Text style={styles.emptyText}>Tháng này chưa có dữ liệu thống kê.</Text>
+        <View style={[styles.chartEmptyWrap, { backgroundColor: colors.BG, borderColor: colors.CARD_BORDER }]}> 
+          <Text style={[styles.emptyText, { color: colors.TEXT_SECONDARY }]}>Tháng này chưa có dữ liệu thống kê.</Text>
           {!isCurrentMonth ? (
             <Pressable style={styles.currentMonthBtn} onPress={() => setSelectedMonthIndex(monthSeries.length - 1)}>
               <Text style={styles.currentMonthBtnText}>Về tháng hiện tại</Text>

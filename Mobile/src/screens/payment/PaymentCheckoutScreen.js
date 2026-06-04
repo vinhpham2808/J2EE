@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { WebView } from "react-native-webview";
 import PaymentCheckoutFallback from "../../components/Payment/PaymentCheckoutFallback";
 import PaymentCheckoutHeader from "../../components/Payment/PaymentCheckoutHeader";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import usePaymentCheckoutFlow from "../../hooks/usePaymentCheckoutFlow";
 import { getSafeAreaBottom, getSafeAreaTop } from "../../utils/safeArea";
 
@@ -12,6 +12,7 @@ const PAYOS_MERCHANT_HEADER_HEIGHT = 56;
 
 export default function PaymentCheckoutScreen() {
   const insets = useSafeAreaInsets();
+  const colors = useAppColors();
   const checkout = usePaymentCheckoutFlow();
 
   if (!checkout.checkoutUrl) {
@@ -19,7 +20,7 @@ export default function PaymentCheckoutScreen() {
   }
 
   return (
-    <View style={[styles.container, { paddingTop: getSafeAreaTop(insets), paddingBottom: getSafeAreaBottom(insets, 86) }]}>
+    <View style={[styles.container, { backgroundColor: colors.BG, paddingTop: getSafeAreaTop(insets), paddingBottom: getSafeAreaBottom(insets, 86) }]}> 
       <PaymentCheckoutHeader
         canGoBack={checkout.canGoBack}
         onGoBack={checkout.goBackInWebView}
@@ -28,12 +29,12 @@ export default function PaymentCheckoutScreen() {
 
       {checkout.isPageLoading ? (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-          <Text style={styles.loadingText}>Đang tải cổng thanh toán...</Text>
+          <ActivityIndicator size="large" color={colors.PRIMARY} />
+          <Text style={[styles.loadingText, { color: colors.TEXT }]}>Đang tải cổng thanh toán...</Text>
         </View>
       ) : null}
 
-      <View style={styles.checkoutFrame}>
+      <View style={[styles.checkoutFrame, { backgroundColor: colors.CARD }]}> 
         <WebView
           ref={checkout.webViewRef}
           style={styles.checkoutWebView}

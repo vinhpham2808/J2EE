@@ -2,16 +2,16 @@ import React, { useContext } from "react";
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AuthContext } from "../../contexts/AuthContext";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import { getSafeAreaBottom, getSafeAreaTop } from "../../utils/safeArea";
 
-function InfoRow({ label, value, showChevron = false, isLast = false }) {
+function InfoRow({ colors, label, value, showChevron = false, isLast = false }) {
   return (
-    <View style={[styles.infoRow, isLast && styles.infoRowLast]}>
-      <Text style={styles.infoLabel}>{label}</Text>
+    <View style={[styles.infoRow, { borderBottomColor: colors.CARD_BORDER }, isLast && styles.infoRowLast]}>
+      <Text style={[styles.infoLabel, { color: colors.TEXT_SECONDARY }]}>{label}</Text>
       <View style={styles.infoValueWrap}>
-        <Text style={[styles.infoValue, label === "Số điện thoại" && styles.infoValueUnset]}>{value || "-"}</Text>
-        {showChevron && <Text style={styles.infoChevron}>›</Text>}
+        <Text style={[styles.infoValue, { color: colors.TEXT }, label === "Số điện thoại" && { color: colors.TEXT_SECONDARY }]}>{value || "-"}</Text>
+        {showChevron && <Text style={[styles.infoChevron, { color: colors.TEXT_SECONDARY }]}>›</Text>}
       </View>
     </View>
   );
@@ -20,6 +20,7 @@ function InfoRow({ label, value, showChevron = false, isLast = false }) {
 export default function ProfileScreen() {
   const { user } = useContext(AuthContext);
   const insets = useSafeAreaInsets();
+  const colors = useAppColors();
 
   const fullName = user?.fullName || "Người dùng";
   const email = user?.email || "Chưa có email";
@@ -28,52 +29,52 @@ export default function ProfileScreen() {
   const subscriptionPlan = String(user?.subscriptionPlan || "FREE").toUpperCase();
 
   return (
-    <View style={[styles.safeArea, { paddingTop: getSafeAreaTop(insets, 0) }]}>
+    <View style={[styles.safeArea, { backgroundColor: colors.BG, paddingTop: getSafeAreaTop(insets, 0) }]}>
       
       {/* Top Application Bar matching mockup */}
-      <View style={styles.topAppBar}>
-        <Text style={styles.appBarTitle}>Hồ sơ</Text>
+      <View style={[styles.topAppBar, { backgroundColor: colors.BG }]}>
+        <Text style={[styles.appBarTitle, { color: colors.TEXT }]}>Hồ sơ</Text>
       </View>
 
-      <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingBottom: getSafeAreaBottom(insets) }]} showsVerticalScrollIndicator={false}>
+      <ScrollView style={[styles.container, { backgroundColor: colors.BG }]} contentContainerStyle={[styles.content, { paddingBottom: getSafeAreaBottom(insets) }]} showsVerticalScrollIndicator={false}>
         
         {/* User Profile Header Card */}
-        <View style={styles.heroCard}>
+        <View style={[styles.heroCard, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }]}>
           {profileImageUrl ? (
             <Image source={{ uri: profileImageUrl }} style={styles.avatarImage} />
           ) : (
-            <View style={styles.avatarWrap}>
+            <View style={[styles.avatarWrap, { backgroundColor: colors.PRIMARY }]}>
               <Text style={styles.avatarText}>{initial}</Text>
             </View>
           )}
 
           <View style={styles.heroInfo}>
-            <Text style={styles.heroName}>{fullName}</Text>
-            <Text style={styles.heroEmail}>{email}</Text>
+            <Text style={[styles.heroName, { color: colors.TEXT }]}>{fullName}</Text>
+            <Text style={[styles.heroEmail, { color: colors.TEXT_SECONDARY }]}>{email}</Text>
             <View style={styles.planChip}>
-              <Text style={styles.planChipText}>{subscriptionPlan}</Text>
+              <Text style={[styles.planChipText, { color: colors.PRIMARY }]}>{subscriptionPlan}</Text>
             </View>
           </View>
         </View>
 
         {/* Personal Information Group Section */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Thông tin cá nhân</Text>
+          <Text style={[styles.sectionTitle, { color: colors.TEXT_SECONDARY }]}>Thông tin cá nhân</Text>
         </View>
-        <View style={styles.sectionCard}>
-          <InfoRow label="Họ và tên" value={fullName} />
-          <InfoRow label="Email" value={email} />
-          <InfoRow label="Số điện thoại" value="Chưa cập nhật" showChevron={true} isLast={true} />
+        <View style={[styles.sectionCard, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }]}>
+          <InfoRow colors={colors} label="Họ và tên" value={fullName} />
+          <InfoRow colors={colors} label="Email" value={email} />
+          <InfoRow colors={colors} label="Số điện thoại" value="Chưa cập nhật" showChevron={true} isLast={true} />
         </View>
 
         {/* Service Plan Group Section */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Gói dịch vụ</Text>
+          <Text style={[styles.sectionTitle, { color: colors.TEXT_SECONDARY }]}>Gói dịch vụ</Text>
         </View>
-        <View style={styles.sectionCard}>
+        <View style={[styles.sectionCard, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }]}>
           <View style={styles.planRow}>
-            <Text style={styles.planLabel}>Gói hiện tại</Text>
-            <Text style={styles.planValue}>{subscriptionPlan}</Text>
+            <Text style={[styles.planLabel, { color: colors.TEXT_SECONDARY }]}>Gói hiện tại</Text>
+            <Text style={[styles.planValue, { color: colors.PRIMARY }]}>{subscriptionPlan}</Text>
           </View>
         </View>
 

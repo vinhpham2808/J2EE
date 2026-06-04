@@ -1,26 +1,28 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import { formatMoney } from "../../utils/format";
 
 export default function CategoryBreakdownCard({ categories }) {
+  const colors = useAppColors();
+
   if (!categories || categories.length === 0) return null;
 
   return (
-    <View style={styles.card}>
-      <Text style={styles.cardTitle}>📂 Chi tiêu theo danh mục</Text>
+    <View style={[styles.card, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }]}> 
+      <Text style={[styles.cardTitle, { color: colors.TEXT }]}>📂 Chi tiêu theo danh mục</Text>
       {categories.map((item, idx) => (
         <View key={idx} style={styles.categoryItem}>
           <View style={styles.categoryHeader}>
             <View style={styles.categoryInfo}>
               <Text style={styles.categoryIcon}>{item.icon || "🧾"}</Text>
-              <Text style={styles.categoryName}>{item.name}</Text>
+              <Text style={[styles.categoryName, { color: colors.TEXT }]}>{item.name}</Text>
             </View>
-            <Text style={styles.categoryAmount}>{formatMoney(item.amount)}</Text>
+            <Text style={[styles.categoryAmount, { color: colors.EXPENSE }]}>{formatMoney(item.amount)}</Text>
           </View>
           <View style={styles.progressContainer}>
             <View style={[styles.progressBar, { width: `${item.percent}%`, backgroundColor: item.color || COLORS.PRIMARY }]} />
-            <Text style={styles.percentText}>{Math.round(item.percent)}%</Text>
+            <Text style={[styles.percentText, { color: colors.TEXT_SECONDARY }]}>{Math.round(item.percent)}%</Text>
           </View>
         </View>
       ))}

@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import { formatMoney, formatDate } from "../../utils/format";
 
 /**
@@ -10,6 +10,7 @@ import { formatMoney, formatDate } from "../../utils/format";
  * @param {object} props.item - Anomaly data { transactionId, categoryName, date, amount, meanAmount }
  */
 export default function ForecastAnomalyCard({ item }) {
+  const colors = useAppColors();
   const amount = Number(item?.amount || 0);
   const meanAmount = Number(item?.meanAmount || 0);
 
@@ -19,17 +20,17 @@ export default function ForecastAnomalyCard({ item }) {
   }, [amount, meanAmount]);
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }]}> 
       <View style={styles.left}>
         <Text style={styles.warnIcon}>⚠️</Text>
         <View style={styles.info}>
-          <Text style={styles.category}>{item?.categoryName || "Không rõ"}</Text>
-          <Text style={styles.date}>{formatDate(item?.date)}</Text>
+          <Text style={[styles.category, { color: colors.TEXT }]}>{item?.categoryName || "Không rõ"}</Text>
+          <Text style={[styles.date, { color: colors.TEXT_SECONDARY }]}>{formatDate(item?.date)}</Text>
         </View>
       </View>
       <View style={styles.right}>
-        <Text style={styles.amount}>{formatMoney(amount)}</Text>
-        <Text style={styles.deviation}>
+        <Text style={[styles.amount, { color: colors.EXPENSE }]}>{formatMoney(amount)}</Text>
+        <Text style={[styles.deviation, { color: colors.WARNING }]}> 
           {deviation > 0 ? `Cao hơn ${deviation}% so với TB` : "Bất thường"}
         </Text>
       </View>

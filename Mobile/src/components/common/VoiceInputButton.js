@@ -11,7 +11,7 @@ import {
   ExpoSpeechRecognitionModule,
   useSpeechRecognitionEvent
 } from "expo-speech-recognition";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 
 /**
  * VoiceInputButton — Nút microphone để nhập liệu bằng giọng nói
@@ -89,6 +89,7 @@ const MicIcon = ({ size = 24, barColor = COLORS.PRIMARY }) => {
 };
 
 export default function VoiceInputButton({ onResult, language = "vi-VN" }) {
+  const colors = useAppColors();
   const [modalVisible, setModalVisible] = useState(false);
   const [recognizing, setRecognizing] = useState(false);
   const [transcript, setTranscript] = useState("");
@@ -198,6 +199,7 @@ export default function VoiceInputButton({ onResult, language = "vi-VN" }) {
       <Pressable
         style={({ pressed }) => [
           styles.micButton,
+          { backgroundColor: colors.ROSE_MIST },
           pressed && styles.micButtonPressed,
           (recognizing || isStarting) && styles.micButtonDisabled
         ]}
@@ -206,7 +208,7 @@ export default function VoiceInputButton({ onResult, language = "vi-VN" }) {
         accessibilityLabel="Nhập liệu bằng giọng nói"
         accessibilityRole="button"
       >
-        <MicIcon size={24} barColor={COLORS.PRIMARY} />
+        <MicIcon size={24} barColor={colors.PRIMARY} />
       </Pressable>
 
       {/* Modal voice input */}
@@ -217,17 +219,17 @@ export default function VoiceInputButton({ onResult, language = "vi-VN" }) {
         onRequestClose={handleCancel}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, { backgroundColor: colors.CARD }]}>
             {/* Icon mic lớn */}
-            <View style={[styles.micCircle, recognizing && styles.micCircleActive]}>
+            <View style={[styles.micCircle, { backgroundColor: colors.ROSE_MIST }, recognizing && styles.micCircleActive]}>
               <MicIcon
                 size={48}
-                barColor={recognizing ? COLORS.WHITE : COLORS.PRIMARY}
+                barColor={recognizing ? colors.WHITE : colors.PRIMARY}
               />
             </View>
 
             {/* Trạng thái */}
-            <Text style={styles.statusText}>
+            <Text style={[styles.statusText, { color: colors.TEXT }]}>
               {recognizing
                 ? "Đang nghe..."
                 : error
@@ -238,8 +240,8 @@ export default function VoiceInputButton({ onResult, language = "vi-VN" }) {
             </Text>
 
             {/* Kết quả transcript */}
-            <View style={styles.transcriptContainer}>
-              <Text style={styles.transcriptText}>
+            <View style={[styles.transcriptContainer, { backgroundColor: colors.BG, borderColor: colors.CARD_BORDER }]}>
+              <Text style={[styles.transcriptText, { color: colors.TEXT }]}>
                 {transcript || (recognizing ? "Hãy nói nội dung giao dịch..." : (isStarting ? "Đang khởi động..." : ""))}
               </Text>
             </View>
@@ -251,17 +253,17 @@ export default function VoiceInputButton({ onResult, language = "vi-VN" }) {
 
             {/* Nút điều khiển */}
             <View style={styles.actionRow}>
-              <Pressable style={styles.cancelButton} onPress={handleCancel}>
-                <Text style={styles.cancelText}>Hủy</Text>
+              <Pressable style={[styles.cancelButton, { borderColor: colors.CARD_BORDER }]} onPress={handleCancel}>
+                <Text style={[styles.cancelText, { color: colors.TEXT_SECONDARY }]}>Hủy</Text>
               </Pressable>
 
               {recognizing ? (
-                <Pressable style={styles.stopButton} onPress={handleStop}>
+                <Pressable style={[styles.stopButton, { backgroundColor: colors.EXPENSE }]} onPress={handleStop}>
                   <Text style={styles.stopText}>Dừng</Text>
                 </Pressable>
               ) : (
                 <Pressable
-                  style={[styles.confirmButton, (!transcript.trim() && !error) && styles.buttonDisabled]}
+                  style={[styles.confirmButton, { backgroundColor: colors.PRIMARY }, (!transcript.trim() && !error) && styles.buttonDisabled]}
                   onPress={error ? handleCancel : handleConfirm}
                   disabled={!transcript.trim() && !error}
                 >

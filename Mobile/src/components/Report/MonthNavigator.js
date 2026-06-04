@@ -1,6 +1,6 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 
 const MONTHS = [
   "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
@@ -8,16 +8,18 @@ const MONTHS = [
 ];
 
 export default function MonthNavigator({ selectedMonth, selectedYear, onPrev, onNext }) {
+  const colors = useAppColors();
+
   return (
-    <View style={styles.header}>
+    <View style={[styles.header, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }]}> 
       <Pressable onPress={onPrev} style={styles.arrowButton}>
-        <Text style={styles.arrowText}>‹</Text>
+        <Text style={[styles.arrowText, { color: colors.PRIMARY }]}>‹</Text>
       </Pressable>
-      <Text style={styles.monthLabel}>
+      <Text style={[styles.monthLabel, { color: colors.TEXT }]}> 
         {MONTHS[selectedMonth - 1]} {selectedYear}
       </Text>
       <Pressable onPress={onNext} style={styles.arrowButton}>
-        <Text style={styles.arrowText}>›</Text>
+        <Text style={[styles.arrowText, { color: colors.PRIMARY }]}>›</Text>
       </Pressable>
     </View>
   );

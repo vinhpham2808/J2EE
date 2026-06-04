@@ -1,11 +1,12 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import { getBudgetVisual } from "../../utils/budget";
 import { formatMoney } from "../../utils/format";
 import { CategoryVectorIcon, getIconColor } from "../../utils/categoryIcons";
 
 export default function BudgetCard({ item, onDelete }) {
+  const colors = useAppColors();
   const limit = Number(item?.amountLimit || 0);
   const spent = Number(item?.totalSpent || 0);
   const ratio = limit > 0 ? spent / limit : 0;
@@ -17,32 +18,32 @@ export default function BudgetCard({ item, onDelete }) {
   const iconColor = getIconColor(item?.categoryIcon);
 
   return (
-    <View style={styles.itemCard}>
+    <View style={[styles.itemCard, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }]}> 
       <View style={styles.itemHeader}>
         <View style={styles.itemHeaderLeft}>
           <View style={[styles.itemIconBubble, { backgroundColor: iconColor + "18" }]}>
             <CategoryVectorIcon iconValue={item?.categoryIcon} size={18} color={iconColor} />
           </View>
           <View style={styles.itemHeaderTextWrap}>
-            <Text style={styles.itemName}>{item?.categoryName || "Ngân sách"}</Text>
-            <Text style={styles.itemSubTitle}>Tháng {month}/{year}</Text>
+            <Text style={[styles.itemName, { color: colors.TEXT }]}>{item?.categoryName || "Ngân sách"}</Text>
+            <Text style={[styles.itemSubTitle, { color: colors.TEXT_SECONDARY }]}>Tháng {month}/{year}</Text>
           </View>
         </View>
-        <Pressable style={styles.deleteButton} onPress={() => onDelete(item?.id)}>
-          <Text style={styles.deleteText}>Xóa</Text>
+        <Pressable style={[styles.deleteButton, { backgroundColor: colors.EXPENSE_LIGHT, borderColor: colors.EXPENSE }]} onPress={() => onDelete(item?.id)}>
+          <Text style={[styles.deleteText, { color: colors.EXPENSE }]}>Xóa</Text>
         </Pressable>
       </View>
       <View style={styles.statsRow}>
         <View>
-          <Text style={styles.statLabel}>Đã chi</Text>
-          <Text style={styles.statValue}>{formatMoney(spent)}</Text>
+          <Text style={[styles.statLabel, { color: colors.TEXT_SECONDARY }]}>Đã chi</Text>
+          <Text style={[styles.statValue, { color: colors.EXPENSE }]}>{formatMoney(spent)}</Text>
         </View>
         <View style={styles.statRight}>
-          <Text style={styles.statLabel}>Hạn mức</Text>
-          <Text style={styles.statValue}>{formatMoney(limit)}</Text>
+          <Text style={[styles.statLabel, { color: colors.TEXT_SECONDARY }]}>Hạn mức</Text>
+          <Text style={[styles.statValue, { color: colors.TEXT }]}>{formatMoney(limit)}</Text>
         </View>
       </View>
-      <View style={styles.progressTrack}>
+      <View style={[styles.progressTrack, { backgroundColor: colors.CARD_BORDER }]}> 
         <View style={[styles.progressFill, { width: `${progress}%`, backgroundColor: visual.color }]} />
       </View>
       <View style={styles.progressFooter}>

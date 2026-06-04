@@ -1,20 +1,24 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import ShowMoreButton from "../common/ShowMoreButton";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import { clampScale, scale } from "../../utils/layoutScale";
 
 export function DashboardSectionHeader({ title, children }) {
+  const colors = useAppColors();
+
   return (
     <View style={styles.sectionHeader}>
-      <Text style={styles.sectionTitle}>{title}</Text>
+      <Text style={[styles.sectionTitle, { color: colors.TEXT }]}>{title}</Text>
       {children}
     </View>
   );
 }
 
 export function DashboardSectionCard({ children }) {
-  return <View style={styles.sectionCard}>{children}</View>;
+  const colors = useAppColors();
+
+  return <View style={[styles.sectionCard, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }]}>{children}</View>;
 }
 
 export function ToggleSectionHeader({ title, visible, expanded, onPress }) {

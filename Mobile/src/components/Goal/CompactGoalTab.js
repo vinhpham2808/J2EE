@@ -1,6 +1,6 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import { formatDate } from "../../utils/format";
 import { getGoalVisual } from "./goalUtils";
 
@@ -9,21 +9,22 @@ import { getGoalVisual } from "./goalUtils";
  * Displays name, date range, progress bar, and status badge.
  */
 export default function CompactGoalTab({ item, onPress }) {
+  const colors = useAppColors();
   const progress = Math.max(0, Math.min(100, Number(item?.progressPercent || 0)));
   const visual = getGoalVisual(item);
 
   return (
-    <Pressable style={styles.tab} onPress={() => onPress(item)}>
+    <Pressable style={[styles.tab, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }]} onPress={() => onPress(item)}>
       <View style={[styles.accent, { backgroundColor: visual.color }]} />
       <View style={styles.main}>
         <View style={styles.header}>
-          <Text style={styles.name} numberOfLines={1}>{item?.name || "Mục tiêu"}</Text>
+          <Text style={[styles.name, { color: colors.TEXT }]} numberOfLines={1}>{item?.name || "Mục tiêu"}</Text>
           <Text style={[styles.percent, { color: visual.color }]}>{progress.toFixed(0)}%</Text>
         </View>
-        <Text style={styles.period} numberOfLines={1}>
+        <Text style={[styles.period, { color: colors.TEXT_SECONDARY }]} numberOfLines={1}>
           {formatDate(item?.startDate)} {'>'} {formatDate(item?.targetDate)}
         </Text>
-        <View style={styles.track}>
+        <View style={[styles.track, { backgroundColor: colors.CARD_BORDER }]}> 
           <View style={[styles.fill, { width: `${progress}%`, backgroundColor: visual.color }]} />
         </View>
       </View>

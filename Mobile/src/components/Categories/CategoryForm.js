@@ -1,6 +1,6 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import { CategoryVectorIcon, getIconLabel } from "../../utils/categoryIcons";
 import CategoryTypeSegmentedControl from "./CategoryTypeSegmentedControl";
 
@@ -15,43 +15,44 @@ export default function CategoryForm({
   title,
   variant = "card"
 }) {
+  const colors = useAppColors();
   const isModal = variant === "modal";
   const containerStyle = isModal ? styles.modalBody : styles.formCard;
 
   return (
-    <View style={containerStyle}>
-      <Text style={isModal ? styles.modalTitle : styles.formTitle}>{title}</Text>
+    <View style={[containerStyle, { backgroundColor: colors.CARD }, !isModal && { borderColor: colors.CARD_BORDER, shadowColor: colors.TEXT }]}> 
+      <Text style={[isModal ? styles.modalTitle : styles.formTitle, { color: colors.TEXT }]}>{title}</Text>
       {subtitle ? (
-        <Text style={isModal ? styles.modalSubTitle : styles.formSubtitle}>{subtitle}</Text>
+        <Text style={[isModal ? styles.modalSubTitle : styles.formSubtitle, { color: colors.TEXT_SECONDARY }]}>{subtitle}</Text>
       ) : null}
 
-      <Text style={styles.inputLabel}>Tên danh mục</Text>
+      <Text style={[styles.inputLabel, { color: colors.TEXT }]}>Tên danh mục</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { backgroundColor: colors.BG, borderColor: colors.CARD_BORDER, color: colors.TEXT }]}
         value={form.name}
         onChangeText={form.setName}
         placeholder="Ví dụ: Ăn uống"
-        placeholderTextColor="#98a2b3"
+        placeholderTextColor={colors.TEXT_MUTED}
       />
 
-      <Text style={styles.inputLabel}>Loại danh mục</Text>
+      <Text style={[styles.inputLabel, { color: colors.TEXT }]}>Loại danh mục</Text>
       <CategoryTypeSegmentedControl value={form.type} onChange={form.setType} />
 
-      {form.hint ? <Text style={styles.hintText}>{form.hint}</Text> : null}
+      {form.hint ? <Text style={[styles.hintText, { color: colors.TEXT_SECONDARY }]}>{form.hint}</Text> : null}
 
-      <Text style={styles.inputLabel}>Icon</Text>
-      <Pressable style={styles.iconPickerTrigger} onPress={() => form.setIsIconPickerOpen(true)}>
-        <View style={styles.iconPickerPreview}>
+      <Text style={[styles.inputLabel, { color: colors.TEXT }]}>Icon</Text>
+      <Pressable style={[styles.iconPickerTrigger, { backgroundColor: colors.BG, borderColor: `${colors.PRIMARY_LIGHT}50` }]} onPress={() => form.setIsIconPickerOpen(true)}>
+        <View style={[styles.iconPickerPreview, { backgroundColor: colors.ROSE_MIST }]}> 
           <CategoryVectorIcon iconValue={form.icon} size={22} />
         </View>
-        <Text style={styles.iconPickerLabel}>{getIconLabel(form.icon)}</Text>
-        <Text style={styles.iconPickerChevron}>›</Text>
+        <Text style={[styles.iconPickerLabel, { color: colors.TEXT }]}>{getIconLabel(form.icon)}</Text>
+        <Text style={[styles.iconPickerChevron, { color: colors.TEXT_MUTED }]}>›</Text>
       </Pressable>
 
       {isModal ? (
         <View style={styles.modalActions}>
-          <Pressable style={styles.modalCancelBtn} onPress={onCancel} disabled={form.saving}>
-            <Text style={styles.modalCancelText}>{cancelLabel}</Text>
+          <Pressable style={[styles.modalCancelBtn, { borderColor: colors.CARD_BORDER }]} onPress={onCancel} disabled={form.saving}>
+            <Text style={[styles.modalCancelText, { color: colors.TEXT }]}>{cancelLabel}</Text>
           </Pressable>
           <Pressable
             style={[styles.modalSaveBtn, form.saving && styles.saveButtonDisabled]}

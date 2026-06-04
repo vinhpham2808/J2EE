@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import ForecastAnomalyCard from "./ForecastAnomalyCard";
 import ForecastEmptyState from "./ForecastEmptyState";
 
@@ -9,9 +9,11 @@ export default function ForecastAnomalySection({
   selectedMonth,
   selectedYear,
 }) {
+  const colors = useAppColors();
+
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>
+      <Text style={[styles.sectionTitle, { color: colors.TEXT }]}> 
         🚨 Cảnh báo tham khảo tháng {selectedMonth}/{selectedYear}
       </Text>
       {anomalies.length > 0 ? (

@@ -1,7 +1,7 @@
 import React from "react";
 import { FlatList, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import { formatMoney } from "../../utils/format";
 import ShowMoreButton from "../../components/common/ShowMoreButton";
 import { getSafeAreaBottom, getSafeAreaTop } from "../../utils/safeArea";
@@ -13,6 +13,7 @@ import ContributionModal from "../../components/Goal/ContributionModal";
 
 export default function GoalScreen() {
   const insets = useSafeAreaInsets();
+  const colors = useAppColors();
 
   const {
     goals,
@@ -49,7 +50,7 @@ export default function GoalScreen() {
   } = useGoals();
 
   return (
-    <View style={[styles.container, { paddingTop: getSafeAreaTop(insets) }]}>
+    <View style={[styles.container, { backgroundColor: colors.BG, paddingTop: getSafeAreaTop(insets) }]}> 
       <View style={styles.overviewCard}>
         <View style={styles.overviewBadgeRow}>
           <View style={styles.overviewBadge}>
@@ -114,7 +115,7 @@ export default function GoalScreen() {
         ListHeaderComponent={
           goals.length ? (
             <View style={styles.listHeader}>
-              <Text style={styles.listTitle}>Danh sách mục tiêu</Text>
+              <Text style={[styles.listTitle, { color: colors.TEXT }]}>Danh sách mục tiêu</Text>
               <ShowMoreButton visible={canExpandGoals} expanded={showAllGoals} onPress={toggleGoals} />
             </View>
           ) : null
@@ -122,8 +123,8 @@ export default function GoalScreen() {
         ListEmptyComponent={
           <View style={styles.emptyState}>
             <Text style={styles.emptyIcon}>🎯</Text>
-            <Text style={styles.emptyTitle}>Chưa có mục tiêu tiết kiệm</Text>
-            <Text style={styles.emptyText}>
+            <Text style={[styles.emptyTitle, { color: colors.TEXT }]}>Chưa có mục tiêu tiết kiệm</Text>
+            <Text style={[styles.emptyText, { color: colors.TEXT_SECONDARY }]}> 
               Hãy tạo mục tiêu đầu tiên để bắt đầu kế hoạch tích lũy của bạn.
             </Text>
           </View>

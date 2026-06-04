@@ -12,7 +12,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import apiClient from "../../services/apiClient";
 import { API_ENDPOINTS } from "../../constants/api";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import { fetchCategoriesByType } from "../../services/categoryService";
 import { formatMoney, todayIso } from "../../utils/format";
 import { JarPickerModal, TemplateFormModal } from "./QuickExpenseTemplateModals";
@@ -30,6 +30,7 @@ const DEFAULT_TEMPLATES = [
 ];
 
 export default function QuickExpenseTemplates({ onRefreshList }) {
+  const colors = useAppColors();
   const [templates, setTemplates] = useState([]);
   const [jars, setJars] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -149,25 +150,25 @@ export default function QuickExpenseTemplates({ onRefreshList }) {
   };
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER, shadowColor: colors.TEXT }]}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <View style={styles.zapIconCircle}>
+          <View style={[styles.zapIconCircle, { backgroundColor: colors.PRIMARY }]}>
             <Text style={styles.zapIconText}>⚡</Text>
           </View>
           <View>
-            <Text style={styles.headerTitle}>Chi tiêu nhanh</Text>
-            <Text style={styles.headerSubtitle}>Ghi nhận ngay với 1 chạm</Text>
+            <Text style={[styles.headerTitle, { color: colors.TEXT }]}>Chi tiêu nhanh</Text>
+            <Text style={[styles.headerSubtitle, { color: colors.TEXT_MUTED }]}>Ghi nhận ngay với 1 chạm</Text>
           </View>
         </View>
 
         <View style={styles.headerActions}>
-          <Pressable style={styles.addTemplateBtn} onPress={() => setEditingTemplate({})}>
-            <Text style={styles.addTemplateBtnText}>+ Thêm mẫu</Text>
+          <Pressable style={[styles.addTemplateBtn, { backgroundColor: colors.ROSE_MIST }]} onPress={() => setEditingTemplate({})}>
+            <Text style={[styles.addTemplateBtnText, { color: colors.PRIMARY }]}>+ Thêm mẫu</Text>
           </Pressable>
-          <Pressable style={styles.expandBtn} onPress={() => setIsExpanded(!isExpanded)}>
-            <Text style={styles.expandBtnText}>{isExpanded ? "▲" : "▼"}</Text>
+          <Pressable style={[styles.expandBtn, { backgroundColor: colors.BG }]} onPress={() => setIsExpanded(!isExpanded)}>
+            <Text style={[styles.expandBtnText, { color: colors.TEXT_SECONDARY }]}>{isExpanded ? "▲" : "▼"}</Text>
           </Pressable>
         </View>
       </View>
@@ -175,10 +176,10 @@ export default function QuickExpenseTemplates({ onRefreshList }) {
       {isExpanded && (
         <View style={styles.body}>
           {templates.length === 0 ? (
-            <Pressable style={styles.emptyState} onPress={() => setEditingTemplate({})}>
+            <Pressable style={[styles.emptyState, { borderColor: colors.CARD_BORDER }]} onPress={() => setEditingTemplate({})}>
               <Text style={styles.emptyIcon}>⚡</Text>
-              <Text style={styles.emptyText}>Chưa có mẫu chi tiêu nhanh nào</Text>
-              <Text style={styles.emptyActionText}>+ Tạo mẫu chi tiêu đầu tiên</Text>
+              <Text style={[styles.emptyText, { color: colors.TEXT_SECONDARY }]}>Chưa có mẫu chi tiêu nhanh nào</Text>
+              <Text style={[styles.emptyActionText, { color: colors.PRIMARY }]}>+ Tạo mẫu chi tiêu đầu tiên</Text>
             </Pressable>
           ) : (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollContainer}>
@@ -187,30 +188,30 @@ export default function QuickExpenseTemplates({ onRefreshList }) {
                 return (
                   <View key={t.id} style={styles.templateCardOuter}>
                     <Pressable
-                      style={styles.templateCard}
+                      style={[styles.templateCard, { backgroundColor: colors.BG, borderColor: colors.CARD_BORDER }]}
                       onPress={() => handleUse(t)}
                       disabled={isLoading}
                     >
                       <Text style={styles.templateEmoji}>{t.emoji}</Text>
-                      <Text style={styles.templateName} numberOfLines={1}>{t.name}</Text>
-                      <View style={styles.amountBadge}>
-                        <Text style={styles.amountText}>{formatMoney(t.amount)}</Text>
+                      <Text style={[styles.templateName, { color: colors.TEXT }]} numberOfLines={1}>{t.name}</Text>
+                      <View style={[styles.amountBadge, { backgroundColor: colors.PRIMARY_GLOW }]}>
+                        <Text style={[styles.amountText, { color: colors.PRIMARY }]}>{formatMoney(t.amount)}</Text>
                       </View>
 
                       {isLoading && (
                         <View style={styles.loadingOverlay}>
-                          <ActivityIndicator size="small" color={COLORS.PRIMARY} />
+                          <ActivityIndicator size="small" color={colors.PRIMARY} />
                         </View>
                       )}
                     </Pressable>
 
                     {/* Edit/Delete mini actions under hover style on mobile */}
                     <View style={styles.miniActionsRow}>
-                      <Pressable style={styles.miniActionBtn} onPress={() => setEditingTemplate(t)}>
+                      <Pressable style={[styles.miniActionBtn, { backgroundColor: colors.BG, borderColor: colors.CARD_BORDER }]} onPress={() => setEditingTemplate(t)}>
                         <Text style={styles.miniActionIcon}>✏️</Text>
                       </Pressable>
-                      <Pressable style={[styles.miniActionBtn, styles.miniDeleteBtn]} onPress={() => handleDelete(t.id)}>
-                        <Text style={[styles.miniActionIcon, { color: COLORS.EXPENSE }]}>🗑️</Text>
+                      <Pressable style={[styles.miniActionBtn, styles.miniDeleteBtn, { backgroundColor: colors.BG, borderColor: colors.CARD_BORDER }]} onPress={() => handleDelete(t.id)}>
+                        <Text style={[styles.miniActionIcon, { color: colors.EXPENSE }]}>🗑️</Text>
                       </Pressable>
                     </View>
                   </View>
@@ -218,9 +219,9 @@ export default function QuickExpenseTemplates({ onRefreshList }) {
               })}
 
               {/* Add card */}
-              <Pressable style={styles.addTemplateCard} onPress={() => setEditingTemplate({})}>
-                <Text style={styles.addCardIcon}>+</Text>
-                <Text style={styles.addCardText}>Thêm</Text>
+              <Pressable style={[styles.addTemplateCard, { borderColor: colors.CARD_BORDER }]} onPress={() => setEditingTemplate({})}>
+                <Text style={[styles.addCardIcon, { color: colors.TEXT_MUTED }]}>+</Text>
+                <Text style={[styles.addCardText, { color: colors.TEXT_MUTED }]}>Thêm</Text>
               </Pressable>
             </ScrollView>
           )}

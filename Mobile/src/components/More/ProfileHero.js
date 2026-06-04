@@ -1,27 +1,28 @@
 import React from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 
 export default function ProfileHero({ user, onPress }) {
+  const colors = useAppColors();
   const fullName = user?.fullName || "Người dùng";
   const email = user?.email || "Chưa có email";
   const profileImageUrl = user?.profileImageUrl || "";
   const initial = fullName.slice(0, 1).toUpperCase();
 
   return (
-    <Pressable style={({ pressed }) => [styles.profileHeroCard, pressed && styles.profileHeroCardPressed]} onPress={onPress}>
+    <Pressable style={({ pressed }) => [styles.profileHeroCard, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }, pressed && styles.profileHeroCardPressed]} onPress={onPress}>
       {profileImageUrl ? (
-        <Image source={{ uri: profileImageUrl }} style={styles.heroAvatar} />
+        <Image source={{ uri: profileImageUrl }} style={[styles.heroAvatar, { borderColor: colors.PRIMARY_GLOW }]} />
       ) : (
-        <View style={styles.heroAvatarPlaceholder}>
+        <View style={[styles.heroAvatarPlaceholder, { backgroundColor: colors.PRIMARY }]}>
           <Text style={styles.heroAvatarText}>{initial}</Text>
         </View>
       )}
       <View style={styles.heroTextWrap}>
-        <Text style={styles.heroName}>{fullName}</Text>
-        <Text style={styles.heroEmail}>{email}</Text>
+        <Text style={[styles.heroName, { color: colors.TEXT }]}>{fullName}</Text>
+        <Text style={[styles.heroEmail, { color: colors.TEXT_SECONDARY }]}>{email}</Text>
       </View>
-      <Text style={styles.heroChevron}>›</Text>
+      <Text style={[styles.heroChevron, { color: colors.TEXT_SECONDARY }]}>›</Text>
     </Pressable>
   );
 }

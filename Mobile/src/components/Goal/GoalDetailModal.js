@@ -1,6 +1,6 @@
 import React from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import { formatMoney, formatDate } from "../../utils/format";
 import { getGoalVisual } from "./goalUtils";
 
@@ -9,6 +9,8 @@ import { getGoalVisual } from "./goalUtils";
  * progress, stats grid, monthly progress, and actions.
  */
 export default function GoalDetailModal({ goal, visible, onClose, onContribute, onDelete }) {
+  const colors = useAppColors();
+
   if (!goal) return null;
 
   const target = Number(goal?.targetAmount || 0);
@@ -24,11 +26,11 @@ export default function GoalDetailModal({ goal, visible, onClose, onContribute, 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.overlay}>
-        <View style={styles.card}>
+        <View style={[styles.card, { backgroundColor: colors.CARD }]}> 
           <View style={styles.header}>
             <View style={styles.headerLeft}>
-              <Text style={styles.title} numberOfLines={2}>{goal?.name || "Mục tiêu"}</Text>
-              <Text style={styles.period}>{formatDate(goal?.startDate)} {'>'} {formatDate(goal?.targetDate)}</Text>
+              <Text style={[styles.title, { color: colors.TEXT }]} numberOfLines={2}>{goal?.name || "Mục tiêu"}</Text>
+              <Text style={[styles.period, { color: colors.TEXT_SECONDARY }]}>{formatDate(goal?.startDate)} {'>'} {formatDate(goal?.targetDate)}</Text>
             </View>
             <View style={[styles.statusBadge, { backgroundColor: visual.bg }]}>
               <Text style={[styles.statusText, { color: visual.color }]}>{visual.label}</Text>
@@ -36,56 +38,56 @@ export default function GoalDetailModal({ goal, visible, onClose, onContribute, 
           </View>
 
           <View style={styles.progressRow}>
-            <Text style={styles.progressLabel}>Tiến độ tổng</Text>
+            <Text style={[styles.progressLabel, { color: colors.TEXT_SECONDARY }]}>Tiến độ tổng</Text>
             <Text style={[styles.progressValue, { color: visual.color }]}>{progress.toFixed(1)}%</Text>
           </View>
-          <View style={styles.progressTrack}>
+          <View style={[styles.progressTrack, { backgroundColor: colors.CARD_BORDER }]}> 
             <View style={[styles.progressFill, { width: `${progress}%`, backgroundColor: visual.color }]} />
           </View>
 
           <View style={styles.statsGrid}>
-            <View style={styles.statBox}>
-              <Text style={styles.statLabel}>Mục tiêu</Text>
-              <Text style={styles.statValue}>{formatMoney(target)}</Text>
+            <View style={[styles.statBox, { backgroundColor: colors.BG }]}> 
+              <Text style={[styles.statLabel, { color: colors.TEXT_SECONDARY }]}>Mục tiêu</Text>
+              <Text style={[styles.statValue, { color: colors.TEXT }]}>{formatMoney(target)}</Text>
             </View>
-            <View style={styles.statBox}>
-              <Text style={styles.statLabel}>Đã có</Text>
-              <Text style={[styles.statValue, styles.statGood]}>{formatMoney(current)}</Text>
+            <View style={[styles.statBox, { backgroundColor: colors.BG }]}> 
+              <Text style={[styles.statLabel, { color: colors.TEXT_SECONDARY }]}>Đã có</Text>
+              <Text style={[styles.statValue, { color: colors.INCOME }]}>{formatMoney(current)}</Text>
             </View>
-            <View style={styles.statBox}>
-              <Text style={styles.statLabel}>Còn thiếu</Text>
-              <Text style={[styles.statValue, styles.statWarn]}>{formatMoney(remaining)}</Text>
+            <View style={[styles.statBox, { backgroundColor: colors.BG }]}> 
+              <Text style={[styles.statLabel, { color: colors.TEXT_SECONDARY }]}>Còn thiếu</Text>
+              <Text style={[styles.statValue, { color: colors.EXPENSE }]}>{formatMoney(remaining)}</Text>
             </View>
-            <View style={styles.statBox}>
-              <Text style={styles.statLabel}>Cần/tháng</Text>
-              <Text style={[styles.statValue, styles.statInfo]}>{formatMoney(monthlyTarget)}</Text>
+            <View style={[styles.statBox, { backgroundColor: colors.BG }]}> 
+              <Text style={[styles.statLabel, { color: colors.TEXT_SECONDARY }]}>Cần/tháng</Text>
+              <Text style={[styles.statValue, { color: colors.INFO }]}>{formatMoney(monthlyTarget)}</Text>
             </View>
           </View>
 
           {isActive ? (
-            <View style={styles.monthlyCard}>
+            <View style={[styles.monthlyCard, { backgroundColor: colors.BG }]}> 
               <View style={styles.progressRow}>
-                <Text style={styles.monthlyLabel}>Tiến độ tháng này</Text>
-                <Text style={styles.monthlyValue}>
+                <Text style={[styles.monthlyLabel, { color: colors.TEXT_SECONDARY }]}>Tiến độ tháng này</Text>
+                <Text style={[styles.monthlyValue, { color: colors.TEXT }]}> 
                   {formatMoney(monthlyContributed)} / {formatMoney(monthlyTarget)} ({monthlyProgress.toFixed(0)}%)
                 </Text>
               </View>
-              <View style={styles.monthlyTrack}>
-                <View style={[styles.monthlyFill, { width: `${monthlyProgress}%` }]} />
+              <View style={[styles.monthlyTrack, { backgroundColor: colors.CARD_BORDER }]}> 
+                <View style={[styles.monthlyFill, { width: `${monthlyProgress}%`, backgroundColor: colors.PRIMARY }]} />
               </View>
             </View>
           ) : null}
 
           <View style={styles.actions}>
-            <Pressable style={styles.secondaryButton} onPress={onClose}>
-              <Text style={styles.secondaryText}>Đóng</Text>
+            <Pressable style={[styles.secondaryButton, { borderColor: colors.CARD_BORDER }]} onPress={onClose}>
+              <Text style={[styles.secondaryText, { color: colors.TEXT }]}>Đóng</Text>
             </Pressable>
             {isActive ? (
               <>
                 <Pressable style={styles.deleteTextButton} onPress={() => onDelete(goal?.id)}>
-                  <Text style={styles.deleteText}>Xóa</Text>
+                  <Text style={[styles.deleteText, { color: colors.EXPENSE }]}>Xóa</Text>
                 </Pressable>
-                <Pressable style={styles.primaryButton} onPress={() => onContribute(goal)}>
+                <Pressable style={[styles.primaryButton, { backgroundColor: colors.PRIMARY }]} onPress={() => onContribute(goal)}>
                   <Text style={styles.primaryText}>Đóng góp</Text>
                 </Pressable>
               </>

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Image, Platform, Pressable, StatusBar, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import ModeSegmentedControl from "./ModeSegmentedControl";
 import appLogo from "../../assets/applogo.png";
 
@@ -16,6 +16,7 @@ export default function ChatAssistantHeader({
   onModelChange,
   onOpenSessions,
 }) {
+  const colors = useAppColors();
   const insets = useSafeAreaInsets();
   const [isModelOpen, setIsModelOpen] = useState(false);
   const statusBarTop = Platform.OS === "android" ? StatusBar.currentHeight || 0 : 0;
@@ -32,15 +33,15 @@ export default function ChatAssistantHeader({
   };
 
   return (
-    <View style={[styles.headerCard, { marginTop: safeTopPadding }]}>
+    <View style={[styles.headerCard, { marginTop: safeTopPadding, backgroundColor: colors.CARD, borderColor: colors.CHAT_BORDER, shadowColor: colors.PRIMARY }]}> 
       <View style={styles.topRow}>
-        <View style={styles.avatarFrame}>
+        <View style={[styles.avatarFrame, { backgroundColor: colors.ROSE_MIST }]}> 
           <Image source={appLogo} style={styles.avatarImage} resizeMode="cover" />
         </View>
 
         <View style={styles.copyBlock}>
           <View style={styles.titleRow}>
-            <Text style={styles.subtitle} numberOfLines={1}>{subtitle}</Text>
+            <Text style={[styles.subtitle, { color: colors.PRIMARY }]} numberOfLines={1}>{subtitle}</Text>
             {onOpenSessions ? (
               <Pressable
                 style={({ pressed }) => [
@@ -51,23 +52,23 @@ export default function ChatAssistantHeader({
                 accessibilityRole="button"
                 accessibilityLabel="Open chat history"
               >
-                <Ionicons name="time-outline" size={18} color={COLORS.PRIMARY} />
+                <Ionicons name="time-outline" size={18} color={colors.PRIMARY} />
               </Pressable>
             ) : null}
           </View>
           <View style={styles.metaRow}>
             <View style={styles.onlineDot} />
-            <Text style={styles.metaText}>Trực tuyến</Text>
-            <View style={styles.metaDivider} />
+            <Text style={[styles.metaText, { color: colors.TEXT_SECONDARY }]}>Trực tuyến</Text>
+            <View style={[styles.metaDivider, { backgroundColor: colors.CARD_BORDER }]} />
             <Pressable
               style={styles.modelInline}
               onPress={() => setIsModelOpen((current) => !current)}
             >
-              <Text style={styles.metaText} numberOfLines={1}>{modelLabel}</Text>
+              <Text style={[styles.metaText, { color: colors.TEXT_SECONDARY }]} numberOfLines={1}>{modelLabel}</Text>
               <Ionicons
                 name={isModelOpen ? "chevron-up" : "chevron-down"}
                 size={15}
-                color={COLORS.TEXT_SECONDARY}
+                color={colors.TEXT_SECONDARY}
               />
             </Pressable>
           </View>
@@ -83,8 +84,8 @@ export default function ChatAssistantHeader({
       />
 
       {isModelOpen ? (
-        <View style={styles.modelDropdown}>
-          <Text style={styles.dropdownTitle}>Model đang dùng</Text>
+        <View style={[styles.modelDropdown, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }]}> 
+          <Text style={[styles.dropdownTitle, { color: colors.PRIMARY }]}>Model đang dùng</Text>
           {modelOptions.map((option) => {
             const selected = option.value === modelValue;
 
@@ -93,7 +94,7 @@ export default function ChatAssistantHeader({
                 key={option.value}
                 style={[
                   styles.optionRow,
-                  selected && styles.optionRowSelected,
+                  selected && [styles.optionRowSelected, { backgroundColor: colors.ROSE_MIST, borderColor: colors.PRIMARY_LIGHT }],
                   option.disabled && styles.optionRowDisabled,
                 ]}
                 onPress={() => handleModelSelect(option)}
@@ -102,13 +103,14 @@ export default function ChatAssistantHeader({
                   <Ionicons
                     name={selected ? "checkmark-circle" : "radio-button-off"}
                     size={18}
-                    color={selected ? COLORS.PRIMARY : COLORS.TEXT_MUTED}
+                    color={selected ? colors.PRIMARY : colors.TEXT_MUTED}
                   />
                 </View>
                 <View style={styles.optionCopy}>
                   <Text
                     style={[
                       styles.optionLabel,
+                      { color: colors.TEXT },
                       option.disabled && styles.optionLabelDisabled,
                     ]}
                     numberOfLines={1}
@@ -118,6 +120,7 @@ export default function ChatAssistantHeader({
                   <Text
                     style={[
                       styles.optionDescription,
+                      { color: colors.TEXT_SECONDARY },
                       option.disabled && styles.optionLabelDisabled,
                     ]}
                     numberOfLines={1}

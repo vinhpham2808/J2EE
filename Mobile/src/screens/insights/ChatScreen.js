@@ -8,7 +8,7 @@ import {
   Platform,
   ActivityIndicator
 } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import ChatAssistantHeader from "../../components/chatbotUI/ChatAssistantHeader";
 import MessageBubble from "../../components/chatbotUI/MessageBubble";
 import QuickPromptChips from "../../components/chatbotUI/QuickPromptChips";
@@ -20,6 +20,7 @@ import useModelConfig from "../../components/chatbotUI/useModelConfig";
 import useVoiceInput from "../../components/chatbotUI/useVoiceInput";
 
 export default function ChatScreen() {
+  const colors = useAppColors();
   const [inputText, setInputText] = useState("");
   const [isSessionsVisible, setIsSessionsVisible] = useState(false);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
@@ -115,7 +116,7 @@ export default function ChatScreen() {
   ), [handleConfirmAction, handleCancelConfirmation, handleUndo, handleEditMessage, retryLastMessage, isProcessingCrud]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.CHAT_BG }]}> 
       <ChatAssistantHeader
         activeMode={activeMode}
         isFreePlan={isFreePlan}
@@ -140,9 +141,9 @@ export default function ChatScreen() {
           contentContainerStyle={styles.listContent}
           ListFooterComponent={
             loading ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator color={COLORS.PRIMARY} size="small" />
-                <Text style={styles.loadingText}>
+              <View style={[styles.loadingContainer, { backgroundColor: colors.CHAT_BUBBLE, borderColor: colors.CHAT_BORDER }]}> 
+                <ActivityIndicator color={colors.PRIMARY} size="small" />
+                <Text style={[styles.loadingText, { color: colors.CHAT_MUTED }]}> 
                   Trợ lý AI đang suy nghĩ...
                 </Text>
               </View>

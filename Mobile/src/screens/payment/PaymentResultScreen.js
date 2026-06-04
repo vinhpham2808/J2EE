@@ -6,7 +6,7 @@ import { AuthContext } from "../../contexts/AuthContext";
 import { API_ENDPOINTS } from "../../constants/api";
 import apiClient from "../../services/apiClient";
 import { formatMoney, getApiErrorMessage } from "../../utils/format";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import { getSafeAreaContentStyle } from "../../utils/safeArea";
 
 const PAYMENT_STATUS_LABELS = {
@@ -23,6 +23,7 @@ export default function PaymentResultScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const insets = useSafeAreaInsets();
+  const colors = useAppColors();
   const { refreshUser } = useContext(AuthContext);
 
   const result = String(route.params?.result || "").toLowerCase();
@@ -80,32 +81,32 @@ export default function PaymentResultScreen() {
   }, [orderCode, refreshUser, returnedStatus]);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={[styles.content, getSafeAreaContentStyle(insets)]}>
-      <View style={styles.statusCard}>
-        <Text style={styles.sectionTitle}>Trạng thái hiện tại</Text>
-        <Text style={[styles.statusValue, displayStatus === "PAID" ? styles.statusPaid : styles.statusNormal]}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.BG }]} contentContainerStyle={[styles.content, getSafeAreaContentStyle(insets)]}>
+      <View style={[styles.statusCard, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }]}> 
+        <Text style={[styles.sectionTitle, { color: colors.TEXT }]}>Trạng thái hiện tại</Text>
+        <Text style={[styles.statusValue, { color: displayStatus === "PAID" ? colors.INCOME : colors.TEXT }]}> 
           {PAYMENT_STATUS_LABELS[displayStatus] || displayStatus}
         </Text>
 
         <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Mã đơn hàng</Text>
-          <Text style={styles.detailValue}>{orderCode || "--"}</Text>
+          <Text style={[styles.detailLabel, { color: colors.TEXT_SECONDARY }]}>Mã đơn hàng</Text>
+          <Text style={[styles.detailValue, { color: colors.TEXT }]}>{orderCode || "--"}</Text>
         </View>
 
         <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Số tiền</Text>
-          <Text style={styles.detailValue}>{payment?.amount ? formatMoney(payment.amount) : "--"}</Text>
+          <Text style={[styles.detailLabel, { color: colors.TEXT_SECONDARY }]}>Số tiền</Text>
+          <Text style={[styles.detailValue, { color: colors.PRIMARY }]}>{payment?.amount ? formatMoney(payment.amount) : "--"}</Text>
         </View>
 
         <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Gói dịch vụ</Text>
-          <Text style={styles.detailValue}>{payment?.planName || "--"}</Text>
+          <Text style={[styles.detailLabel, { color: colors.TEXT_SECONDARY }]}>Gói dịch vụ</Text>
+          <Text style={[styles.detailValue, { color: colors.TEXT }]}>{payment?.planName || "--"}</Text>
         </View>
       </View>
 
       {error ? (
-        <View style={styles.errorBox}>
-          <Text style={styles.errorText}>{error}</Text>
+        <View style={[styles.errorBox, { backgroundColor: colors.EXPENSE_LIGHT, borderColor: colors.EXPENSE }]}> 
+          <Text style={[styles.errorText, { color: colors.EXPENSE }]}>{error}</Text>
         </View>
       ) : null}
 

@@ -1,25 +1,26 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import { clampScale, scale } from "../../utils/layoutScale";
 import { formatMoney } from "../../utils/format";
 import { formatRelativeTime } from "../../utils/dashboard";
 import { DashboardSectionCard, ToggleSectionHeader } from "./DashboardSection";
 
 function TransactionRow({ item }) {
+  const colors = useAppColors();
   const isIncome = String(item?.type || "").toUpperCase().includes("INCOME");
-  const amountColor = isIncome ? COLORS.INCOME : COLORS.EXPENSE;
+  const amountColor = isIncome ? colors.INCOME : colors.EXPENSE;
   const sign = isIncome ? "+" : "-";
 
   return (
-    <View style={styles.transactionRow}>
+    <View style={[styles.transactionRow, { borderBottomColor: colors.BG }]}> 
       <View style={styles.transactionLeft}>
-        <View style={styles.transactionIconWrap}>
+        <View style={[styles.transactionIconWrap, { backgroundColor: colors.ROSE_MIST, borderColor: colors.CARD_BORDER }]}> 
           <Text style={styles.transactionIcon}>{item?.icon || "🧾"}</Text>
         </View>
         <View>
-          <Text style={styles.transactionName}>{item?.name || "Giao dịch"}</Text>
-          <Text style={styles.transactionDate}>{formatRelativeTime(item?.createdAt || item?.updatedAt || item?.date)}</Text>
+          <Text style={[styles.transactionName, { color: colors.TEXT }]}>{item?.name || "Giao dịch"}</Text>
+          <Text style={[styles.transactionDate, { color: colors.TEXT_MUTED }]}>{formatRelativeTime(item?.createdAt || item?.updatedAt || item?.date)}</Text>
         </View>
       </View>
       <Text style={[styles.transactionAmount, { color: amountColor }]}>{sign}{formatMoney(item?.amount)}</Text>
@@ -28,6 +29,8 @@ function TransactionRow({ item }) {
 }
 
 export default function RecentTransactionsSection({ canToggle, expanded, onToggle, transactions }) {
+  const colors = useAppColors();
+
   return (
     <>
       <ToggleSectionHeader title="Giao dịch gần đây" visible={canToggle} expanded={expanded} onPress={onToggle} />
@@ -35,7 +38,7 @@ export default function RecentTransactionsSection({ canToggle, expanded, onToggl
         {transactions.length ? (
           transactions.map((item) => <TransactionRow key={item.id || `${item.name}-${item.date}`} item={item} />)
         ) : (
-          <Text style={styles.emptyText}>Chưa có giao dịch gần đây.</Text>
+          <Text style={[styles.emptyText, { color: colors.TEXT_SECONDARY }]}>Chưa có giao dịch gần đây.</Text>
         )}
       </DashboardSectionCard>
     </>

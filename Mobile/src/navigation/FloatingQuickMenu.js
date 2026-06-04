@@ -8,7 +8,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { COLORS } from "../constants/colors";
+import { useAppColors } from "../constants/colors";
 
 // ─── Speed Dial sub-actions ──────────────────────────────
 const SUB_ACTIONS = [
@@ -37,9 +37,9 @@ const SUB_ACTIONS = [
     color: "#26A69A",
   },
   {
-    key: "AddExpense",
-    icon: "💸",
-    label: "Thêm chi tiêu",
+    key: "Goal",
+    icon: "🎯",
+    label: "Thêm mục tiêu",
     tx: 80,
     ty: -125,
     color: "#E53935",
@@ -56,9 +56,19 @@ const SUB_ACTIONS = [
 
 // ─── FAB button (inside tab bar) ─────────────────────────
 export function FloatingTabButton({ onPress, isOpen }) {
+  const colors = useAppColors();
   return (
-    <Pressable style={styles.fabMain} onPress={onPress}>
-      <Text style={styles.fabMainIcon}>{isOpen ? "✕" : "＋"}</Text>
+    <Pressable
+      style={[
+        styles.fabMain,
+        {
+          backgroundColor: colors.PRIMARY,
+          shadowColor: colors.PRIMARY,
+        },
+      ]}
+      onPress={onPress}
+    >
+      <Text style={[styles.fabMainIcon, { color: colors.DARK_TEXT }]}>{isOpen ? "✕" : "＋"}</Text>
     </Pressable>
   );
 }
@@ -67,6 +77,7 @@ export function FloatingTabButton({ onPress, isOpen }) {
 export default function FloatingQuickMenu({ visible, onClose, onSelectRoute, focusedKey }) {
   const overlayOpacity = useRef(new Animated.Value(0)).current;
   const insets = useSafeAreaInsets();
+  const colors = useAppColors();
 
   // one animated value set per sub-button
   const animations = useRef(
@@ -189,9 +200,9 @@ export default function FloatingQuickMenu({ visible, onClose, onSelectRoute, foc
               >
                 <Text style={styles.subIcon}>{action.icon}</Text>
               </Pressable>
-              <View style={[styles.labelBubble, focusedKey === action.key && styles.labelBubbleFocused]}>
+              <View style={[styles.labelBubble, { backgroundColor: colors.CARD }, focusedKey === action.key && styles.labelBubbleFocused]}>
                 <Text
-                  style={styles.subLabel}
+                  style={[styles.subLabel, { color: colors.TEXT }]}
                   numberOfLines={1}
                   adjustsFontSizeToFit
                   minimumFontScale={0.72}
@@ -216,11 +227,9 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: COLORS.PRIMARY,
     justifyContent: "center",
     alignItems: "center",
     marginTop: -22,
-    shadowColor: COLORS.PRIMARY,
     shadowOffset: {
       width: 0,
       height: 6,
@@ -231,7 +240,6 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
   fabMainIcon: {
-    color: COLORS.DARK_TEXT,
     fontSize: 22,
     fontWeight: "700",
     marginTop: -1,
@@ -329,7 +337,6 @@ const styles = StyleSheet.create({
   },
 
   labelBubble: {
-    backgroundColor: "#FFF",
     borderRadius: 12,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -345,7 +352,6 @@ const styles = StyleSheet.create({
   },
 
   subLabel: {
-    color: "#222",
     fontSize: 11,
     fontWeight: "700",
     textAlign: "center",
@@ -361,6 +367,6 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   labelBubbleFocused: {
-    backgroundColor: COLORS.PRIMARY,
+    backgroundColor: "#ef5e83",
   },
 });

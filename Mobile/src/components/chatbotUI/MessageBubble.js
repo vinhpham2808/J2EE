@@ -1,6 +1,6 @@
 import React from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import AIConfirmationForm from "./AIConfirmationForm";
 import appLogo from "../../assets/applogo.png";
 import { INTENT_ICONS, INTENT_LABELS } from "../../utils/aiIntent";
@@ -15,6 +15,7 @@ const cleanMarkdown = (text) => {
 };
 
 export default function MessageBubble({ message, onConfirm, onCancel, onUndo, onEditMessage, onRetry, isProcessing }) {
+  const colors = useAppColors();
   const isUser = message.sender === "user";
   const isBot = message.sender === "bot";
   const isSystem = message.isSystem;
@@ -41,8 +42,8 @@ export default function MessageBubble({ message, onConfirm, onCancel, onUndo, on
         <View
           style={[
             styles.bubble,
-            isUser ? styles.userBubble : styles.botBubble,
-            isSystem && styles.systemBubble,
+            isUser ? styles.userBubble : [styles.botBubble, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }],
+            isSystem && [styles.systemBubble, { backgroundColor: colors.ROSE_MIST, borderColor: colors.CARD_BORDER }],
             isError && styles.errorBubble,
           ]}
         >
@@ -83,7 +84,7 @@ export default function MessageBubble({ message, onConfirm, onCancel, onUndo, on
             <Text
               style={[
                 styles.messageText,
-                isUser ? styles.userText : isError ? styles.errorText : styles.botText,
+                isUser ? [styles.userText, { color: colors.TEXT }] : isError ? styles.errorText : [styles.botText, { color: colors.TEXT }],
               ]}
             >
               {isUser ? message.text : cleanMarkdown(message.text)}
@@ -92,7 +93,7 @@ export default function MessageBubble({ message, onConfirm, onCancel, onUndo, on
 
           {/* Model footprint label */}
           {isBot && !message.isIntent && !isSystem && !isError && message.modelLabel && (
-            <Text style={styles.modelFootprint}>Nova Money · {message.modelLabel}</Text>
+            <Text style={[styles.modelFootprint, { color: colors.PRIMARY }]}>Nova Money · {message.modelLabel}</Text>
           )}
 
           {/* Retry Button inside error or stopped messages */}
@@ -107,7 +108,7 @@ export default function MessageBubble({ message, onConfirm, onCancel, onUndo, on
             </Pressable>
           )}
         </View>
-        <Text style={[styles.timeText, isUser && styles.userTime]}>
+        <Text style={[styles.timeText, { color: colors.TEXT_MUTED }, isUser && styles.userTime]}>
           {message.time}
         </Text>
       </View>
@@ -116,8 +117,10 @@ export default function MessageBubble({ message, onConfirm, onCancel, onUndo, on
 }
 
 function AssistantAvatar() {
+  const colors = useAppColors();
+
   return (
-    <View style={styles.assistantAvatar}>
+    <View style={[styles.assistantAvatar, { backgroundColor: colors.ROSE_MIST, shadowColor: colors.PRIMARY }]}> 
       <Image source={appLogo} style={styles.assistantAvatarImage} resizeMode="cover" />
     </View>
   );

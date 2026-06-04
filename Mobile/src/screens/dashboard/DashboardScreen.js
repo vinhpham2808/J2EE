@@ -11,7 +11,7 @@ import HomeBanner from "../../components/Dashboard/HomeBanner";
 import HomeTopHeader from "../../components/Dashboard/HomeTopHeader";
 import NotificationModal from "../../components/Dashboard/NotificationModal";
 import { useVisibleItems } from "../../components/common/ShowMoreButton";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import { useAiInsight } from "../../hooks/useAiInsight";
 import useDashboard from "../../hooks/useDashboard";
 import { scale } from "../../utils/layoutScale";
@@ -20,6 +20,7 @@ import { getSafeAreaBottom } from "../../utils/safeArea";
 export default function DashboardScreen() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const colors = useAppColors();
   const dashboard = useDashboard();
   const ai = useAiInsight();
   const [notificationVisible, setNotificationVisible] = useState(false);
@@ -59,7 +60,7 @@ export default function DashboardScreen() {
   return (
     <>
       <ScrollView
-        style={styles.container}
+        style={[styles.container, { backgroundColor: colors.BG }]}
         contentContainerStyle={[styles.content, { paddingBottom: getSafeAreaBottom(insets) }]}
         refreshControl={<RefreshControl refreshing={dashboard.refreshing} onRefresh={dashboard.onRefresh} />}
         showsVerticalScrollIndicator={false}

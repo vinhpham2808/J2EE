@@ -2,7 +2,6 @@ export const MORE_MENU_GROUPS = [
   {
     title: "TÀI KHOẢN",
     items: [
-      { key: "profile", icon: "👤", title: "Thông tin cá nhân", route: "Profile" },
       { key: "edit-profile", icon: "🔒", title: "Đổi mật khẩu", route: "EditProfile" },
       { key: "payment", icon: "💳", title: "Thanh toán & Nâng cấp", route: "Payment" }
     ]
@@ -11,8 +10,7 @@ export const MORE_MENU_GROUPS = [
     title: "TÙY CHỈNH",
     items: [
       { key: "currency", icon: "💵", title: "Đơn vị tiền tệ", value: "VND", hasChevron: false },
-      { key: "language", icon: "🌐", title: "Ngôn ngữ", value: "Vietnamese", hasChevron: false },
-      { key: "theme", icon: "🌙", title: "Giao diện", value: "Chế độ tối", hasChevron: false }
+      { key: "language", icon: "🌐", title: "Ngôn ngữ", value: "Vietnamese", hasChevron: false }
     ]
   },
   {

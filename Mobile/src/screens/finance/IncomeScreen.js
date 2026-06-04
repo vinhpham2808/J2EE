@@ -6,7 +6,7 @@ import IncomeEmptyState from "../../components/Incomes/IncomeEmptyState";
 import IncomeForm from "../../components/Incomes/IncomeForm";
 import IncomeItem from "../../components/Incomes/IncomeItem";
 import IncomeListHeader from "../../components/Incomes/IncomeListHeader";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import useIncomeForm from "../../hooks/useIncomeForm";
 import useIncomes from "../../hooks/useIncomes";
 import { getSafeAreaBottom, getSafeAreaContentStyle, getSafeAreaTop } from "../../utils/safeArea";
@@ -37,6 +37,7 @@ function IncomeFormRoute() {
 function IncomeListRoute() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const colors = useAppColors();
   const {
     filterType,
     handleExport,
@@ -82,7 +83,7 @@ function IncomeListRoute() {
   );
 
   return (
-    <View style={[styles.container, { paddingTop: getSafeAreaTop(insets) }]}>
+    <View style={[styles.container, { backgroundColor: colors.BG, paddingTop: getSafeAreaTop(insets) }]}> 
       <FlatList
         data={incomes}
         keyExtractor={(item) => String(item?.id)}

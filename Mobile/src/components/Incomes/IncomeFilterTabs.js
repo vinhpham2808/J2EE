@@ -1,6 +1,6 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import { INCOME_FILTER_TYPES } from "../../hooks/useIncomes";
 
 const FILTER_OPTIONS = [
@@ -9,9 +9,11 @@ const FILTER_OPTIONS = [
 ];
 
 export default function IncomeFilterTabs({ filterType, onChange }) {
+  const colors = useAppColors();
+
   return (
-    <View style={styles.filterCard}>
-      <Text style={styles.filterTitle}>Khung thời gian</Text>
+    <View style={[styles.filterCard, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }]}> 
+      <Text style={[styles.filterTitle, { color: colors.TEXT }]}>Khung thời gian</Text>
       <View style={styles.filterRow}>
         {FILTER_OPTIONS.map((option, index) => {
           const isActive = filterType === option.value;
@@ -20,12 +22,13 @@ export default function IncomeFilterTabs({ filterType, onChange }) {
               key={option.value}
               style={[
                 styles.filterChip,
+                { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER },
                 index === FILTER_OPTIONS.length - 1 && styles.filterChipLast,
-                isActive && styles.filterChipActive
+                isActive && { backgroundColor: colors.ROSE_MIST, borderColor: colors.PRIMARY }
               ]}
               onPress={() => onChange(option.value)}
             >
-              <Text style={[styles.filterChipText, isActive && styles.filterChipTextActive]}>{option.label}</Text>
+              <Text style={[styles.filterChipText, { color: isActive ? colors.PRIMARY : colors.TEXT }]}>{option.label}</Text>
             </Pressable>
           );
         })}

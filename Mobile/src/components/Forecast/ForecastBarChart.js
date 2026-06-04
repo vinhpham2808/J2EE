@@ -1,24 +1,39 @@
 import React from "react";
 import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { BarChart } from "react-native-chart-kit";
-import { COLORS } from "../../constants/colors";
-import { barChartConfig } from "../../utils/forecast";
+import { COLORS, useAppColors } from "../../constants/colors";
 
 export default function ForecastBarChart({ barChartData, categories }) {
+  const colors = useAppColors();
   const { width: screenWidth } = useWindowDimensions();
   const chartWidth = Math.max(screenWidth - 48, 300);
+  const chartConfig = {
+    backgroundColor: colors.CARD,
+    backgroundGradientFrom: colors.CARD,
+    backgroundGradientTo: colors.CARD,
+    decimalPlaces: 0,
+    color: (opacity = 1) => `rgba(232, 89, 122, ${opacity})`,
+    labelColor: () => colors.TEXT_SECONDARY,
+    barPercentage: 0.5,
+    propsForLabels: { fontSize: 10 },
+    propsForBackgroundLines: {
+      strokeDasharray: "4 4",
+      stroke: colors.CARD_BORDER,
+      strokeWidth: 1,
+    },
+  };
 
   if (!barChartData || categories.length === 0) return null;
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>📊 Dự báo vs Trung bình lịch sử</Text>
-      <View style={styles.chartCard}>
+      <Text style={[styles.sectionTitle, { color: colors.TEXT }]}>📊 Dự báo vs Trung bình lịch sử</Text>
+      <View style={[styles.chartCard, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }]}> 
         <BarChart
           data={barChartData}
           width={chartWidth}
           height={220}
-          chartConfig={barChartConfig}
+          chartConfig={chartConfig}
           style={styles.chart}
           fromZero
           showValuesOnTopOfBars
@@ -28,11 +43,11 @@ export default function ForecastBarChart({ barChartData, categories }) {
         <View style={styles.legendRow}>
           <View style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: COLORS.PRIMARY }]} />
-            <Text style={styles.legendText}>Dự báo</Text>
+            <Text style={[styles.legendText, { color: colors.TEXT_SECONDARY }]}>Dự báo</Text>
           </View>
           <View style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: COLORS.INFO }]} />
-            <Text style={styles.legendText}>Trung bình lịch sử</Text>
+            <Text style={[styles.legendText, { color: colors.TEXT_SECONDARY }]}>Trung bình lịch sử</Text>
           </View>
         </View>
       </View>

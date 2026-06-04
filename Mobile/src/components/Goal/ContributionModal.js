@@ -1,6 +1,6 @@
 import React from "react";
 import { Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import { formatCurrencyInput } from "../../utils/format";
 import { PickDateField } from "../../utils/datePicker";
 
@@ -21,20 +21,22 @@ export default function ContributionModal({
   onClose,
   onSubmit,
 }) {
+  const colors = useAppColors();
+
   if (!goal) return null;
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.overlay}>
-        <View style={styles.card}>
-          <Text style={styles.title}>Đóng góp mục tiêu</Text>
-          <Text style={styles.subtitle}>{goal.name}</Text>
+        <View style={[styles.card, { backgroundColor: colors.CARD }]}> 
+          <Text style={[styles.title, { color: colors.TEXT }]}>Đóng góp mục tiêu</Text>
+          <Text style={[styles.subtitle, { color: colors.TEXT_SECONDARY }]}>{goal.name}</Text>
 
-          <Text style={styles.label}>Số tiền</Text>
+          <Text style={[styles.label, { color: colors.TEXT }]}>Số tiền</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { backgroundColor: colors.BG, borderColor: colors.CARD_BORDER, color: colors.TEXT }]}
             placeholder="Ví dụ: 1.000.000"
-            placeholderTextColor="#98a2b3"
+            placeholderTextColor={colors.TEXT_MUTED}
             keyboardType="numeric"
             value={amount}
             onChangeText={(value) => onAmountChange(formatCurrencyInput(value))}
@@ -42,20 +44,20 @@ export default function ContributionModal({
 
           <PickDateField label="Ngày đóng góp" value={date} onChange={onDateChange} />
 
-          <Text style={styles.label}>Ghi chú</Text>
+          <Text style={[styles.label, { color: colors.TEXT }]}>Ghi chú</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { backgroundColor: colors.BG, borderColor: colors.CARD_BORDER, color: colors.TEXT }]}
             placeholder="Tùy chọn"
-            placeholderTextColor="#98a2b3"
+            placeholderTextColor={colors.TEXT_MUTED}
             value={note}
             onChangeText={onNoteChange}
           />
 
           <View style={styles.actions}>
-            <Pressable style={styles.secondaryButton} onPress={onClose}>
-              <Text style={styles.secondaryText}>Hủy</Text>
+            <Pressable style={[styles.secondaryButton, { borderColor: colors.CARD_BORDER }]} onPress={onClose}>
+              <Text style={[styles.secondaryText, { color: colors.TEXT }]}>Hủy</Text>
             </Pressable>
-            <Pressable style={styles.primaryButton} onPress={onSubmit}>
+            <Pressable style={[styles.primaryButton, { backgroundColor: colors.PRIMARY }]} onPress={onSubmit}>
               <Text style={styles.primaryText}>Xác nhận</Text>
             </Pressable>
           </View>

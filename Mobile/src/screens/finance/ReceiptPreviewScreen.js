@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import JarSelector from "../../components/Receipt/JarSelector";
 import ReceiptItemRow from "../../components/Receipt/ReceiptItemRow";
 import ReceiptSummaryCard from "../../components/Receipt/ReceiptSummaryCard";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import useReceiptPreview from "../../hooks/useReceiptPreview";
 import { getSafeAreaBottom, getSafeAreaTop } from "../../utils/safeArea";
 
@@ -13,6 +13,7 @@ export default function ReceiptPreviewScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const insets = useSafeAreaInsets();
+  const colors = useAppColors();
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -43,7 +44,7 @@ export default function ReceiptPreviewScreen() {
   }
 
   return (
-    <View style={[styles.container, { paddingTop: getSafeAreaTop(insets) }]}>
+    <View style={[styles.container, { backgroundColor: colors.BG, paddingTop: getSafeAreaTop(insets) }]}> 
       <ReceiptSummaryCard
         itemCount={items.length}
         location={receiptMeta.location}
@@ -88,11 +89,13 @@ export default function ReceiptPreviewScreen() {
 }
 
 function ReceiptPreviewEmptyState({ onBack }) {
+  const colors = useAppColors();
+
   return (
-    <View style={styles.emptyContainer}>
+    <View style={[styles.emptyContainer, { backgroundColor: colors.BG }]}> 
       <Text style={styles.emptyIcon}>🧾</Text>
-      <Text style={styles.emptyTitle}>Không nhận diện được khoản chi</Text>
-      <Text style={styles.emptyText}>
+      <Text style={[styles.emptyTitle, { color: colors.TEXT }]}>Không nhận diện được khoản chi</Text>
+      <Text style={[styles.emptyText, { color: colors.TEXT_SECONDARY }]}> 
         Gemini không tìm thấy mặt hàng nào trong ảnh.{"\n"}
         Hãy thử lại với ảnh rõ hơn hoặc nhập tay.
       </Text>
@@ -104,18 +107,20 @@ function ReceiptPreviewEmptyState({ onBack }) {
 }
 
 function ReceiptPreviewFooter({ itemCount, onCancel, onConfirm, submitting }) {
+  const colors = useAppColors();
+
   return (
-    <View style={styles.footer}>
+    <View style={[styles.footer, { backgroundColor: colors.CARD, borderTopColor: colors.CARD_BORDER }]}> 
       <Pressable style={styles.confirmButton} onPress={onConfirm} disabled={submitting}>
         {submitting ? (
-          <ActivityIndicator color={COLORS.WHITE} size="small" />
+          <ActivityIndicator color={colors.WHITE} size="small" />
         ) : (
           <Text style={styles.confirmButtonText}>✅ Xác nhận lưu ({itemCount} mục)</Text>
         )}
       </Pressable>
 
-      <Pressable style={styles.cancelButton} onPress={onCancel} disabled={submitting}>
-        <Text style={styles.cancelButtonText}>Hủy</Text>
+      <Pressable style={[styles.cancelButton, { borderColor: colors.CARD_BORDER }]} onPress={onCancel} disabled={submitting}>
+        <Text style={[styles.cancelButtonText, { color: colors.TEXT_SECONDARY }]}>Hủy</Text>
       </Pressable>
     </View>
   );

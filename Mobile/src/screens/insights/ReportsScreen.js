@@ -7,7 +7,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import { getSafeAreaContentStyle } from "../../utils/safeArea";
 import useMonthlyReport from "../../hooks/useMonthlyReport";
 import MonthNavigator from "../../components/Report/MonthNavigator";
@@ -18,6 +18,7 @@ import BudgetGoalProgressCard from "../../components/Report/BudgetGoalProgressCa
 
 export default function ReportsScreen() {
   const insets = useSafeAreaInsets();
+  const colors = useAppColors();
   const {
     selectedMonth,
     selectedYear,
@@ -30,7 +31,7 @@ export default function ReportsScreen() {
 
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.BG }]}
       contentContainerStyle={[styles.content, getSafeAreaContentStyle(insets)]}
       showsVerticalScrollIndicator={false}
     >
@@ -43,13 +44,13 @@ export default function ReportsScreen() {
 
       {loading ? (
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-          <Text style={styles.loadingText}>Đang lập báo cáo chi tiết...</Text>
+          <ActivityIndicator size="large" color={colors.PRIMARY} />
+          <Text style={[styles.loadingText, { color: colors.TEXT_SECONDARY }]}>Đang lập báo cáo chi tiết...</Text>
         </View>
       ) : error || !report ? (
         <View style={styles.centerContainer}>
           <Text style={styles.emptyIcon}>📊</Text>
-          <Text style={styles.errorText}>
+          <Text style={[styles.errorText, { color: colors.TEXT_SECONDARY }]}> 
             {error || "Chưa có dữ liệu giao dịch trong tháng này để tạo báo cáo."}
           </Text>
         </View>

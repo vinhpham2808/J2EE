@@ -4,7 +4,7 @@ import { useNavigation } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { COLORS } from "../constants/colors";
+import { useAppColors } from "../constants/colors";
 import FloatingQuickMenu, { FloatingTabButton } from "./FloatingQuickMenu";
 import DashboardScreen from "../screens/dashboard/DashboardScreen";
 import CategoryScreen from "../screens/finance/CategoryScreen";
@@ -34,12 +34,13 @@ function EmptyScreen() {
 
 function PillTabButton({ children, onPress, accessibilityState, suppressActive }) {
   const focused = accessibilityState?.selected && !suppressActive;
+  const colors = useAppColors();
   return (
     <Pressable
       onPress={onPress}
       style={({ pressed }) => [
         styles.pillButton,
-        (focused || pressed) && styles.pillButtonActive,
+        (focused || pressed) && [styles.pillButtonActive, { backgroundColor: colors.TAB_ACTIVE_BG }],
       ]}
       unstable_pressDelay={0}
     >
@@ -120,6 +121,7 @@ function SettingStack() {
 export default function MainTabs() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const colors = useAppColors();
   const [isQuickMenuVisible, setIsQuickMenuVisible] = useState(false);
   const [suppressTabFocus, setSuppressTabFocus] = useState(false);
   const [floatingFocusedKey, setFloatingFocusedKey] = useState(null);
@@ -132,7 +134,7 @@ export default function MainTabs() {
       Income: "Income",
       Budget: "Budget",
       Forecast: "Forecast",
-      AddExpense: "AddExpense",
+      Goal: "Goal",
       Chat: "Chat",
     };
     const screen = routeMap[routeName] || routeName;
@@ -165,7 +167,7 @@ export default function MainTabs() {
 
   // Override icon/label color when floating menu suppresses tab focus
   const tabColor = (focused, originalColor) =>
-    focused && suppressTabFocus ? COLORS.TAB_INACTIVE : originalColor;
+    focused && suppressTabFocus ? colors.TAB_INACTIVE : originalColor;
 
   const tabIcon = (emoji) => ({ focused, color }) => (
     <Text style={{ color: tabColor(focused, color), fontSize: 17, marginTop: 4 }}>{emoji}</Text>
@@ -180,8 +182,8 @@ export default function MainTabs() {
       <Tab.Navigator
         screenOptions={{
           headerShown: false,
-          tabBarActiveTintColor: COLORS.TAB_ACTIVE,
-          tabBarInactiveTintColor: COLORS.TAB_INACTIVE,
+          tabBarActiveTintColor: colors.TAB_ACTIVE,
+          tabBarInactiveTintColor: colors.TAB_INACTIVE,
           tabBarLabelStyle: {
             fontSize: 10,
             fontWeight: "600",
@@ -189,13 +191,13 @@ export default function MainTabs() {
           },
           tabBarStyle: {
             height: 70,
-            backgroundColor: COLORS.TAB_BG,
+            backgroundColor: colors.TAB_BG,
             borderTopWidth: 1,
-            borderTopColor: COLORS.TAB_BORDER,
+            borderTopColor: colors.TAB_BORDER,
             borderLeftWidth: 1,
-            borderLeftColor: COLORS.TAB_BORDER,
+            borderLeftColor: colors.TAB_BORDER,
             borderRightWidth: 1,
-            borderRightColor: COLORS.TAB_BORDER,
+            borderRightColor: colors.TAB_BORDER,
             borderRadius: 20,
             marginHorizontal: 16,
             marginBottom: Math.max(insets.bottom, 8),
@@ -303,7 +305,6 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
   },
   pillButtonActive: {
-    backgroundColor: COLORS.TAB_ACTIVE_BG,
     borderColor: "transparent",
   },
   tabLabel: {

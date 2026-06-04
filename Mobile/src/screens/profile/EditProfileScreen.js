@@ -4,19 +4,20 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import PasswordChangeFields from "../../components/Profile/PasswordChangeFields";
 import ProfileAvatarPicker from "../../components/Profile/ProfileAvatarPicker";
 import ProfileInfoFields from "../../components/Profile/ProfileInfoFields";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import useEditProfileForm from "../../hooks/useEditProfileForm";
 import { getSafeAreaContentStyle } from "../../utils/safeArea";
 
 export default function EditProfileScreen() {
   const insets = useSafeAreaInsets();
+  const colors = useAppColors();
   const form = useEditProfileForm();
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={[styles.content, getSafeAreaContentStyle(insets)]}>
-      <View style={styles.card}>
-        <Text style={styles.title}>Chỉnh sửa hồ sơ</Text>
-        <Text style={styles.subtitle}>Cập nhật thông tin cá nhân và mật khẩu theo nhu cầu của bạn.</Text>
+    <ScrollView style={[styles.container, { backgroundColor: colors.BG }]} contentContainerStyle={[styles.content, getSafeAreaContentStyle(insets)]}>
+      <View style={[styles.card, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }]}> 
+        <Text style={[styles.title, { color: colors.TEXT }]}>Chỉnh sửa hồ sơ</Text>
+        <Text style={[styles.subtitle, { color: colors.TEXT_SECONDARY }]}>Cập nhật thông tin cá nhân và mật khẩu theo nhu cầu của bạn.</Text>
 
         <ProfileAvatarPicker
           fullName={form.fullName}
