@@ -4,7 +4,7 @@ import { COLORS } from "../../constants/colors";
 import { clampScale, scale } from "../../utils/dimensions";
 import { formatMoney } from "../../utils/format";
 import { DashboardSectionCard, DashboardSectionHeader } from "./DashboardSection";
-import ShowMoreButton from "../ShowMoreButton";
+import ShowMoreButton from "../common/ShowMoreButton";
 
 function GoalPreviewCard({ goal, onPress }) {
   const target = Number(goal?.targetAmount || 0);

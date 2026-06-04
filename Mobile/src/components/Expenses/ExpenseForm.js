@@ -2,8 +2,8 @@ import React from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { COLORS } from "../../constants/colors";
 import { PickDateField } from "../../utils/pickDate";
-import CategoryGridSelector from "../CategoryGridSelector";
-import ExpenseNoteField from "../ExpenseNoteField";
+import CategoryGridSelector from "../common/CategoryGridSelector";
+import ExpenseNoteField from "./ExpenseNoteField";
 
 export default function ExpenseForm({ form, insetsStyle, isPremium, isScanning, onImportReceipt }) {
   return (

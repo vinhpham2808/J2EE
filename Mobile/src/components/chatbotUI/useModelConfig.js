@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useContext } from "react";
 import { Alert } from "react-native";
-import { AuthContext } from "../AuthContext";
+import { AuthContext } from "../../contexts/AuthContext";
 
 // ─── Model & provider configuration ─────────────────────
 

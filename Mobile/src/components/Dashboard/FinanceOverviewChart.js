@@ -1,9 +1,9 @@
 import React, { useMemo, useState, useCallback, useEffect } from "react";
 import { View, Text, StyleSheet, Dimensions, Pressable } from "react-native";
 import Svg, { Path, G, Defs, LinearGradient, Stop, Text as SvgText } from "react-native-svg";
-import { buildRecentMonthKeys, formatMonthKeyLabel, formatMonthShortLabel, toMonthKey } from "../utils/financeStats";
-import { formatMoney } from "../utils/format";
-import { COLORS } from "../constants/colors";
+import { buildRecentMonthKeys, formatMonthKeyLabel, formatMonthShortLabel, toMonthKey } from "../../utils/financeStats";
+import { formatMoney } from "../../utils/format";
+import { COLORS } from "../../constants/colors";
 
 const screenWidth = Dimensions.get("window").width;
 

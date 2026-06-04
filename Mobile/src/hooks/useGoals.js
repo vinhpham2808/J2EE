@@ -5,7 +5,7 @@ import http from "../services/http";
 import { API_ENDPOINTS } from "../constants/api";
 import { SUCCESS_ALERT_MESSAGES, SUCCESS_ALERT_TITLE } from "../constants/alertMessages";
 import { parseCurrencyInput, todayIso, getApiErrorMessage } from "../utils/format";
-import { useVisibleItems } from "../components/ShowMoreButton";
+import { useVisibleItems } from "../components/common/ShowMoreButton";
 
 /**
  * Custom hook encapsulating all state, CRUD operations, and derived data

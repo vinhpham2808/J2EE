@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import { Alert } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { SUCCESS_ALERT_MESSAGES, SUCCESS_ALERT_TITLE } from "../constants/alertMessages";
-import { useVisibleItems } from "../components/ShowMoreButton";
+import { useVisibleItems } from "../components/common/ShowMoreButton";
 import {
   createCategory,
   deleteCategory,

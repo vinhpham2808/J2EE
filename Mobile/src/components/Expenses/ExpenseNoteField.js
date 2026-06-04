@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
-import VoiceInputButton from "./VoiceInputButton";
-import { COLORS } from "../constants/colors";
+import VoiceInputButton from "../common/VoiceInputButton";
+import { COLORS } from "../../constants/colors";
 
 /**
  * ExpenseNoteField — TextInput + VoiceInputButton cho ghi chú chi tiêu

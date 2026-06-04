@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CategoryForm from "../components/Categories/CategoryForm";
 import CategoryItem from "../components/Categories/CategoryItem";
 import CategoryListHeader from "../components/Categories/CategoryListHeader";
-import IconPickerBottomSheet from "../components/IconPickerBottomSheet";
+import IconPickerBottomSheet from "../components/Categories/IconPickerBottomSheet";
 import { COLORS } from "../constants/colors";
 import useCategories from "../hooks/useCategories";
 import { getSafeAreaBottom, getSafeAreaTop } from "../utils/safeAreaSpacing";

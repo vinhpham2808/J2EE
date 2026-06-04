@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { AuthContext } from "../components/AuthContext";
+import { AuthContext } from "../contexts/AuthContext";
 import { COLORS } from "../constants/colors";
 import { getSafeAreaBottom, getSafeAreaTop } from "../utils/safeAreaSpacing";
 

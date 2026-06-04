@@ -2,7 +2,7 @@ import React, { useCallback, useContext } from "react";
 import { Alert, FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { AuthContext } from "../components/AuthContext";
+import { AuthContext } from "../contexts/AuthContext";
 import JarAllocationChart from "../components/Jars/JarAllocationChart";
 import JarCard from "../components/Jars/JarCard";
 import JarDetailView from "../components/Jars/JarDetailView";

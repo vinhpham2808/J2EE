@@ -1,7 +1,7 @@
 import React, { useRef, useState, useMemo } from "react";
 import { Animated, Pressable, StyleSheet, Text, View, Modal, ScrollView, Dimensions } from "react-native";
-import { COLORS } from "../constants/colors";
-import { CategoryVectorIcon, getIconColor } from "../utils/VectorIcons";
+import { COLORS } from "../../constants/colors";
+import { CategoryVectorIcon, getIconColor } from "../../utils/VectorIcons";
 
 /**
  * Modern 2-column pastel grid category selector.

@@ -1,8 +1,8 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../../constants/colors";
-import IncomeExpenseChart from "../IncomeExpenseChart";
-import ShowMoreButton from "../ShowMoreButton";
+import IncomeExpenseChart from "../common/IncomeExpenseChart";
+import ShowMoreButton from "../common/ShowMoreButton";
 
 export default function ExpenseListOverview({
   canToggle,

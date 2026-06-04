@@ -18,7 +18,6 @@ import ChatScreen from "../screens/ChatScreen";
 import ReportsScreen from "../screens/ReportsScreen";
 import JarScreen from "../screens/JarScreen";
 import ReceiptPreviewScreen from "../screens/ReceiptPreviewScreen";
-import FilterScreen from "../screens/FilterScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import EditProfileScreen from "../screens/EditProfileScreen";
 import PaymentScreen from "../screens/PaymentScreen";
@@ -90,7 +89,6 @@ function CategoryStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="CategoryMain" component={CategoryScreen} />
-      <Stack.Screen name="Filter" component={FilterScreen} />
     </Stack.Navigator>
   );
 }

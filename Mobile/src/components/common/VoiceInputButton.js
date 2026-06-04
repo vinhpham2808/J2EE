@@ -11,7 +11,7 @@ import {
   ExpoSpeechRecognitionModule,
   useSpeechRecognitionEvent
 } from "expo-speech-recognition";
-import { COLORS } from "../constants/colors";
+import { COLORS } from "../../constants/colors";
 
 /**
  * VoiceInputButton — Nút microphone để nhập liệu bằng giọng nói

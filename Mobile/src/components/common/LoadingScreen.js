@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { StyleSheet, View, Text, Animated, ImageBackground } from "react-native";
-import { COLORS } from "../constants/colors";
-import loadingscreenImg from "../assets/loadingscreen.png";
+import { COLORS } from "../../constants/colors";
+import loadingscreenImg from "../../assets/loadingscreen.png";
 
 export default function LoadingScreen({ onComplete }) {
   const animatedProgress = useRef(new Animated.Value(0)).current;

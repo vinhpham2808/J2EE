@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { AuthContext } from "../components/AuthContext";
+import { AuthContext } from "../contexts/AuthContext";
 import { COLORS } from "../constants/colors";
 import { TREND_CONFIG } from "../constants/forecastConfig";
 import { formatMoney } from "../utils/format";

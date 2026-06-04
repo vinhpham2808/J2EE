@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { AuthContext } from "../components/AuthContext";
+import { AuthContext } from "../contexts/AuthContext";
 import { API_ENDPOINTS } from "../constants/api";
 import http from "../services/http";
 import { formatMoney, getApiErrorMessage } from "../utils/format";

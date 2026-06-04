@@ -1,7 +1,7 @@
 import { useCallback, useContext, useEffect, useState } from "react";
 import { Alert } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { AuthContext } from "../components/AuthContext";
+import { AuthContext } from "../contexts/AuthContext";
 import { getApiErrorMessage } from "../utils/format";
 import {
   getActivationEmail,

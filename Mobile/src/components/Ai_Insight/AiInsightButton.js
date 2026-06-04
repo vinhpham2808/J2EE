@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../../constants/colors";
-import { AuthContext } from "../AuthContext";
+import { AuthContext } from "../../contexts/AuthContext";
 
 export default function AiInsightButton({ onPress, style }) {
   const { user } = useContext(AuthContext);

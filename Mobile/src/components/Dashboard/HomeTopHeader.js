@@ -1,8 +1,8 @@
 ﻿import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { COLORS } from "../constants/colors";
-import { getSafeAreaTop } from "../utils/safeAreaSpacing";
+import { COLORS } from "../../constants/colors";
+import { getSafeAreaTop } from "../../utils/safeAreaSpacing";
 
 export default function HomeTopHeader({ onMenuPress, onBellPress, unreadCount = 0 }) {
   const insets = useSafeAreaInsets();

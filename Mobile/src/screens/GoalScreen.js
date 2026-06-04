@@ -3,7 +3,7 @@ import { FlatList, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { COLORS } from "../constants/colors";
 import { formatMoney } from "../utils/format";
-import ShowMoreButton from "../components/ShowMoreButton";
+import ShowMoreButton from "../components/common/ShowMoreButton";
 import { getSafeAreaBottom, getSafeAreaTop } from "../utils/safeAreaSpacing";
 import useGoals from "../hooks/useGoals";
 import GoalForm from "../components/Goal/GoalForm";

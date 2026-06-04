@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-nati
 import { COLORS } from "../../constants/colors";
 import { EXPENSE_FILTER_TYPES } from "../../constants/expenseConfig";
 import { formatMoney } from "../../utils/format";
-import VoiceInputButton from "../VoiceInputButton";
+import VoiceInputButton from "../common/VoiceInputButton";
 
 export default function ExpenseSummaryActions({
   expenseCount,

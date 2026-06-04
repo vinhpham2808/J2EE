@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import ShowMoreButton from "../ShowMoreButton";
+import ShowMoreButton from "../common/ShowMoreButton";
 import { COLORS } from "../../constants/colors";
 import { clampScale, scale } from "../../utils/dimensions";
 

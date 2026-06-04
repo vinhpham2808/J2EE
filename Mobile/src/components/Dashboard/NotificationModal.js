@@ -9,10 +9,10 @@ import {
   Text,
   View
 } from "react-native";
-import { API_ENDPOINTS } from "../constants/api";
-import { COLORS } from "../constants/colors";
-import http from "../services/http";
-import { scale, clampScale, useDynamicViewport } from "../utils/dimensions";
+import { API_ENDPOINTS } from "../../constants/api";
+import { COLORS } from "../../constants/colors";
+import http from "../../services/http";
+import { scale, clampScale, useDynamicViewport } from "../../utils/dimensions";
 
 function formatRelativeTime(value) {
   if (!value) return "";

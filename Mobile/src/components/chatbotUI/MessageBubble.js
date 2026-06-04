@@ -1,7 +1,7 @@
 import React from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../../constants/colors";
-import AIConfirmationForm from "../AIConfirmationForm";
+import AIConfirmationForm from "./AIConfirmationForm";
 import appLogo from "../../assets/applogo.png";
 import { INTENT_ICONS, INTENT_LABELS } from "../../utils/aiIntentParser";
 

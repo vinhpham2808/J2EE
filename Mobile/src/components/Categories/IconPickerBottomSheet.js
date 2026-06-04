@@ -9,9 +9,9 @@ import {
   Text,
   View
 } from "react-native";
-import { COLORS } from "../constants/colors";
-import { getCategoryIconPresets } from "../utils/VectorIcons";
-import { CategoryVectorIcon } from "../utils/VectorIcons";
+import { COLORS } from "../../constants/colors";
+import { getCategoryIconPresets } from "../../utils/VectorIcons";
+import { CategoryVectorIcon } from "../../utils/VectorIcons";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const SHEET_HEIGHT = SCREEN_HEIGHT * 0.72;

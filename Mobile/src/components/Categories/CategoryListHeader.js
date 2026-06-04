@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../../constants/colors";
-import ShowMoreButton from "../ShowMoreButton";
+import ShowMoreButton from "../common/ShowMoreButton";
 
 export default function CategoryListHeader({ canExpand, hasCategories, onToggle, showAll }) {
   if (!hasCategories) {

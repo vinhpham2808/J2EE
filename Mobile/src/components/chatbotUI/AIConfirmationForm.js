@@ -10,9 +10,9 @@ import {
   FlatList,
   Platform
 } from "react-native";
-import { COLORS } from "../constants/colors";
-import { getFieldsForIntent, INTENT_ICONS, INTENT_LABELS } from "../utils/aiIntentParser";
-import { fetchCategoriesByType } from "../services/categoryService";
+import { COLORS } from "../../constants/colors";
+import { getFieldsForIntent, INTENT_ICONS, INTENT_LABELS } from "../../utils/aiIntentParser";
+import { fetchCategoriesByType } from "../../services/categoryService";
 
 export default function AIConfirmationForm({
   intent,

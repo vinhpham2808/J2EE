@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { View, Text, StyleSheet, Dimensions } from "react-native";
 import { LineChart } from "react-native-chart-kit";
-import { COLORS } from "../constants/colors";
+import { COLORS } from "../../constants/colors";
 
 const screenWidth = Dimensions.get("window").width;
 

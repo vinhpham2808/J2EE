@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  ActivityIndicator,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -9,12 +10,27 @@ import {
   View,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import Loader from "../../components/Loader";
 import appLogo from "../../assets/applogo.png";
 import { COLORS } from "../../constants/colors";
 import { scale, clampScale } from "../../utils/dimensions";
 import useLoginActions from "../../hooks/useLoginActions";
 import LoginForm from "../../components/auth/LoginForm";
+
+function LoginLoadingOverlay() {
+  return (
+    <View
+      style={styles.loadingOverlay}
+      pointerEvents="auto"
+      accessibilityViewIsModal
+      importantForAccessibility="yes"
+    >
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.PRIMARY} />
+        <Text style={styles.loadingText}>Devbot đang xác thực</Text>
+      </View>
+    </View>
+  );
+}
 
 export default function LoginScreen() {
   const navigation = useNavigation();
@@ -36,7 +52,7 @@ export default function LoginScreen() {
       style={styles.screen}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      {loading || googleAuthLoading ? <Loader text="Devbot đang xác thực" overlay /> : null}
+      {loading || googleAuthLoading ? <LoginLoadingOverlay /> : null}
 
       <View style={styles.bgGlowTop} />
       <View style={styles.bgGlowBottom} />
@@ -120,6 +136,30 @@ const styles = StyleSheet.create({
     marginTop: scale(8),
     color: COLORS.DARK_TEXT_SECONDARY,
     fontSize: clampScale(13, 11, 15),
+    textAlign: "center",
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: scale(20),
+    backgroundColor: COLORS.OVERLAY,
+    zIndex: 999,
+  },
+  loadingContainer: {
+    backgroundColor: COLORS.DARK_CARD_SOLID,
+    borderRadius: scale(16),
+    borderWidth: 1,
+    borderColor: COLORS.DARK_BORDER,
+    paddingVertical: scale(24),
+    paddingHorizontal: scale(32),
+    alignItems: "center",
+    gap: scale(12),
+  },
+  loadingText: {
+    color: COLORS.DARK_TEXT,
+    fontSize: clampScale(14, 12, 16),
+    fontWeight: "600",
     textAlign: "center",
   },
 });
