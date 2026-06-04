@@ -1,17 +1,17 @@
 import React, { useState } from "react";
 import { Alert, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import http from "../../services/http";
+import apiClient from "../../services/apiClient";
 import { API_ENDPOINTS } from "../../constants/api";
 import { getApiErrorMessage } from "../../utils/format";
 import {
   getActivationEmail,
   isActivationRequiredError,
   openActivationOtp
-} from "../../utils/accountActivation";
+} from "../../utils/authActivation";
 import appLogo from "../../assets/applogo.png";
 import { COLORS } from "../../constants/colors";
-import { scale, clampScale } from "../../utils/dimensions";
+import { scale, clampScale } from "../../utils/layoutScale";
 
 export default function SignupScreen() {
   const navigation = useNavigation();
@@ -49,7 +49,7 @@ export default function SignupScreen() {
 
     setLoading(true);
     try {
-      await http.post(API_ENDPOINTS.REGISTER, {
+      await apiClient.post(API_ENDPOINTS.REGISTER, {
         email: normalizedEmail
       });
 

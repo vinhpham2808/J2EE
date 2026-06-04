@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Alert } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import http from "../../services/http";
+import apiClient from "../../services/apiClient";
 import { API_ENDPOINTS } from "../../constants/api";
 import { getApiErrorMessage } from "../../utils/format";
-import { getRetryAfterSeconds } from "../../utils/otp";
+import { getRetryAfterSeconds } from "../../utils/authOtp";
 import useOtpInput from "../../hooks/useOtpInput";
 import useOtpCountdown from "../../hooks/useOtpCountdown";
 import OtpInput from "../../components/Otp/OtpInput";
@@ -34,7 +34,7 @@ export default function ForgotPasswordOtpScreen() {
     setLoading(true);
 
     try {
-      await http.post(API_ENDPOINTS.VERIFY_RESET_OTP, { email, otp: code });
+      await apiClient.post(API_ENDPOINTS.VERIFY_RESET_OTP, { email, otp: code });
       setLoading(false);
       navigation.navigate("ResetPassword", { email, otp: code });
     } catch (err) {
@@ -49,7 +49,7 @@ export default function ForgotPasswordOtpScreen() {
     reset();
 
     try {
-      await http.post(API_ENDPOINTS.RESEND_OTP, { email });
+      await apiClient.post(API_ENDPOINTS.RESEND_OTP, { email });
       Alert.alert("Đã gửi lại", "Mã OTP mới đã được gửi tới email của bạn.");
     } catch (err) {
       const retryAfterSeconds = getRetryAfterSeconds(err);

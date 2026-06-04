@@ -1,12 +1,12 @@
 import React from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import PasswordChangeFields from "../components/Profile/PasswordChangeFields";
-import ProfileAvatarPicker from "../components/Profile/ProfileAvatarPicker";
-import ProfileInfoFields from "../components/Profile/ProfileInfoFields";
-import { COLORS } from "../constants/colors";
-import useEditProfileForm from "../hooks/useEditProfileForm";
-import { getSafeAreaContentStyle } from "../utils/safeAreaSpacing";
+import PasswordChangeFields from "../../components/Profile/PasswordChangeFields";
+import ProfileAvatarPicker from "../../components/Profile/ProfileAvatarPicker";
+import ProfileInfoFields from "../../components/Profile/ProfileInfoFields";
+import { COLORS } from "../../constants/colors";
+import useEditProfileForm from "../../hooks/useEditProfileForm";
+import { getSafeAreaContentStyle } from "../../utils/safeArea";
 
 export default function EditProfileScreen() {
   const insets = useSafeAreaInsets();

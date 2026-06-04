@@ -2,12 +2,12 @@ import React, { useCallback } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import JarSelector from "../components/Receipt/JarSelector";
-import ReceiptItemRow from "../components/Receipt/ReceiptItemRow";
-import ReceiptSummaryCard from "../components/Receipt/ReceiptSummaryCard";
-import { COLORS } from "../constants/colors";
-import useReceiptPreview from "../hooks/useReceiptPreview";
-import { getSafeAreaBottom, getSafeAreaTop } from "../utils/safeAreaSpacing";
+import JarSelector from "../../components/Receipt/JarSelector";
+import ReceiptItemRow from "../../components/Receipt/ReceiptItemRow";
+import ReceiptSummaryCard from "../../components/Receipt/ReceiptSummaryCard";
+import { COLORS } from "../../constants/colors";
+import useReceiptPreview from "../../hooks/useReceiptPreview";
+import { getSafeAreaBottom, getSafeAreaTop } from "../../utils/safeArea";
 
 export default function ReceiptPreviewScreen() {
   const navigation = useNavigation();

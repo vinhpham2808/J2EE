@@ -2,12 +2,12 @@ import React, { useEffect, useState } from "react";
 import { Alert, FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import http from "../../services/http";
+import apiClient from "../../services/apiClient";
 import { API_ENDPOINTS } from "../../constants/api";
 import { COLORS } from "../../constants/colors";
 import { formatCurrencyInput, getApiErrorMessage, parseCurrencyInput } from "../../utils/format";
-import { formatJarMoney } from "../../utils/jarUtils";
-import { getSafeAreaBottom, getSafeAreaTop } from "../../utils/safeAreaSpacing";
+import { formatJarMoney } from "../../utils/jar";
+import { getSafeAreaBottom, getSafeAreaTop } from "../../utils/safeArea";
 
 export default function JarTransferView() {
   const navigation = useNavigation();
@@ -31,7 +31,7 @@ export default function JarTransferView() {
   const fetchJars = async () => {
     setLoading(true);
     try {
-      const res = await http.get(API_ENDPOINTS.GET_JARS);
+      const res = await apiClient.get(API_ENDPOINTS.GET_JARS);
       const data = Array.isArray(res.data) ? res.data : [];
       setJars(data);
       
@@ -86,7 +86,7 @@ export default function JarTransferView() {
         amount: numericAmount,
       };
 
-      await http.post(API_ENDPOINTS.TRANSFER_JAR, payload);
+      await apiClient.post(API_ENDPOINTS.TRANSFER_JAR, payload);
       Alert.alert("Thành công", `Đã chuyển khoản thành công ${formatJarMoney(numericAmount)} từ hũ "${fromJar.name}" sang hũ "${toJar.name}".`);
       navigation.goBack();
     } catch (err) {

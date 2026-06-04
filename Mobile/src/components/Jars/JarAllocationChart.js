@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Svg, { G, Path, Text as SvgText } from "react-native-svg";
 import { COLORS } from "../../constants/colors";
-import { describeDonutArc } from "../../utils/jarUtils";
+import { describeDonutArc } from "../../utils/jar";
 
 const outerR = 75;
 const innerR = 50;

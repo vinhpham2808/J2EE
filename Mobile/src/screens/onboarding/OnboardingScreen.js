@@ -9,9 +9,9 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import appLogo from "../assets/applogo.png";
-import { COLORS } from "../constants/colors";
-import { scale, clampScale, useDynamicViewport } from "../utils/dimensions";
+import appLogo from "../../assets/applogo.png";
+import { COLORS } from "../../constants/colors";
+import { scale, clampScale, useDynamicViewport } from "../../utils/layoutScale";
 
 export const ONBOARDING_KEY = "botdev_onboarding_done";
 

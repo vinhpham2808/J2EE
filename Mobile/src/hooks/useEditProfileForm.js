@@ -4,10 +4,10 @@ import { Alert } from "react-native";
 import { AuthContext } from "../contexts/AuthContext";
 import { SUCCESS_ALERT_MESSAGES, SUCCESS_ALERT_TITLE } from "../constants/alertMessages";
 import { API_ENDPOINTS } from "../constants/api";
-import http from "../services/http";
+import apiClient from "../services/apiClient";
 import { tokenStorage } from "../storage/tokenStorage";
 import { getApiErrorMessage } from "../utils/format";
-import uploadProfileImage from "../utils/uploadProfileImage";
+import uploadProfileImage from "../utils/profileImage";
 
 function validateEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || "").trim());
@@ -89,7 +89,7 @@ export default function useEditProfileForm() {
         profileImageUrl = await uploadProfileImage(profilePhoto);
       }
 
-      const response = await http.put(API_ENDPOINTS.UPDATE_PROFILE, {
+      const response = await apiClient.put(API_ENDPOINTS.UPDATE_PROFILE, {
         fullName: fullName.trim(),
         email: email.trim(),
         profileImageUrl,

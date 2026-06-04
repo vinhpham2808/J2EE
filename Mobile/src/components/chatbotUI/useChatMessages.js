@@ -1,21 +1,18 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Alert } from "react-native";
-import { sendAiChat, parseAiIntent, confirmAiAction, undoAiAction } from "../../services/aiService";
-import { parseIntentResponse, isCrudIntent, isActionIntent, INTENT_ICONS } from "../../utils/aiIntentParser";
-import http from "../../services/http";
+import { sendAiChat, parseAiIntent, confirmAiAction, undoAiAction } from "../../services/aiChatService";
+import { parseIntentResponse, isCrudIntent, isActionIntent, INTENT_ICONS } from "../../utils/aiIntent";
+import apiClient from "../../services/apiClient";
 import { API_ENDPOINTS } from "../../constants/api";
-
-// ─── Helpers ─────────────────────────────────────────────
-
-const getCurrentTimeLabel = () =>
-  new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-
-const WELCOME_MESSAGE = {
-  id: "welcome",
-  text: "Xin chào! Tôi là Nova Money - Trợ lý AI của Money Manager. Tôi có thể trò chuyện, tư vấn tài chính, hoặc tự động thao tác dữ liệu giúp bạn ở chế độ Agent.",
-  sender: "bot",
-  time: getCurrentTimeLabel()
-};
+import { executeExportAction } from "./chatActionHandlers";
+import {
+  buildHistory,
+  buildPersistedMessages,
+  getCurrentTimeLabel,
+  hasPendingIntent,
+  mapStoredMessages,
+  WELCOME_MESSAGE
+} from "./chatMessageUtils";
 
 /**
  * useChatMessages — Quản lý toàn bộ state tin nhắn, sessions, sửa tin, dừng & thử lại.
@@ -38,11 +35,20 @@ export default function useChatMessages({ activeMode, activeProvider, activeMode
 
   const chatBusy = loading || inputLocked || isProcessingCrud;
 
+  // ── Stop Generating ──────────────────────────────────
+
+  const stopGenerating = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+  }, []);
+
   // ── Session Management ────────────────────────────────
 
   const fetchSessions = useCallback(async () => {
     try {
-      const response = await http.get(API_ENDPOINTS.AI_CHAT_SESSIONS);
+      const response = await apiClient.get(API_ENDPOINTS.AI_CHAT_SESSIONS);
       setSessions(response.data || []);
     } catch {
       setSessions([]);
@@ -59,17 +65,10 @@ export default function useChatMessages({ activeMode, activeProvider, activeMode
     setLoading(true);
     setInputLocked(false);
     try {
-      const response = await http.get(API_ENDPOINTS.AI_CHAT_MESSAGES(sessionId));
+      const response = await apiClient.get(API_ENDPOINTS.AI_CHAT_MESSAGES(sessionId));
       if (requestId !== currentRequestIdRef.current) return;
 
-      const rawMsgs = response.data || [];
-      const mapped = rawMsgs.map((m) => ({
-        id: String(m.id || Math.random()),
-        text: m.content || "",
-        sender: m.role === "user" ? "user" : "bot",
-        time: m.timestamp ? new Date(m.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : getCurrentTimeLabel()
-      }));
-      const nextMsgs = mapped.length > 0 ? mapped : [WELCOME_MESSAGE];
+      const nextMsgs = mapStoredMessages(response.data || []);
       setMessages(nextMsgs);
       messagesRef.current = nextMsgs;
     } catch {
@@ -83,22 +82,10 @@ export default function useChatMessages({ activeMode, activeProvider, activeMode
     }
   }, [stopGenerating]);
 
-  const deleteSession = useCallback(async (sessionId) => {
-    try {
-      await http.delete(API_ENDPOINTS.AI_CHAT_DELETE_SESSION(sessionId));
-      if (activeSessionId === sessionId) {
-        startNewChat();
-      }
-      fetchSessions();
-    } catch {
-      Alert.alert("Lỗi", "Không thể xóa phiên trò chuyện.");
-    }
-  }, [activeSessionId, fetchSessions]);
-
   const renameSession = useCallback(async (sessionId, newTitle) => {
     if (!newTitle.trim()) return;
     try {
-      await http.put(API_ENDPOINTS.AI_CHAT_RENAME_SESSION(sessionId), { title: newTitle });
+      await apiClient.put(API_ENDPOINTS.AI_CHAT_RENAME_SESSION(sessionId), { title: newTitle });
       fetchSessions();
     } catch {
       Alert.alert("Lỗi", "Không thể đổi tên phiên.");
@@ -118,19 +105,22 @@ export default function useChatMessages({ activeMode, activeProvider, activeMode
     messagesRef.current = [WELCOME_MESSAGE];
   }, [stopGenerating]);
 
+  const deleteSession = useCallback(async (sessionId) => {
+    try {
+      await apiClient.delete(API_ENDPOINTS.AI_CHAT_DELETE_SESSION(sessionId));
+      if (activeSessionId === sessionId) {
+        startNewChat();
+      }
+      fetchSessions();
+    } catch {
+      Alert.alert("Lỗi", "Không thể xóa phiên trò chuyện.");
+    }
+  }, [activeSessionId, fetchSessions, startNewChat]);
+
   // Tải danh sách phiên chat khi khởi chạy
   useEffect(() => {
     fetchSessions();
   }, [fetchSessions]);
-
-  // ── Stop Generating ──────────────────────────────────
-
-  const stopGenerating = useCallback(() => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      abortControllerRef.current = null;
-    }
-  }, []);
 
   // ── Internal helpers ───────────────────────────────────
 
@@ -147,49 +137,6 @@ export default function useChatMessages({ activeMode, activeProvider, activeMode
     });
   }, []);
 
-  const buildHistory = useCallback((msgs) => {
-    return msgs
-      .filter((m) => m.id !== "welcome" && !m.isSystem && !m.isIntent && !m.isConfirmation)
-      .slice(-20)
-      .map((m) => ({
-        role: m.sender === "user" ? "user" : "assistant",
-        content: m.text
-      }));
-  }, []);
-
-  const buildPersistedMessages = useCallback((msgs) => {
-    return msgs
-      .filter((m) => m.id !== "welcome" && !m.isSystem && !m.isIntent && !m.isConfirmation && !m.isError)
-      .map((m) => ({
-        role: m.sender === "user" ? "user" : "assistant",
-        content: m.text
-      }));
-  }, []);
-
-  // ── Export action helpers ──────────────────────────────
-
-  const executeExportAction = useCallback(async (intent) => {
-    if (intent === "EXPORT_EXCEL_INCOME" || intent === "EXPORT_EXCEL_EXPENSE") {
-      const endpoint = intent === "EXPORT_EXCEL_INCOME"
-        ? API_ENDPOINTS.INCOME_EXCEL_DOWNLOAD
-        : API_ENDPOINTS.EXPENSE_EXCEL_DOWNLOAD;
-      await http.get(endpoint);
-      return intent === "EXPORT_EXCEL_INCOME"
-        ? "📥 Đã chuẩn bị báo cáo Excel thu nhập tháng này!"
-        : "📥 Đã chuẩn bị báo cáo Excel chi tiêu tháng này!";
-    }
-    if (intent === "EMAIL_INCOME_REPORT" || intent === "EMAIL_EXPENSE_REPORT") {
-      const endpoint = intent === "EMAIL_INCOME_REPORT"
-        ? API_ENDPOINTS.EMAIL_INCOME
-        : API_ENDPOINTS.EMAIL_EXPENSE;
-      await http.get(endpoint);
-      return intent === "EMAIL_INCOME_REPORT"
-        ? "📧 Đã gửi báo cáo thu nhập tháng này đến email của bạn!"
-        : "📧 Đã gửi báo cáo chi tiêu tháng này đến email của bạn!";
-    }
-    throw new Error("Không xác định được hành động.");
-  }, []);
-
   // ── Send / Edit / Resend ───────────────────────────────
 
   const sendMessage = useCallback(async (textToSend, options = {}) => {
@@ -200,8 +147,7 @@ export default function useChatMessages({ activeMode, activeProvider, activeMode
     const currentMessages = messagesRef.current;
     
     // Nếu có pendingIntent (đang chờ xác nhận CRUD) thì chặn gửi tin nhắn mới
-    const hasPendingIntent = currentMessages.some((m) => m.isIntent && !m.isConfirmation);
-    if (hasPendingIntent && !editMessageId) {
+    if (hasPendingIntent(currentMessages) && !editMessageId) {
       appendMessage({
         id: createMessageId("system-warn"),
         text: "⚠️ Vui lòng xác nhận hoặc hủy thao tác hiện tại trước khi gửi lệnh mới.",
@@ -249,7 +195,7 @@ export default function useChatMessages({ activeMode, activeProvider, activeMode
 
       // Nếu đang chỉnh sửa tin nhắn cũ, gửi PUT đồng bộ lại lịch sử lên server
       if (isEditingExisting && activeSessionId) {
-        await http.put(
+        await apiClient.put(
           API_ENDPOINTS.AI_CHAT_REPLACE_MESSAGES(activeSessionId),
           { messages: buildPersistedMessages(nextMessages) }
         );
@@ -368,7 +314,7 @@ export default function useChatMessages({ activeMode, activeProvider, activeMode
         abortControllerRef.current = null;
       }
     }
-  }, [activeMode, activeProvider, activeModel, activeModelLabel, chatBusy, activeSessionId, buildHistory, buildPersistedMessages, appendMessage, createMessageId, fetchSessions]);
+  }, [activeMode, activeProvider, activeModel, activeModelLabel, chatBusy, activeSessionId, appendMessage, createMessageId, fetchSessions]);
 
   // ── Retry ─────────────────────────────────────────────
 
@@ -438,7 +384,7 @@ export default function useChatMessages({ activeMode, activeProvider, activeMode
       setIsProcessingCrud(false);
       setPendingIntent(null);
     }
-  }, [executeExportAction, appendMessage, createMessageId]);
+  }, [appendMessage, createMessageId]);
 
   const handleCancelConfirmation = useCallback(() => {
     setPendingIntent(null);

@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, TextInput, Pressable, Platform, Animated } from
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path, Rect } from "react-native-svg";
 import { COLORS } from "../../constants/colors";
-import { getSafeAreaBottom } from "../../utils/safeAreaSpacing";
+import { getSafeAreaBottom } from "../../utils/safeArea";
 
 export default function ChatInputBar({
   value = "",

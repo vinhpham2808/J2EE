@@ -1,15 +1,15 @@
 import { API_ENDPOINTS } from "../constants/api";
 import { buildMonthlyFinanceSeries } from "../utils/financeStats";
-import http from "./http";
+import apiClient from "./apiClient";
 
 export async function fetchDashboardData() {
-  const response = await http.get(API_ENDPOINTS.DASHBOARD_DATA);
+  const response = await apiClient.get(API_ENDPOINTS.DASHBOARD_DATA);
   return response.data || null;
 }
 
 export async function fetchUnreadNotificationCount() {
   try {
-    const response = await http.get(API_ENDPOINTS.GET_UNREAD_COUNT);
+    const response = await apiClient.get(API_ENDPOINTS.GET_UNREAD_COUNT);
     return Number(response.data?.unreadCount || 0);
   } catch {
     return 0;
@@ -18,7 +18,7 @@ export async function fetchUnreadNotificationCount() {
 
 export async function fetchDashboardGoals() {
   try {
-    const response = await http.get(API_ENDPOINTS.GET_GOALS);
+    const response = await apiClient.get(API_ENDPOINTS.GET_GOALS);
     const goals = Array.isArray(response.data) ? response.data : [];
     return goals
       .filter((goal) => String(goal?.status || "ACTIVE").toUpperCase() === "ACTIVE")
@@ -30,8 +30,8 @@ export async function fetchDashboardGoals() {
 
 export async function fetchDashboardMonthlySeries() {
   const [incomeRes, expenseRes] = await Promise.all([
-    http.get(API_ENDPOINTS.GET_ALL_INCOMES, { params: { all: true } }),
-    http.get(API_ENDPOINTS.GET_ALL_EXPENSE)
+    apiClient.get(API_ENDPOINTS.GET_ALL_INCOMES, { params: { all: true } }),
+    apiClient.get(API_ENDPOINTS.GET_ALL_EXPENSE)
   ]);
 
   const incomes = Array.isArray(incomeRes.data) ? incomeRes.data : [];

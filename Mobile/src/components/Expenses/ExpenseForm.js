@@ -1,7 +1,7 @@
 import React from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { COLORS } from "../../constants/colors";
-import { PickDateField } from "../../utils/pickDate";
+import { PickDateField } from "../../utils/datePicker";
 import CategoryGridSelector from "../common/CategoryGridSelector";
 import ExpenseNoteField from "./ExpenseNoteField";
 

@@ -3,7 +3,7 @@ import { Alert, FlatList, Pressable, RefreshControl, StyleSheet, Text, View, Dim
 import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path, G, Text as SvgText } from "react-native-svg";
-import http from "../../services/http";
+import apiClient from "../../services/apiClient";
 import { API_ENDPOINTS } from "../../constants/api";
 import { COLORS } from "../../constants/colors";
 import { getApiErrorMessage, formatDate } from "../../utils/format";
@@ -13,9 +13,9 @@ import {
   getJarActualPercent,
   getJarProgressWidth,
   JAR_CATEGORY_COLORS
-} from "../../utils/jarUtils";
-import { CategoryVectorIcon, getIconColor } from "../../utils/VectorIcons";
-import { getSafeAreaBottom, getSafeAreaTop } from "../../utils/safeAreaSpacing";
+} from "../../utils/jar";
+import { CategoryVectorIcon, getIconColor } from "../../utils/categoryIcons";
+import { getSafeAreaBottom, getSafeAreaTop } from "../../utils/safeArea";
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -68,8 +68,8 @@ export default function JarDetailView() {
     setLoading(true);
     try {
       const [jarsRes, expensesRes] = await Promise.all([
-        http.get(API_ENDPOINTS.GET_JARS),
-        http.get(API_ENDPOINTS.GET_ALL_EXPENSE + "?all=true")
+        apiClient.get(API_ENDPOINTS.GET_JARS),
+        apiClient.get(API_ENDPOINTS.GET_ALL_EXPENSE + "?all=true")
       ]);
       setJars(Array.isArray(jarsRes.data) ? jarsRes.data : []);
       setExpenses(Array.isArray(expensesRes.data) ? expensesRes.data : []);
@@ -85,8 +85,8 @@ export default function JarDetailView() {
     setRefreshing(true);
     try {
       const [jarsRes, expensesRes] = await Promise.all([
-        http.get(API_ENDPOINTS.GET_JARS),
-        http.get(API_ENDPOINTS.GET_ALL_EXPENSE + "?all=true")
+        apiClient.get(API_ENDPOINTS.GET_JARS),
+        apiClient.get(API_ENDPOINTS.GET_ALL_EXPENSE + "?all=true")
       ]);
       setJars(Array.isArray(jarsRes.data) ? jarsRes.data : []);
       setExpenses(Array.isArray(expensesRes.data) ? expensesRes.data : []);
@@ -159,7 +159,7 @@ export default function JarDetailView() {
           style: "destructive",
           onPress: async () => {
             try {
-              await http.delete(API_ENDPOINTS.DELETE_JAR(id));
+              await apiClient.delete(API_ENDPOINTS.DELETE_JAR(id));
               Alert.alert("Thành công", "Đã xoá hũ thành công.");
               navigation.goBack();
             } catch (err) {
@@ -179,7 +179,7 @@ export default function JarDetailView() {
         style: "destructive",
         onPress: async () => {
           try {
-            await http.delete(API_ENDPOINTS.DELETE_EXPENSE(expenseId));
+            await apiClient.delete(API_ENDPOINTS.DELETE_EXPENSE(expenseId));
             Alert.alert("Thành công", "Đã xóa khoản chi thành công.");
             fetchJarsAndExpenses();
           } catch (err) {

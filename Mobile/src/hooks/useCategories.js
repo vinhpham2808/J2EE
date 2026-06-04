@@ -10,7 +10,7 @@ import {
   updateCategory
 } from "../services/categoryService";
 import { getApiErrorMessage } from "../utils/format";
-import { getFirstCategoryIcon } from "../utils/VectorIcons";
+import { getFirstCategoryIcon } from "../utils/categoryIcons";
 
 const DEFAULT_TYPE = "income";
 

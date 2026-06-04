@@ -7,14 +7,14 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { COLORS } from "../constants/colors";
-import { getSafeAreaContentStyle } from "../utils/safeAreaSpacing";
-import useMonthlyReport from "../hooks/useMonthlyReport";
-import MonthNavigator from "../components/Report/MonthNavigator";
-import ReportMetricCard from "../components/Report/ReportMetricCard";
-import CategoryBreakdownCard from "../components/Report/CategoryBreakdownCard";
-import ReportAdviceCard from "../components/Report/ReportAdviceCard";
-import BudgetGoalProgressCard from "../components/Report/BudgetGoalProgressCard";
+import { COLORS } from "../../constants/colors";
+import { getSafeAreaContentStyle } from "../../utils/safeArea";
+import useMonthlyReport from "../../hooks/useMonthlyReport";
+import MonthNavigator from "../../components/Report/MonthNavigator";
+import ReportMetricCard from "../../components/Report/ReportMetricCard";
+import CategoryBreakdownCard from "../../components/Report/CategoryBreakdownCard";
+import ReportAdviceCard from "../../components/Report/ReportAdviceCard";
+import BudgetGoalProgressCard from "../../components/Report/BudgetGoalProgressCard";
 
 export default function ReportsScreen() {
   const insets = useSafeAreaInsets();

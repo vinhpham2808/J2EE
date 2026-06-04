@@ -1,9 +1,9 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../../constants/colors";
-import { getBudgetVisual } from "../../utils/budgetUtils";
+import { getBudgetVisual } from "../../utils/budget";
 import { formatMoney } from "../../utils/format";
-import { CategoryVectorIcon, getIconColor } from "../../utils/VectorIcons";
+import { CategoryVectorIcon, getIconColor } from "../../utils/categoryIcons";
 
 export default function BudgetCard({ item, onDelete }) {
   const limit = Number(item?.amountLimit || 0);

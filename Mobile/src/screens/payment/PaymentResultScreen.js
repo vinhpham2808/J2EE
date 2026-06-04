@@ -2,12 +2,12 @@ import React, { useContext, useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { AuthContext } from "../contexts/AuthContext";
-import { API_ENDPOINTS } from "../constants/api";
-import http from "../services/http";
-import { formatMoney, getApiErrorMessage } from "../utils/format";
-import { COLORS } from "../constants/colors";
-import { getSafeAreaContentStyle } from "../utils/safeAreaSpacing";
+import { AuthContext } from "../../contexts/AuthContext";
+import { API_ENDPOINTS } from "../../constants/api";
+import apiClient from "../../services/apiClient";
+import { formatMoney, getApiErrorMessage } from "../../utils/format";
+import { COLORS } from "../../constants/colors";
+import { getSafeAreaContentStyle } from "../../utils/safeArea";
 
 const PAYMENT_STATUS_LABELS = {
   PAID: "Đã thanh toán thành công",
@@ -53,7 +53,7 @@ export default function PaymentResultScreen() {
       }
 
       try {
-        const response = await http.get(API_ENDPOINTS.SYNC_PAYMENT_STATUS(orderCode));
+        const response = await apiClient.get(API_ENDPOINTS.SYNC_PAYMENT_STATUS(orderCode));
         if (!active) {
           return;
         }

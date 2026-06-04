@@ -1,7 +1,7 @@
 import React from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../../constants/colors";
-import { CategoryVectorIcon, getIconColor } from "../../utils/VectorIcons";
+import { CategoryVectorIcon, getIconColor } from "../../utils/categoryIcons";
 
 export default function CategoryPickerModal({
   categories,

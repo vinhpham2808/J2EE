@@ -11,14 +11,14 @@ import {
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import http from "../../services/http";
+import apiClient from "../../services/apiClient";
 import { API_ENDPOINTS } from "../../constants/api";
 import { getApiErrorMessage } from "../../utils/format";
 import { COLORS } from "../../constants/colors";
 import {
   validatePasswordRequirements,
   isPasswordValid,
-} from "../../utils/validatePassword";
+} from "../../utils/authPassword";
 import PasswordInput from "../../components/auth/PasswordInput";
 import PasswordRequirement from "../../components/auth/PasswordRequirement";
 
@@ -41,7 +41,7 @@ export default function ResetPasswordScreen() {
 
     setLoading(true);
     try {
-      await http.post(API_ENDPOINTS.RESET_PASSWORD, { email, otp, newPassword: password });
+      await apiClient.post(API_ENDPOINTS.RESET_PASSWORD, { email, otp, newPassword: password });
       Alert.alert(
         "Thành công",
         "Mật khẩu của bạn đã được đặt lại. Vui lòng đăng nhập bằng mật khẩu mới.",

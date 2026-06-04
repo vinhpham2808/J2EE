@@ -6,7 +6,7 @@ import {
   statusCodes
 } from "@react-native-google-signin/google-signin";
 import { API_ENDPOINTS } from "../constants/api";
-import http from "./http";
+import apiClient from "./apiClient";
 
 const GOOGLE_WEB_CLIENT_ID =
   process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ||
@@ -130,7 +130,7 @@ export async function exchangeGoogleToken(idToken) {
     );
   }
 
-  const response = await http.post(API_ENDPOINTS.GOOGLE_AUTH, { idToken });
+  const response = await apiClient.post(API_ENDPOINTS.GOOGLE_AUTH, { idToken });
   return response.data || {};
 }
 

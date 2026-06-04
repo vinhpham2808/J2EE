@@ -2,11 +2,11 @@ import React from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { WebView } from "react-native-webview";
-import PaymentCheckoutFallback from "../components/Payment/PaymentCheckoutFallback";
-import PaymentCheckoutHeader from "../components/Payment/PaymentCheckoutHeader";
-import { COLORS } from "../constants/colors";
-import usePaymentCheckoutFlow from "../hooks/usePaymentCheckoutFlow";
-import { getSafeAreaBottom, getSafeAreaTop } from "../utils/safeAreaSpacing";
+import PaymentCheckoutFallback from "../../components/Payment/PaymentCheckoutFallback";
+import PaymentCheckoutHeader from "../../components/Payment/PaymentCheckoutHeader";
+import { COLORS } from "../../constants/colors";
+import usePaymentCheckoutFlow from "../../hooks/usePaymentCheckoutFlow";
+import { getSafeAreaBottom, getSafeAreaTop } from "../../utils/safeArea";
 
 const PAYOS_MERCHANT_HEADER_HEIGHT = 56;
 

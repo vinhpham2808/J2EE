@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
 import { Dimensions, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../../constants/colors";
-import { CategoryVectorIcon, getIconColor } from "../../utils/VectorIcons";
+import { CategoryVectorIcon, getIconColor } from "../../utils/categoryIcons";
 import { CATEGORY_TYPE_META } from "./categoryTypeMeta";
 
 const MENU_HEIGHT = 116;

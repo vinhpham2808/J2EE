@@ -1,15 +1,15 @@
-﻿import React from "react";
+import React from "react";
 import { FlatList, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { COLORS } from "../constants/colors";
-import { formatMoney } from "../utils/format";
-import ShowMoreButton from "../components/common/ShowMoreButton";
-import { getSafeAreaBottom, getSafeAreaTop } from "../utils/safeAreaSpacing";
-import useGoals from "../hooks/useGoals";
-import GoalForm from "../components/Goal/GoalForm";
-import CompactGoalTab from "../components/Goal/CompactGoalTab";
-import GoalDetailModal from "../components/Goal/GoalDetailModal";
-import ContributionModal from "../components/Goal/ContributionModal";
+import { COLORS } from "../../constants/colors";
+import { formatMoney } from "../../utils/format";
+import ShowMoreButton from "../../components/common/ShowMoreButton";
+import { getSafeAreaBottom, getSafeAreaTop } from "../../utils/safeArea";
+import useGoals from "../../hooks/useGoals";
+import GoalForm from "../../components/Goal/GoalForm";
+import CompactGoalTab from "../../components/Goal/CompactGoalTab";
+import GoalDetailModal from "../../components/Goal/GoalDetailModal";
+import ContributionModal from "../../components/Goal/ContributionModal";
 
 // â”€â”€â”€ Main Screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 

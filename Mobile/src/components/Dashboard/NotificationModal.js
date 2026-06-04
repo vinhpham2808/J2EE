@@ -11,8 +11,8 @@ import {
 } from "react-native";
 import { API_ENDPOINTS } from "../../constants/api";
 import { COLORS } from "../../constants/colors";
-import http from "../../services/http";
-import { scale, clampScale, useDynamicViewport } from "../../utils/dimensions";
+import apiClient from "../../services/apiClient";
+import { scale, clampScale, useDynamicViewport } from "../../utils/layoutScale";
 
 function formatRelativeTime(value) {
   if (!value) return "";
@@ -116,7 +116,7 @@ export default function NotificationModal({
     setError("");
 
     try {
-      const response = await http.get(API_ENDPOINTS.GET_NOTIFICATIONS);
+      const response = await apiClient.get(API_ENDPOINTS.GET_NOTIFICATIONS);
       const items = Array.isArray(response.data) ? response.data : [];
       setNotifications(items);
       updateUnreadCount(items);
@@ -145,7 +145,7 @@ export default function NotificationModal({
     updateUnreadCount(nextNotifications);
 
     try {
-      await http.put(API_ENDPOINTS.MARK_NOTIFICATION_READ(notification.id));
+      await apiClient.put(API_ENDPOINTS.MARK_NOTIFICATION_READ(notification.id));
     } catch {
       setNotifications(notifications);
       updateUnreadCount(notifications);
@@ -162,7 +162,7 @@ export default function NotificationModal({
     updateUnreadCount(nextNotifications);
 
     try {
-      await http.put(API_ENDPOINTS.MARK_ALL_NOTIFICATIONS_READ);
+      await apiClient.put(API_ENDPOINTS.MARK_ALL_NOTIFICATIONS_READ);
     } catch {
       setNotifications(previousNotifications);
       updateUnreadCount(previousNotifications);

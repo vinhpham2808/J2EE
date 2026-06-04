@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
   Dimensions,
@@ -10,135 +10,106 @@ import {
   View
 } from "react-native";
 import { COLORS } from "../../constants/colors";
-import { getCategoryIconPresets } from "../../utils/VectorIcons";
-import { CategoryVectorIcon } from "../../utils/VectorIcons";
+import { CategoryVectorIcon, getCategoryIconPresets } from "../../utils/categoryIcons";
 
-const { height: SCREEN_HEIGHT } = Dimensions.get("window");
-const SHEET_HEIGHT = SCREEN_HEIGHT * 0.72;
-const NUM_COLUMNS = 3;
-const GAP = 10;
-const CARD_SIZE = (Dimensions.get("window").width - 32 - GAP * (NUM_COLUMNS + 1)) / NUM_COLUMNS;
+const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get("window");
+const SHEET_HEIGHT = Math.min(SCREEN_HEIGHT * 0.58, 520);
+const HORIZONTAL_PADDING = 16;
+const GRID_GAP = 8;
+const ICON_COLUMNS = 5;
+const ICON_SIZE = Math.floor(
+  (SCREEN_WIDTH - HORIZONTAL_PADDING * 2 - GRID_GAP * (ICON_COLUMNS - 1)) / ICON_COLUMNS
+);
 
-// ═══════════════════════════════════════════════════════════
-// Animated Icon Card
-// ═══════════════════════════════════════════════════════════
-function IconCard({ item, isSelected, onSelect }) {
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-  const glowAnim = useRef(new Animated.Value(0)).current;
-  const checkAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    // Stop any running animations before starting new ones
-    scaleAnim.stopAnimation();
-    glowAnim.stopAnimation();
-    checkAnim.stopAnimation();
-
-    if (isSelected) {
-      Animated.parallel([
-        Animated.spring(scaleAnim, {
-          toValue: 1.06,
-          friction: 6,
-          tension: 100,
-          useNativeDriver: false
-        }),
-        Animated.timing(glowAnim, {
-          toValue: 1,
-          duration: 200,
-          useNativeDriver: false
-        }),
-        Animated.spring(checkAnim, {
-          toValue: 1,
-          friction: 6,
-          tension: 100,
-          useNativeDriver: false
-        })
-      ]).start();
-    } else {
-      Animated.parallel([
-        Animated.spring(scaleAnim, {
-          toValue: 1,
-          friction: 6,
-          tension: 100,
-          useNativeDriver: false
-        }),
-        Animated.timing(glowAnim, {
-          toValue: 0,
-          duration: 150,
-          useNativeDriver: false
-        }),
-        Animated.timing(checkAnim, {
-          toValue: 0,
-          duration: 100,
-          useNativeDriver: false
-        })
-      ]).start();
-    }
-  }, [isSelected]);
-
-  const backgroundColor = isSelected ? COLORS.ROSE_MIST : COLORS.CARD;
-  const borderColor = isSelected ? COLORS.PRIMARY : COLORS.CARD_BORDER;
-  const iconValue = item.value;
-  const cardColor = item.color || COLORS.PRIMARY;
-
+function PickerHeader({ title, onClose }) {
   return (
-    <Animated.View
-      style={[
-        styles.iconCard,
-        {
-          backgroundColor,
-          borderColor,
-          transform: [{ scale: scaleAnim }],
-          shadowColor: COLORS.PRIMARY,
-          shadowOpacity: glowAnim.interpolate({
-            inputRange: [0, 1],
-            outputRange: [0, 0.25]
-          }),
-          shadowRadius: glowAnim.interpolate({
-            inputRange: [0, 1],
-            outputRange: [0, 8]
-          }),
-          shadowOffset: { width: 0, height: 0 },
-          elevation: glowAnim.interpolate({
-            inputRange: [0, 1],
-            outputRange: [0, 6]
-          })
-        }
-      ]}
-    >
-      <Pressable
-        style={styles.iconCardPressable}
-        onPress={() => onSelect(item)}
-        android_ripple={{ color: COLORS.PRIMARY_GLOW, borderless: false, radius: CARD_SIZE / 2 }}
-      >
-        {/* Icon circle */}
-        <View style={styles.iconCircle}>
-          <CategoryVectorIcon iconValue={iconValue} size={20} color={cardColor} />
-        </View>
-
-        {/* Checkmark */}
-        {isSelected && (
-          <Animated.View
-            style={[
-              styles.checkBadge,
-              {
-                transform: [
-                  { scale: checkAnim.interpolate({ inputRange: [0, 1], outputRange: [0.3, 1] }) }
-                ],
-                opacity: checkAnim
-              }
-            ]}
-          >
-            <Text style={styles.checkText}>✓</Text>
-          </Animated.View>
-        )}
+    <View style={styles.header}>
+      <View>
+        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.subtitle}>Chọn icon đại diện cho danh mục</Text>
+      </View>
+      <Pressable style={styles.closeButton} onPress={onClose} accessibilityRole="button">
+        <Text style={styles.closeText}>×</Text>
       </Pressable>
-    </Animated.View>
+    </View>
   );
 }
 
-// ═══════════════════════════════════════════════════════════
-// Main Bottom Sheet Component
-// ═══════════════════════════════════════════════════════════
+function SelectedIconSummary({ item }) {
+  if (!item) return null;
+
+  const color = item.color || COLORS.PRIMARY;
+
+  return (
+    <View style={styles.selectedRow}>
+      <View style={[styles.selectedIconBox, { backgroundColor: `${color}18` }]}>
+        <CategoryVectorIcon iconValue={item.value} size={22} color={color} />
+      </View>
+      <Text style={styles.selectedLabel} numberOfLines={1}>{item.label}</Text>
+    </View>
+  );
+}
+
+function PickerTabs({ activeTab, allCount, recentCount, onChange }) {
+  return (
+    <View style={styles.tabs}>
+      <TabButton
+        active={activeTab === "all"}
+        label={`Tất cả ${allCount}`}
+        onPress={() => onChange("all")}
+      />
+      <TabButton
+        active={activeTab === "recent"}
+        disabled={recentCount === 0}
+        label={`Gần đây ${recentCount || ""}`.trim()}
+        onPress={() => onChange("recent")}
+      />
+    </View>
+  );
+}
+
+function TabButton({ active, disabled, label, onPress }) {
+  return (
+    <Pressable
+      style={[styles.tab, active && styles.tabActive, disabled && styles.tabDisabled]}
+      onPress={onPress}
+      disabled={disabled}
+      accessibilityRole="button"
+    >
+      <Text style={[styles.tabText, active && styles.tabTextActive, disabled && styles.tabTextDisabled]}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+const IconOption = memo(function IconOption({ item, selected, onSelect }) {
+  const color = item.color || COLORS.PRIMARY;
+
+  return (
+    <Pressable
+      style={[styles.iconOption, selected && styles.iconOptionSelected]}
+      onPress={() => onSelect(item)}
+      accessibilityRole="button"
+      accessibilityLabel={`Chọn icon ${item.label}`}
+    >
+      <View style={[styles.iconCircle, selected && { backgroundColor: `${color}16` }]}>
+        <CategoryVectorIcon iconValue={item.value} size={21} color={color} />
+      </View>
+      {selected ? <Text style={styles.checkMark}>✓</Text> : null}
+    </Pressable>
+  );
+});
+
+function EmptyRecent() {
+  return (
+    <View style={styles.emptyState}>
+      <Text style={styles.emptyTitle}>Chưa có icon gần đây</Text>
+      <Text style={styles.emptyText}>Icon bạn chọn sẽ xuất hiện ở đây.</Text>
+    </View>
+  );
+}
+
 export default function IconPickerBottomSheet({
   visible,
   onClose,
@@ -146,400 +117,272 @@ export default function IconPickerBottomSheet({
   selectedIcon,
   type = "expense"
 }) {
-  // ── State ──────────────────────────────────────────────
   const slideAnim = useRef(new Animated.Value(SHEET_HEIGHT)).current;
   const backdropAnim = useRef(new Animated.Value(0)).current;
   const [recentIcons, setRecentIcons] = useState([]);
-  const [activeTab, setActiveTab] = useState("all"); // "all" | "recent"
+  const [activeTab, setActiveTab] = useState("all");
 
-  // ── Data ───────────────────────────────────────────────
   const allIcons = useMemo(() => getCategoryIconPresets(type), [type]);
+  const icons = activeTab === "recent" ? recentIcons : allIcons;
+  const selectedItem = useMemo(
+    () => allIcons.find((item) => item.value === selectedIcon),
+    [allIcons, selectedIcon]
+  );
 
-  const displayedIcons = activeTab === "recent" && recentIcons.length > 0
-    ? recentIcons
-    : allIcons;
-
-  // ── Sheet open/close animation ────────────────────────
   useEffect(() => {
-    // Stop any running sheet animations before starting new ones
-    slideAnim.stopAnimation();
-    backdropAnim.stopAnimation();
+    Animated.parallel([
+      Animated.spring(slideAnim, {
+        toValue: visible ? 0 : SHEET_HEIGHT,
+        friction: 10,
+        tension: 60,
+        useNativeDriver: true
+      }),
+      Animated.timing(backdropAnim, {
+        toValue: visible ? 1 : 0,
+        duration: visible ? 180 : 140,
+        useNativeDriver: true
+      })
+    ]).start();
+  }, [backdropAnim, slideAnim, visible]);
 
-    if (visible) {
-      Animated.parallel([
-        Animated.spring(slideAnim, {
-          toValue: 0,
-          friction: 9,
-          tension: 50,
-          useNativeDriver: false
-        }),
-        Animated.timing(backdropAnim, {
-          toValue: 1,
-          duration: 250,
-          useNativeDriver: false
-        })
-      ]).start();
-    } else {
-      Animated.parallel([
-        Animated.spring(slideAnim, {
-          toValue: SHEET_HEIGHT,
-          friction: 9,
-          tension: 50,
-          useNativeDriver: false
-        }),
-        Animated.timing(backdropAnim, {
-          toValue: 0,
-          duration: 200,
-          useNativeDriver: false
-        })
-      ]).start();
+  useEffect(() => {
+    if (recentIcons.length === 0 && activeTab === "recent") {
+      setActiveTab("all");
     }
-  }, [visible]);
+  }, [activeTab, recentIcons.length]);
 
-  // ── Handlers ──────────────────────────────────────────
   const handleSelect = useCallback(
     (item) => {
-      // Save to recent
-      setRecentIcons((prev) => {
-        const filtered = prev.filter((r) => r.value !== item.value);
-        return [item, ...filtered].slice(0, 9);
-      });
+      setRecentIcons((current) => [item, ...current.filter((icon) => icon.value !== item.value)].slice(0, 10));
       onSelect(item.value);
     },
     [onSelect]
   );
 
-  const handleClose = () => {
-    onClose();
-  };
-
-  // ── Render ────────────────────────────────────────────
-  const selectedValue = selectedIcon;
-  const selectedItem = allIcons.find((i) => i.value === selectedValue);
+  const renderIcon = useCallback(
+    ({ item }) => (
+      <IconOption item={item} selected={item.value === selectedIcon} onSelect={handleSelect} />
+    ),
+    [handleSelect, selectedIcon]
+  );
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="none"
-      onRequestClose={handleClose}
-      statusBarTranslucent
-    >
-      {/* Backdrop */}
-      <Animated.View
-        style={[
-          styles.backdrop,
-          { opacity: backdropAnim }
-        ]}
-      >
-        <Pressable style={styles.backdropPressable} onPress={handleClose} />
+    <Modal visible={visible} transparent animationType="none" onRequestClose={onClose} statusBarTranslucent>
+      <Animated.View style={[styles.backdrop, { opacity: backdropAnim }]}>
+        <Pressable style={styles.backdropPressable} onPress={onClose} />
       </Animated.View>
 
-      {/* Bottom Sheet */}
-      <Animated.View
-        style={[
-          styles.sheet,
-          { transform: [{ translateY: slideAnim }] }
-        ]}
-      >
-        {/* Drag handle */}
-        <View style={styles.dragHandleWrapper}>
-          <View style={styles.dragHandle} />
-        </View>
+      <Animated.View style={[styles.sheet, { transform: [{ translateY: slideAnim }] }]}>
+        <View style={styles.handle} />
+        <PickerHeader title="Chọn icon" onClose={onClose} />
+        <SelectedIconSummary item={selectedItem} />
+        <PickerTabs
+          activeTab={activeTab}
+          allCount={allIcons.length}
+          recentCount={recentIcons.length}
+          onChange={setActiveTab}
+        />
 
-        {/* Header */}
-        <View style={styles.sheetHeader}>
-          <Text style={styles.sheetTitle}>Chọn icon</Text>
-          <Pressable onPress={handleClose} style={styles.closeBtn}>
-            <Text style={styles.closeBtnText}>✕</Text>
-          </Pressable>
-        </View>
-
-        {/* Currently selected preview */}
-        {selectedItem && (
-          <View style={styles.selectedPreview}>
-            <View style={[styles.selectedPreviewCircle, { backgroundColor: (selectedItem.color || COLORS.PRIMARY) + "18" }]}>
-              <CategoryVectorIcon iconValue={selectedItem.value} size={22} color={selectedItem.color || COLORS.PRIMARY} />
-            </View>
-            <Text style={styles.selectedPreviewLabel}>{selectedItem.label}</Text>
-          </View>
-        )}
-
-        {/* Tabs */}
-        <View style={styles.tabRow}>
-          <Pressable
-            style={[styles.tab, activeTab === "all" && styles.tabActive]}
-            onPress={() => setActiveTab("all")}
-          >
-            <Text style={[styles.tabText, activeTab === "all" && styles.tabTextActive]}>
-              Tất cả ({allIcons.length})
-            </Text>
-          </Pressable>
-          <Pressable
-            style={[styles.tab, activeTab === "recent" && styles.tabActive]}
-            onPress={() => setActiveTab("recent")}
-          >
-            <Text style={[styles.tabText, activeTab === "recent" && styles.tabTextActive]}>
-              Gần đây {recentIcons.length > 0 ? `(${recentIcons.length})` : ""}
-            </Text>
-          </Pressable>
-        </View>
-
-        {/* Icon Grid */}
         <FlatList
-          data={displayedIcons}
+          data={icons}
           keyExtractor={(item) => item.value}
-          numColumns={NUM_COLUMNS}
-          contentContainerStyle={styles.gridContent}
+          numColumns={ICON_COLUMNS}
+          renderItem={renderIcon}
+          contentContainerStyle={styles.grid}
           columnWrapperStyle={styles.gridRow}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          ListEmptyComponent={
-            <View style={styles.emptySearch}>
-              <Text style={styles.emptySearchEmoji}>🔎</Text>
-              <Text style={styles.emptySearchText}>Chưa có icon gần đây</Text>
-            </View>
-          }
-          renderItem={({ item }) => (
-            <IconCard
-              item={item}
-              isSelected={item.value === selectedValue}
-              onSelect={handleSelect}
-            />
-          )}
+          ListEmptyComponent={<EmptyRecent />}
         />
 
-        {/* Confirm button */}
-        <Pressable style={styles.confirmBtn} onPress={handleClose}>
-          <Text style={styles.confirmBtnText}>Xác nhận</Text>
+        <Pressable style={styles.doneButton} onPress={onClose} accessibilityRole="button">
+          <Text style={styles.doneText}>Xong</Text>
         </Pressable>
       </Animated.View>
     </Modal>
   );
 }
 
-// ═══════════════════════════════════════════════════════════
-// Styles
-// ═══════════════════════════════════════════════════════════
 const styles = StyleSheet.create({
-  // Backdrop
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(15, 23, 42, 0.45)"
+    backgroundColor: "rgba(15, 23, 42, 0.42)"
   },
   backdropPressable: {
     flex: 1
   },
-
-  // Sheet
   sheet: {
     position: "absolute",
-    bottom: 0,
     left: 0,
     right: 0,
+    bottom: 0,
     height: SHEET_HEIGHT,
     backgroundColor: COLORS.BG,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: 16,
-    paddingBottom: 34,
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowRadius: 20,
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    paddingHorizontal: HORIZONTAL_PADDING,
+    paddingBottom: 18,
+    shadowColor: COLORS.TEXT,
+    shadowOpacity: 0.16,
+    shadowRadius: 18,
     shadowOffset: { width: 0, height: -4 },
-    elevation: 15
+    elevation: 14
   },
-
-  // Drag handle
-  dragHandleWrapper: {
-    alignItems: "center",
-    paddingTop: 10,
-    paddingBottom: 6
+  handle: {
+    alignSelf: "center",
+    width: 34,
+    height: 4,
+    borderRadius: 999,
+    backgroundColor: COLORS.CARD_BORDER,
+    marginTop: 10,
+    marginBottom: 12
   },
-  dragHandle: {
-    width: 36,
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: COLORS.CARD_BORDER
-  },
-
-  // Header
-  sheetHeader: {
+  header: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 10
   },
-  sheetTitle: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: COLORS.TEXT
+  title: {
+    color: COLORS.TEXT,
+    fontSize: 18,
+    fontWeight: "800"
   },
-  closeBtn: {
+  subtitle: {
+    color: COLORS.TEXT_SECONDARY,
+    fontSize: 12,
+    marginTop: 2
+  },
+  closeButton: {
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: COLORS.CARD,
-    borderWidth: 1,
-    borderColor: COLORS.CARD_BORDER,
-    justifyContent: "center",
-    alignItems: "center"
-  },
-  closeBtnText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: COLORS.TEXT_SECONDARY
-  },
-
-  // Selected preview
-  selectedPreview: {
-    flexDirection: "row",
     alignItems: "center",
-    backgroundColor: COLORS.CARD,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: COLORS.PRIMARY + "40",
-    padding: 10,
-    marginBottom: 12
-  },
-  selectedPreviewCircle: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
     justifyContent: "center",
-    alignItems: "center",
-    marginRight: 10
-  },
-  selectedPreviewEmoji: {
-    fontSize: 22
-  },
-  selectedPreviewLabel: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: COLORS.TEXT
-  },
-
-  // Tabs
-  tabRow: {
-    flexDirection: "row",
-    marginBottom: 10
-  },
-  tab: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    marginRight: 8,
     backgroundColor: COLORS.CARD,
     borderWidth: 1,
     borderColor: COLORS.CARD_BORDER
+  },
+  closeText: {
+    color: COLORS.TEXT_SECONDARY,
+    fontSize: 18,
+    fontWeight: "700",
+    lineHeight: 21
+  },
+  selectedRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.CARD,
+    borderWidth: 1,
+    borderColor: COLORS.CARD_BORDER,
+    borderRadius: 14,
+    padding: 8,
+    marginBottom: 10
+  },
+  selectedIconBox: {
+    width: 34,
+    height: 34,
+    borderRadius: 11,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10
+  },
+  selectedLabel: {
+    flex: 1,
+    color: COLORS.TEXT,
+    fontSize: 14,
+    fontWeight: "700"
+  },
+  tabs: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 10
+  },
+  tab: {
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: COLORS.CARD_BORDER,
+    backgroundColor: COLORS.CARD,
+    paddingHorizontal: 12,
+    paddingVertical: 7
   },
   tabActive: {
     backgroundColor: COLORS.ROSE_MIST,
     borderColor: COLORS.PRIMARY
   },
+  tabDisabled: {
+    opacity: 0.45
+  },
   tabText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: COLORS.TEXT_SECONDARY
+    color: COLORS.TEXT_SECONDARY,
+    fontSize: 12,
+    fontWeight: "700"
   },
   tabTextActive: {
     color: COLORS.PRIMARY
   },
-
-  // Grid
-  gridContent: {
-    paddingBottom: 12
+  tabTextDisabled: {
+    color: COLORS.TEXT_MUTED
+  },
+  grid: {
+    paddingBottom: 8
   },
   gridRow: {
-    gap: GAP,
-    marginBottom: GAP
+    gap: GRID_GAP,
+    marginBottom: GRID_GAP
   },
-
-  // Icon Card
-  iconCard: {
-    width: CARD_SIZE,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    overflow: "hidden"
-  },
-  iconCardPressable: {
+  iconOption: {
+    width: ICON_SIZE,
+    height: 50,
+    borderRadius: 13,
+    borderWidth: 1,
+    borderColor: COLORS.CARD_BORDER,
+    backgroundColor: COLORS.CARD,
     alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 6
+    justifyContent: "center"
+  },
+  iconOptionSelected: {
+    borderColor: COLORS.PRIMARY,
+    backgroundColor: COLORS.ROSE_MIST
   },
   iconCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    justifyContent: "center",
+    width: 30,
+    height: 30,
+    borderRadius: 10,
     alignItems: "center",
+    justifyContent: "center"
+  },
+  checkMark: {
+    position: "absolute",
+    top: 4,
+    right: 6,
+    color: COLORS.PRIMARY,
+    fontSize: 12,
+    fontWeight: "900"
+  },
+  emptyState: {
+    alignItems: "center",
+    paddingVertical: 34
+  },
+  emptyTitle: {
+    color: COLORS.TEXT,
+    fontWeight: "800",
     marginBottom: 4
   },
-  iconEmoji: {
-    fontSize: 22
+  emptyText: {
+    color: COLORS.TEXT_SECONDARY,
+    fontSize: 12
   },
-  iconLabel: {
-    fontSize: 11,
-    fontWeight: "600",
-    color: COLORS.TEXT,
-    textAlign: "center",
-    lineHeight: 15
-  },
-
-  // Check badge
-  checkBadge: {
-    position: "absolute",
-    top: 6,
-    right: 6,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: COLORS.PRIMARY,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: COLORS.PRIMARY,
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3
-  },
-  checkText: {
-    color: COLORS.WHITE,
-    fontSize: 12,
-    fontWeight: "800"
-  },
-
-  // Confirm button
-  confirmBtn: {
+  doneButton: {
     backgroundColor: COLORS.PRIMARY,
     borderRadius: 14,
-    paddingVertical: 14,
     alignItems: "center",
-    marginTop: 8,
-    shadowColor: COLORS.PRIMARY,
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 3
+    paddingVertical: 12,
+    marginTop: 6
   },
-  confirmBtnText: {
+  doneText: {
     color: COLORS.WHITE,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "800"
-  },
-
-  // Empty state
-  emptySearch: {
-    alignItems: "center",
-    paddingVertical: 40
-  },
-  emptySearchEmoji: {
-    fontSize: 40,
-    marginBottom: 10
-  },
-  emptySearchText: {
-    fontSize: 14,
-    color: COLORS.TEXT_SECONDARY,
-    textAlign: "center"
   }
 });

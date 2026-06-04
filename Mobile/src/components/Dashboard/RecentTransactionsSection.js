@@ -1,9 +1,9 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../../constants/colors";
-import { clampScale, scale } from "../../utils/dimensions";
+import { clampScale, scale } from "../../utils/layoutScale";
 import { formatMoney } from "../../utils/format";
-import { formatRelativeTime } from "../../utils/dashboardUtils";
+import { formatRelativeTime } from "../../utils/dashboard";
 import { DashboardSectionCard, ToggleSectionHeader } from "./DashboardSection";
 
 function TransactionRow({ item }) {

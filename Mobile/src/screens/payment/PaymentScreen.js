@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Text } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import http from "../services/http";
-import { API_ENDPOINTS } from "../constants/api";
-import { PAYMENT_PLANS } from "../constants/paymentPlans";
-import { formatMoney, getApiErrorMessage } from "../utils/format";
-import { getSafeAreaContentStyle } from "../utils/safeAreaSpacing";
+import apiClient from "../../services/apiClient";
+import { API_ENDPOINTS } from "../../constants/api";
+import { PAYMENT_PLANS } from "../../constants/paymentPlans";
+import { formatMoney, getApiErrorMessage } from "../../utils/format";
+import { getSafeAreaContentStyle } from "../../utils/safeArea";
 
 export default function PaymentScreen() {
   const navigation = useNavigation();
@@ -24,7 +24,7 @@ export default function PaymentScreen() {
 
     setLoading(true);
     try {
-      const response = await http.post(API_ENDPOINTS.CREATE_PAYMENT, {
+      const response = await apiClient.post(API_ENDPOINTS.CREATE_PAYMENT, {
         planId: selectedPlan.id,
         amount: selectedPlan.amount,
         description: `Thanh toán ${selectedPlan.displayName}`

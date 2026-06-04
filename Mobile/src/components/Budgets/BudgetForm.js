@@ -1,7 +1,7 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { COLORS } from "../../constants/colors";
-import { CategoryVectorIcon, getIconColor } from "../../utils/VectorIcons";
+import { CategoryVectorIcon, getIconColor } from "../../utils/categoryIcons";
 
 function BudgetCategoryChip({ category, active, onPress }) {
   return (

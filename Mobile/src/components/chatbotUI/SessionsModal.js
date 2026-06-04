@@ -10,7 +10,7 @@ import {
   TextInput
 } from "react-native";
 import { COLORS } from "../../constants/colors";
-import { scale, clampScale } from "../../utils/dimensions";
+import { scale, clampScale } from "../../utils/layoutScale";
 
 export default function SessionsModal({
   visible,

@@ -1,22 +1,21 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   View,
   Text,
   Pressable,
   ScrollView,
-  Modal,
-  TextInput,
   Alert,
   ActivityIndicator,
   Dimensions,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import http from "../../services/http";
+import apiClient from "../../services/apiClient";
 import { API_ENDPOINTS } from "../../constants/api";
 import { COLORS } from "../../constants/colors";
 import { fetchCategoriesByType } from "../../services/categoryService";
-import { formatCurrencyInput, getApiErrorMessage, parseCurrencyInput, formatMoney, todayIso } from "../../utils/format";
+import { formatMoney, todayIso } from "../../utils/format";
+import { JarPickerModal, TemplateFormModal } from "./QuickExpenseTemplateModals";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const STORAGE_KEY = "quick_expense_templates";
@@ -29,8 +28,6 @@ const DEFAULT_TEMPLATES = [
   { id: "t5", emoji: "🧋", name: "Trà sữa",   amount: 45000,  categoryId: null, jarId: null },
   { id: "t6", emoji: "🍜", name: "Bún phở",   amount: 60000,  categoryId: null, jarId: null },
 ];
-
-const COMMON_EMOJIS = ["🍚","☕","⛽","🛒","🧋","🍜","🍔","🥤","🏥","📱","👗","🎮","🎬","📚","🏋️","🚕","✈️","🎁","💊","🧴"];
 
 export default function QuickExpenseTemplates({ onRefreshList }) {
   const [templates, setTemplates] = useState([]);
@@ -61,7 +58,7 @@ export default function QuickExpenseTemplates({ onRefreshList }) {
     const fetchData = async () => {
       try {
         const [jarsRes, catsRes] = await Promise.all([
-          http.get(API_ENDPOINTS.GET_JARS),
+          apiClient.get(API_ENDPOINTS.GET_JARS),
           fetchCategoriesByType("expense"),
         ]);
         setJars(Array.isArray(jarsRes.data) ? jarsRes.data : []);
@@ -105,7 +102,7 @@ export default function QuickExpenseTemplates({ onRefreshList }) {
         jarId: selectedJarId ? Number(selectedJarId) : null,
       };
 
-      await http.post(API_ENDPOINTS.ADD_EXPENSE, payload);
+      await apiClient.post(API_ENDPOINTS.ADD_EXPENSE, payload);
       Alert.alert("Thành công", `Đã ghi nhận nhanh: ${template.name} - ${formatMoney(template.amount)}`);
       
       if (typeof onRefreshList === "function") {
@@ -237,6 +234,7 @@ export default function QuickExpenseTemplates({ onRefreshList }) {
           jars={jars}
           onConfirm={handleJarPickerConfirm}
           onClose={() => setPendingTemplate(null)}
+          styles={styles}
         />
       )}
 
@@ -248,250 +246,10 @@ export default function QuickExpenseTemplates({ onRefreshList }) {
           jars={jars}
           onSave={handleSaveTemplate}
           onClose={() => setEditingTemplate(null)}
+          styles={styles}
         />
       )}
     </View>
-  );
-}
-
-// ─── Sub-Component 1: Jar Picker Modal ───────────────────────────────────────
-function JarPickerModal({ template, jars, onConfirm, onClose }) {
-  const [selectedJarId, setSelectedJarId] = useState(template.jarId ?? (jars[0]?.id ?? ""));
-  const [showPicker, setShowPicker] = useState(false);
-
-  const selectedJar = jars.find(j => j.id === Number(selectedJarId)) || jars[0];
-
-  return (
-    <Modal visible animationType="fade" transparent>
-      <View style={styles.modalOverlay}>
-        <View style={styles.jarPickerContent}>
-          <Text style={styles.jarPickerTitle}>Trừ tiền từ hũ nào?</Text>
-          <Text style={styles.jarPickerDesc}>
-            Ghi nhận khoản: {template.emoji} {template.name} — {formatMoney(template.amount)}
-          </Text>
-
-          <Text style={styles.modalLabel}>Chọn hũ chi tiêu</Text>
-          <Pressable style={styles.jarSelectCard} onPress={() => setShowPicker(!showPicker)}>
-            <View style={styles.jarSelectRow}>
-              <View style={[styles.jarSelectIconBox, { backgroundColor: (selectedJar?.color || COLORS.PRIMARY) + "18" }]}>
-                <Text style={styles.jarSelectIcon}>{selectedJar?.icon || "🏺"}</Text>
-              </View>
-              <Text style={styles.jarSelectName}>{selectedJar?.name || "Chọn hũ..."}</Text>
-              <Text style={styles.jarSelectArrow}>▾</Text>
-            </View>
-          </Pressable>
-
-          {showPicker && (
-            <View style={styles.jarOptionsList}>
-              <ScrollView nestedScrollEnabled style={{ maxHeight: 150 }}>
-                {jars.map((j) => (
-                  <Pressable
-                    key={j.id}
-                    style={styles.jarOptionItem}
-                    onPress={() => {
-                      setSelectedJarId(j.id);
-                      setShowPicker(false);
-                    }}
-                  >
-                    <Text style={styles.jarOptionIcon}>{j.icon || "🏺"}</Text>
-                    <Text style={styles.jarOptionName}>{j.name}</Text>
-                    <Text style={styles.jarOptionBalance}>({formatMoney(j.currentBalance)})</Text>
-                  </Pressable>
-                ))}
-              </ScrollView>
-            </View>
-          )}
-
-          <View style={styles.modalBtnRow}>
-            <Pressable style={styles.cancelBtn} onPress={onClose}>
-              <Text style={styles.cancelBtnText}>Hủy</Text>
-            </Pressable>
-            <Pressable style={styles.confirmBtn} onPress={() => onConfirm(selectedJarId)}>
-              <Text style={styles.confirmBtnText}>Xác nhận</Text>
-            </Pressable>
-          </View>
-        </View>
-      </View>
-    </Modal>
-  );
-}
-
-// ─── Sub-Component 2: Template Form Modal ───────────────────────────────────
-function TemplateFormModal({ template, categories, jars, onSave, onClose }) {
-  const isNew = !template?.id;
-  const [emoji, setEmoji] = useState(template?.emoji || "🍚");
-  const [name, setName] = useState(template?.name || "");
-  const [amount, setAmount] = useState(template?.amount ? formatCurrencyInput(String(template.amount)) : "");
-  const [categoryId, setCategoryId] = useState(template?.categoryId || (categories[0]?.id ?? ""));
-  const [jarId, setJarId] = useState(template?.jarId ?? "");
-
-  const [showEmojiGrid, setShowEmojiGrid] = useState(false);
-  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
-  const [showJarPicker, setShowJarPicker] = useState(false);
-
-  const selectedCategory = categories.find(c => c.id === Number(categoryId)) || categories[0];
-  const selectedJar = jars.find(j => j.id === Number(jarId));
-
-  const handleSubmit = () => {
-    if (!name.trim()) {
-      Alert.alert("Thiếu thông tin", "Vui lòng nhập tên mẫu.");
-      return;
-    }
-    const parsedAmount = parseCurrencyInput(amount);
-    if (parsedAmount <= 0) {
-      Alert.alert("Số tiền không hợp lệ", "Vui lòng nhập số tiền lớn hơn 0.");
-      return;
-    }
-
-    onSave({
-      ...template,
-      emoji,
-      name: name.trim(),
-      amount: parsedAmount,
-      categoryId: categoryId ? Number(categoryId) : null,
-      jarId: jarId ? Number(jarId) : null,
-    });
-  };
-
-  return (
-    <Modal visible animationType="slide" transparent>
-      <View style={styles.modalOverlay}>
-        <View style={styles.formContent}>
-          <Text style={styles.formTitle}>{isNew ? "Thêm mẫu chi tiêu nhanh" : "Chỉnh sửa mẫu chi tiêu"}</Text>
-
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
-            {/* Emoji + Name */}
-            <Text style={styles.modalLabel}>Biểu tượng & Tên mẫu</Text>
-            <View style={styles.emojiNameRow}>
-              <Pressable style={styles.emojiBubbleBtn} onPress={() => setShowEmojiGrid(!showEmojiGrid)}>
-                <Text style={styles.emojiBubbleText}>{emoji}</Text>
-                <Text style={styles.emojiBubbleArrow}>▾</Text>
-              </Pressable>
-              <TextInput
-                style={styles.nameInput}
-                value={name}
-                onChangeText={setName}
-                placeholder="VD: Cơm trưa, Siêu thị"
-                placeholderTextColor={COLORS.TEXT_MUTED}
-              />
-            </View>
-
-            {/* Emoji Grid preset lists */}
-            {showEmojiGrid && (
-              <View style={styles.emojiPresetsCard}>
-                <View style={styles.emojiPresetsGrid}>
-                  {COMMON_EMOJIS.map((e) => (
-                    <Pressable
-                      key={e}
-                      style={styles.emojiPresetCell}
-                      onPress={() => {
-                        setEmoji(e);
-                        setShowEmojiGrid(false);
-                      }}
-                    >
-                      <Text style={styles.emojiPresetText}>{e}</Text>
-                    </Pressable>
-                  ))}
-                </View>
-              </View>
-            )}
-
-            {/* Amount */}
-            <Text style={styles.modalLabel}>Số tiền mặc định (VND)</Text>
-            <TextInput
-              style={styles.modalInput}
-              value={amount}
-              onChangeText={(val) => setAmount(formatCurrencyInput(val))}
-              keyboardType="numeric"
-              placeholder="0"
-              placeholderTextColor={COLORS.TEXT_MUTED}
-            />
-
-            {/* Category dropdown picker */}
-            {categories.length > 0 && (
-              <>
-                <Text style={styles.modalLabel}>Danh mục liên kết (Tùy chọn)</Text>
-                <Pressable style={styles.selectCard} onPress={() => setShowCategoryPicker(!showCategoryPicker)}>
-                  <View style={styles.selectRow}>
-                    <Text style={styles.selectValue}>{selectedCategory?.name || "Chọn danh mục..."}</Text>
-                    <Text style={styles.selectArrow}>▾</Text>
-                  </View>
-                </Pressable>
-
-                {showCategoryPicker && (
-                  <View style={styles.dropdownCard}>
-                    <ScrollView nestedScrollEnabled style={{ maxHeight: 150 }}>
-                      {categories.map((c) => (
-                        <Pressable
-                          key={c.id}
-                          style={styles.dropdownItem}
-                          onPress={() => {
-                            setCategoryId(c.id);
-                            setShowCategoryPicker(false);
-                          }}
-                        >
-                          <Text style={styles.dropdownItemText}>{c.name}</Text>
-                        </Pressable>
-                      ))}
-                    </ScrollView>
-                  </View>
-                )}
-              </>
-            )}
-
-            {/* Jar dropdown picker */}
-            {jars.length > 0 && (
-              <>
-                <Text style={styles.modalLabel}>Hũ mặc định liên kết (Tùy chọn)</Text>
-                <Pressable style={styles.selectCard} onPress={() => setShowJarPicker(!showJarPicker)}>
-                  <View style={styles.selectRow}>
-                    <Text style={styles.selectValue}>{selectedJar ? `🏦 ${selectedJar.name}` : "Không liên kết hũ"}</Text>
-                    <Text style={styles.selectArrow}>▾</Text>
-                  </View>
-                </Pressable>
-
-                {showJarPicker && (
-                  <View style={styles.dropdownCard}>
-                    <ScrollView nestedScrollEnabled style={{ maxHeight: 150 }}>
-                      <Pressable
-                        style={styles.dropdownItem}
-                        onPress={() => {
-                          setJarId("");
-                          setShowJarPicker(false);
-                        }}
-                      >
-                        <Text style={[styles.dropdownItemText, { color: COLORS.PRIMARY }]}>Không liên kết hũ</Text>
-                      </Pressable>
-                      {jars.map((j) => (
-                        <Pressable
-                          key={j.id}
-                          style={styles.dropdownItem}
-                          onPress={() => {
-                            setJarId(j.id);
-                            setShowJarPicker(false);
-                          }}
-                        >
-                          <Text style={styles.dropdownItemText}>🏦 {j.name}</Text>
-                        </Pressable>
-                      ))}
-                    </ScrollView>
-                  </View>
-                )}
-              </>
-            )}
-          </ScrollView>
-
-          <View style={styles.modalBtnRow}>
-            <Pressable style={styles.cancelBtn} onPress={onClose}>
-              <Text style={styles.cancelBtnText}>Hủy</Text>
-            </Pressable>
-            <Pressable style={styles.confirmBtn} onPress={handleSubmit}>
-              <Text style={styles.confirmBtnText}>Lưu mẫu</Text>
-            </Pressable>
-          </View>
-        </View>
-      </View>
-    </Modal>
   );
 }
 

@@ -1,4 +1,4 @@
-import http from "./http";
+import apiClient from "./apiClient";
 import { API_ENDPOINTS } from "../constants/api";
 
 /**
@@ -6,7 +6,7 @@ import { API_ENDPOINTS } from "../constants/api";
  * Returns { insight: string, status: string } or an error object.
  */
 export async function fetchAiInsight() {
-  const response = await http.get(API_ENDPOINTS.AI_INSIGHT);
+  const response = await apiClient.get(API_ENDPOINTS.AI_INSIGHT);
   return response.data;
 }
 
@@ -16,7 +16,7 @@ export async function fetchAiInsight() {
  * Returns extended insight data or 403 if insufficient plan.
  */
 export async function fetchDetailedAiInsight() {
-  const response = await http.get(API_ENDPOINTS.AI_INSIGHT_DETAILED);
+  const response = await apiClient.get(API_ENDPOINTS.AI_INSIGHT_DETAILED);
   return response.data;
 }
 
@@ -37,6 +37,6 @@ export async function fetchDetailedAiInsight() {
  *   - generatedAt: timestamp of generation
  */
 export async function fetchAiForecast(year, month) {
-  const response = await http.get(API_ENDPOINTS.AI_INSIGHT_FORECAST(year, month));
+  const response = await apiClient.get(API_ENDPOINTS.AI_INSIGHT_FORECAST(year, month));
   return response.data;
 }

@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { Image, StyleSheet, View } from "react-native";
 import { COLORS } from "../../constants/colors";
 import bannerImage from "../../assets/moneymanagerbanner.avif";

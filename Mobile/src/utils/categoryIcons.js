@@ -1,5 +1,5 @@
-﻿import React from "react";
-import { Text } from "react-native";
+import React from "react";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const ICON_PREFIX = "mdi:";
 
@@ -65,37 +65,6 @@ const LEGACY_EMOJI_TO_ICON = {
   "📁": "folder-outline"
 };
 
-const ICON_TO_EMOJI = {
-  "cash-multiple": "💵",
-  briefcase: "💼",
-  gift: "🎁",
-  bank: "🏦",
-  "trending-up": "📈",
-  "wallet-plus": "👛",
-  "account-cash": "🧾",
-  "cash-refund": "💸",
-  "piggy-bank": "🐷",
-  "hand-coin": "🫴",
-  "chart-line": "📊",
-  "cash-check": "✅",
-  noodles: "🍜",
-  cart: "🛒",
-  car: "🚗",
-  home: "🏠",
-  pill: "💊",
-  "lightning-bolt": "⚡",
-  water: "💧",
-  wifi: "📶",
-  phone: "📱",
-  "movie-open": "🎬",
-  school: "🎓",
-  airplane: "✈️",
-  dog: "🐶",
-  charity: "❤️",
-  "credit-card-minus": "💳",
-  "folder-outline": "📁"
-};
-
 const PRESET_BY_VALUE = [...CATEGORY_ICON_PRESETS.income, ...CATEGORY_ICON_PRESETS.expense].reduce((acc, preset) => {
   acc[preset.value] = preset;
   return acc;
@@ -138,11 +107,6 @@ function resolveIconName(iconValue) {
   return "folder-outline";
 }
 
-function resolveIconText(iconValue) {
-  const iconName = resolveIconName(iconValue);
-  return ICON_TO_EMOJI[iconName] || ICON_TO_EMOJI["folder-outline"];
-}
-
 function resolveIconColor(iconValue, defaultColor) {
   const normalized = String(iconValue || "").trim();
   return PRESET_BY_VALUE[normalized]?.color || defaultColor;
@@ -154,22 +118,15 @@ export function CategoryVectorIcon({
   color = "#344054",
   style
 }) {
-  const iconText = resolveIconText(iconValue);
+  const iconName = resolveIconName(iconValue);
   const iconColor = resolveIconColor(iconValue, color);
 
   return (
-    <Text
-      style={[
-        {
-          color: iconColor,
-          fontSize: size,
-          lineHeight: Math.ceil(size * 1.2),
-          textAlign: "center"
-        },
-        style
-      ]}
-    >
-      {iconText}
-    </Text>
+    <MaterialCommunityIcons
+      name={iconName}
+      size={size}
+      color={iconColor}
+      style={style}
+    />
   );
 }

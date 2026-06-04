@@ -1,7 +1,7 @@
 import { useCallback, useContext, useMemo, useState } from "react";
 import { AuthContext } from "../contexts/AuthContext";
-import { fetchAiForecast } from "../services/aiInsightApi";
-import { saveAiForecastDraft } from "../services/forecastDraftCache";
+import { fetchAiForecast } from "../services/aiInsightService";
+import { saveAiForecastDraft } from "../services/forecastDraftCacheService";
 
 export function useAiInsight() {
   const { user } = useContext(AuthContext);

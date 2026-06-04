@@ -17,7 +17,7 @@ const publicEndpoints = [
   "/health"
 ];
 
-const http = axios.create({
+const apiClient = axios.create({
   baseURL: BASE_URL,
   timeout: 120000,
   headers: {
@@ -27,7 +27,7 @@ const http = axios.create({
   }
 });
 
-http.interceptors.request.use(async (config) => {
+apiClient.interceptors.request.use(async (config) => {
   const shouldSkipToken = publicEndpoints.some((endpoint) => config.url?.includes(endpoint));
   if (shouldSkipToken) {
     return config;
@@ -41,4 +41,4 @@ http.interceptors.request.use(async (config) => {
   return config;
 });
 
-export default http;
+export default apiClient;

@@ -1,4 +1,4 @@
-import http from "./http";
+import apiClient from "./apiClient";
 import { API_ENDPOINTS } from "../constants/api";
 
 /**
@@ -7,7 +7,7 @@ import { API_ENDPOINTS } from "../constants/api";
  * @returns {Promise<{reply: string, model: string}>}
  */
 export const sendGeminiChat = async (message) => {
-  const response = await http.post(API_ENDPOINTS.GEMINI_CHAT, { message });
+  const response = await apiClient.post(API_ENDPOINTS.GEMINI_CHAT, { message });
   return response.data;
 };
 
@@ -19,7 +19,7 @@ export const sendGeminiChat = async (message) => {
  * @returns {Promise<{reply: string, provider: string, modelUsed: string}>}
  */
 export const sendAiChat = async (messages, provider = "gemini", model = null, sessionId = null, saveHistory = true, signal = null) => {
-  const response = await http.post(API_ENDPOINTS.AI_CHAT, {
+  const response = await apiClient.post(API_ENDPOINTS.AI_CHAT, {
     provider,
     model,
     messages,
@@ -41,7 +41,7 @@ export const sendAiChat = async (messages, provider = "gemini", model = null, se
  * @returns {Promise<any>}
  */
 export const parseAiIntent = async (userMessage, pageContext = "dashboard", conversationHistory = [], provider = "gemini", model = null, sessionId = null, signal = null) => {
-  const response = await http.post(API_ENDPOINTS.AI_PARSE_INTENT, {
+  const response = await apiClient.post(API_ENDPOINTS.AI_PARSE_INTENT, {
     provider,
     model,
     userMessage,
@@ -59,7 +59,7 @@ export const parseAiIntent = async (userMessage, pageContext = "dashboard", conv
  * @returns {Promise<{status: string, message: string, operationId: string, undoable: boolean}>}
  */
 export const confirmAiAction = async (intent, extractedData) => {
-  const response = await http.post(API_ENDPOINTS.AI_CONFIRM_ACTION, {
+  const response = await apiClient.post(API_ENDPOINTS.AI_CONFIRM_ACTION, {
     intent,
     extractedData
   });
@@ -72,6 +72,6 @@ export const confirmAiAction = async (intent, extractedData) => {
  * @returns {Promise<any>}
  */
 export const undoAiAction = async (operationId) => {
-  const response = await http.post(API_ENDPOINTS.AI_UNDO(operationId));
+  const response = await apiClient.post(API_ENDPOINTS.AI_UNDO(operationId));
   return response.data;
 };

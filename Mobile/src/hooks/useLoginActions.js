@@ -7,7 +7,7 @@ import {
   getActivationEmail,
   isActivationRequiredError,
   openActivationOtp,
-} from "../utils/accountActivation";
+} from "../utils/authActivation";
 import { tokenStorage } from "../storage/tokenStorage";
 
 export default function useLoginActions() {

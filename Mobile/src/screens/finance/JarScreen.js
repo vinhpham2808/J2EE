@@ -2,16 +2,16 @@ import React, { useCallback, useContext } from "react";
 import { Alert, FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { AuthContext } from "../contexts/AuthContext";
-import JarAllocationChart from "../components/Jars/JarAllocationChart";
-import JarCard from "../components/Jars/JarCard";
-import JarDetailView from "../components/Jars/JarDetailView";
-import JarFormView from "../components/Jars/JarFormView";
-import JarOverview from "../components/Jars/JarOverview";
-import JarTransferView from "../components/Jars/JarTransferView";
-import { COLORS } from "../constants/colors";
-import useJarList from "../hooks/useJarList";
-import { getSafeAreaBottom, getSafeAreaTop } from "../utils/safeAreaSpacing";
+import { AuthContext } from "../../contexts/AuthContext";
+import JarAllocationChart from "../../components/Jars/JarAllocationChart";
+import JarCard from "../../components/Jars/JarCard";
+import JarDetailView from "../../components/Jars/JarDetailView";
+import JarFormView from "../../components/Jars/JarFormView";
+import JarOverview from "../../components/Jars/JarOverview";
+import JarTransferView from "../../components/Jars/JarTransferView";
+import { COLORS } from "../../constants/colors";
+import useJarList from "../../hooks/useJarList";
+import { getSafeAreaBottom, getSafeAreaTop } from "../../utils/safeArea";
 
 function JarActions({ jarCount, onCreate, onTransfer }) {
   return (

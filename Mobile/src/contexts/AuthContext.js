@@ -1,8 +1,8 @@
 import React, { createContext, useCallback, useEffect, useMemo, useState } from "react";
-import http from "../services/http";
+import apiClient from "../services/apiClient";
 import { API_ENDPOINTS } from "../constants/api";
 import { tokenStorage } from "../storage/tokenStorage";
-import { signInWithGoogleNative, exchangeGoogleToken, signOutGoogle } from "../services/googleAuth";
+import { signInWithGoogleNative, exchangeGoogleToken, signOutGoogle } from "../services/authGoogleService";
 
 export const AuthContext = createContext({
   user: null,
@@ -20,13 +20,13 @@ export function AuthProvider({ children }) {
   const [googleAuthLoading, setGoogleAuthLoading] = useState(false);
 
   const refreshUser = useCallback(async () => {
-    const response = await http.get(API_ENDPOINTS.GET_USER_INFO);
+    const response = await apiClient.get(API_ENDPOINTS.GET_USER_INFO);
     setUser(response.data || null);
     return response.data;
   }, []);
 
   const signIn = useCallback(async ({ email, password, rememberMe = false }) => {
-    const response = await http.post(API_ENDPOINTS.LOGIN, { email, password });
+    const response = await apiClient.post(API_ENDPOINTS.LOGIN, { email, password });
     const { token, user: profile } = response.data || {};
 
     if (!token) {

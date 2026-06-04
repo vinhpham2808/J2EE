@@ -2,12 +2,12 @@ import React, { useEffect, useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View, Modal, Dimensions } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import http from "../../services/http";
+import apiClient from "../../services/apiClient";
 import { API_ENDPOINTS } from "../../constants/api";
 import { COLORS } from "../../constants/colors";
 import { getApiErrorMessage } from "../../utils/format";
-import { JAR_COLORS, JAR_EMOJI_CATEGORIES } from "../../utils/jarUtils";
-import { getSafeAreaContentStyle } from "../../utils/safeAreaSpacing";
+import { JAR_COLORS, JAR_EMOJI_CATEGORIES } from "../../utils/jar";
+import { getSafeAreaContentStyle } from "../../utils/safeArea";
 
 export default function JarFormView() {
   const navigation = useNavigation();
@@ -56,10 +56,10 @@ export default function JarFormView() {
       };
 
       if (isEditing && initialData?.id) {
-        await http.put(API_ENDPOINTS.UPDATE_JAR(initialData.id), payload);
+        await apiClient.put(API_ENDPOINTS.UPDATE_JAR(initialData.id), payload);
         Alert.alert("Thành công", "Đã cập nhật hũ chi tiêu.");
       } else {
-        await http.post(API_ENDPOINTS.ADD_JAR, payload);
+        await apiClient.post(API_ENDPOINTS.ADD_JAR, payload);
         Alert.alert("Thành công", "Đã tạo hũ chi tiêu mới thành công.");
       }
 

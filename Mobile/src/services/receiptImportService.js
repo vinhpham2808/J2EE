@@ -1,4 +1,4 @@
-import http from "./http";
+import apiClient from "./apiClient";
 import { API_ENDPOINTS } from "../constants/api";
 
 /**
@@ -26,7 +26,7 @@ export async function analyzeReceipt(imageAsset) {
     type: mimeType,
   });
 
-  const response = await http.post(API_ENDPOINTS.ANALYZE_EXPENSE_RECEIPT, formData, {
+  const response = await apiClient.post(API_ENDPOINTS.ANALYZE_EXPENSE_RECEIPT, formData, {
     headers: {
       "Content-Type": "multipart/form-data",
       Accept: "application/json",
@@ -77,7 +77,7 @@ export async function analyzeReceiptFile(fileAsset) {
     type: mimeType,
   });
 
-  const response = await http.post(API_ENDPOINTS.ANALYZE_EXPENSE_RECEIPT, formData, {
+  const response = await apiClient.post(API_ENDPOINTS.ANALYZE_EXPENSE_RECEIPT, formData, {
     headers: {
       "Content-Type": "multipart/form-data",
       Accept: "application/json",
@@ -99,6 +99,6 @@ export async function analyzeReceiptFile(fileAsset) {
  * @returns {Promise<object>} ReceiptImportResponseDTO
  */
 export async function confirmReceiptImport(payload) {
-  const response = await http.post(API_ENDPOINTS.CONFIRM_EXPENSE_RECEIPT_IMPORT, payload);
+  const response = await apiClient.post(API_ENDPOINTS.CONFIRM_EXPENSE_RECEIPT_IMPORT, payload);
   return response.data;
 }

@@ -2,14 +2,14 @@ import React, { useCallback } from "react";
 import { FlatList, RefreshControl, StyleSheet, View } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import IncomeEmptyState from "../components/Incomes/IncomeEmptyState";
-import IncomeForm from "../components/Incomes/IncomeForm";
-import IncomeItem from "../components/Incomes/IncomeItem";
-import IncomeListHeader from "../components/Incomes/IncomeListHeader";
-import { COLORS } from "../constants/colors";
-import useIncomeForm from "../hooks/useIncomeForm";
-import useIncomes from "../hooks/useIncomes";
-import { getSafeAreaBottom, getSafeAreaContentStyle, getSafeAreaTop } from "../utils/safeAreaSpacing";
+import IncomeEmptyState from "../../components/Incomes/IncomeEmptyState";
+import IncomeForm from "../../components/Incomes/IncomeForm";
+import IncomeItem from "../../components/Incomes/IncomeItem";
+import IncomeListHeader from "../../components/Incomes/IncomeListHeader";
+import { COLORS } from "../../constants/colors";
+import useIncomeForm from "../../hooks/useIncomeForm";
+import useIncomes from "../../hooks/useIncomes";
+import { getSafeAreaBottom, getSafeAreaContentStyle, getSafeAreaTop } from "../../utils/safeArea";
 
 export default function IncomeScreen() {
   const route = useRoute();

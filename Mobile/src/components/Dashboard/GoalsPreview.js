@@ -1,7 +1,7 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../../constants/colors";
-import { clampScale, scale } from "../../utils/dimensions";
+import { clampScale, scale } from "../../utils/layoutScale";
 import { formatMoney } from "../../utils/format";
 import { DashboardSectionCard, DashboardSectionHeader } from "./DashboardSection";
 import ShowMoreButton from "../common/ShowMoreButton";

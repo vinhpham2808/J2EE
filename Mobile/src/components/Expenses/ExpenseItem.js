@@ -2,7 +2,7 @@ import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../../constants/colors";
 import { formatDate, formatMoney } from "../../utils/format";
-import { CategoryVectorIcon, getIconColor } from "../../utils/VectorIcons";
+import { CategoryVectorIcon, getIconColor } from "../../utils/categoryIcons";
 
 function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

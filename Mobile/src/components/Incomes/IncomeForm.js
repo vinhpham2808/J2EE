@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-
 import CategoryGridSelector from "../common/CategoryGridSelector";
 import { COLORS } from "../../constants/colors";
 import { formatCurrencyInput, formatMoney } from "../../utils/format";
-import { PickDateField } from "../../utils/pickDate";
+import { PickDateField } from "../../utils/datePicker";
 
 export default function IncomeForm({ form, insetsStyle }) {
   return (

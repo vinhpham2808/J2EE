@@ -1,12 +1,12 @@
 import React, { useCallback } from "react";
 import { FlatList, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import BudgetCard from "../components/Budgets/BudgetCard";
-import BudgetForm from "../components/Budgets/BudgetForm";
-import BudgetSummary from "../components/Budgets/BudgetSummary";
-import { COLORS } from "../constants/colors";
-import useBudget from "../hooks/useBudget";
-import { getSafeAreaBottom, getSafeAreaTop } from "../utils/safeAreaSpacing";
+import BudgetCard from "../../components/Budgets/BudgetCard";
+import BudgetForm from "../../components/Budgets/BudgetForm";
+import BudgetSummary from "../../components/Budgets/BudgetSummary";
+import { COLORS } from "../../constants/colors";
+import useBudget from "../../hooks/useBudget";
+import { getSafeAreaBottom, getSafeAreaTop } from "../../utils/safeArea";
 
 function BudgetEmptyState() {
   return (

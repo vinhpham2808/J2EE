@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { COLORS } from "../../constants/colors";
 import { formatCurrencyInput, parseCurrencyInput, todayIso } from "../../utils/format";
-import { PickDateField } from "../../utils/pickDate";
-import { CategoryVectorIcon, getIconColor } from "../../utils/VectorIcons";
+import { PickDateField } from "../../utils/datePicker";
+import { CategoryVectorIcon, getIconColor } from "../../utils/categoryIcons";
 import CategoryPickerModal from "./CategoryPickerModal";
 
 export default function ReceiptItemRow({

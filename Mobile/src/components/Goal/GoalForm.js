@@ -2,7 +2,7 @@ import React from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { COLORS } from "../../constants/colors";
 import { formatCurrencyInput } from "../../utils/format";
-import { PickDateField } from "../../utils/pickDate";
+import { PickDateField } from "../../utils/datePicker";
 
 /**
  * Form card for creating a new goal.

@@ -1,7 +1,7 @@
 import { API_ENDPOINTS } from "../constants/api";
-import http from "./http";
+import apiClient from "./apiClient";
 
 export async function fetchJars() {
-  const response = await http.get(API_ENDPOINTS.GET_JARS);
+  const response = await apiClient.get(API_ENDPOINTS.GET_JARS);
   return Array.isArray(response.data) ? response.data : [];
 }

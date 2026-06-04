@@ -12,7 +12,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import appLogo from "../../assets/applogo.png";
 import { COLORS } from "../../constants/colors";
-import { scale, clampScale } from "../../utils/dimensions";
+import { scale, clampScale } from "../../utils/layoutScale";
 import useLoginActions from "../../hooks/useLoginActions";
 import LoginForm from "../../components/auth/LoginForm";
 

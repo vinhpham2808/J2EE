@@ -1,9 +1,9 @@
 import React, { useContext } from "react";
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { AuthContext } from "../contexts/AuthContext";
-import { COLORS } from "../constants/colors";
-import { getSafeAreaBottom, getSafeAreaTop } from "../utils/safeAreaSpacing";
+import { AuthContext } from "../../contexts/AuthContext";
+import { COLORS } from "../../constants/colors";
+import { getSafeAreaBottom, getSafeAreaTop } from "../../utils/safeArea";
 
 function InfoRow({ label, value, showChevron = false, isLast = false }) {
   return (

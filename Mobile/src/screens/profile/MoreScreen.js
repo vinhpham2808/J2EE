@@ -2,12 +2,12 @@ import React, { useContext, useState } from "react";
 import { ScrollView, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { AuthContext } from "../contexts/AuthContext";
-import MoreSettings, { LogoutButton } from "../components/More/MoreSettings";
-import ProfileHero from "../components/More/ProfileHero";
-import { COLORS } from "../constants/colors";
-import useEmailPreferences from "../hooks/useEmailPreferences";
-import { getSafeAreaContentStyle } from "../utils/safeAreaSpacing";
+import { AuthContext } from "../../contexts/AuthContext";
+import MoreSettings, { LogoutButton } from "../../components/More/MoreSettings";
+import ProfileHero from "../../components/More/ProfileHero";
+import { COLORS } from "../../constants/colors";
+import useEmailPreferences from "../../hooks/useEmailPreferences";
+import { getSafeAreaContentStyle } from "../../utils/safeArea";
 
 export default function MoreScreen() {
   const navigation = useNavigation();

@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../../constants/colors";
-import { formatJarMoney } from "../../utils/jarUtils";
+import { formatJarMoney } from "../../utils/jar";
 
 export default function JarOverview({ jarCount, maxJars, totalBalance, totalPercentage }) {
   return (

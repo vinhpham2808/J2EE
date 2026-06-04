@@ -5,7 +5,7 @@ import { fetchCategoriesByType } from "../services/categoryService";
 import { createExpense } from "../services/expenseService";
 import { fetchJars } from "../services/jarService";
 import { formatCurrencyInput, getApiErrorMessage, parseCurrencyInput, todayIso } from "../utils/format";
-import { parseNote, suggestCategory } from "../utils/smartNoteParser";
+import { parseNote, suggestCategory } from "../utils/noteParser";
 
 function getDefaultJarId(jars, defaultJarId) {
   if (defaultJarId) {

@@ -3,7 +3,7 @@ import { StyleSheet } from "react-native";
 import AiInsightButton from "../Ai_Insight/AiInsightButton";
 import FinanceOverviewChart from "./FinanceOverviewChart";
 import { DashboardSectionHeader } from "./DashboardSection";
-import { scale } from "../../utils/dimensions";
+import { scale } from "../../utils/layoutScale";
 
 export default function FinanceOverviewSection({ dashboard, monthlySeries, onAiPress }) {
   return (

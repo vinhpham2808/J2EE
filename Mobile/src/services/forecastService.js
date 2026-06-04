@@ -1,4 +1,4 @@
-import http from "./http";
+import apiClient from "./apiClient";
 import { API_ENDPOINTS } from "../constants/api";
 
 /**
@@ -6,7 +6,7 @@ import { API_ENDPOINTS } from "../constants/api";
  * @returns {Promise<{year, month, categories: Array}>}
  */
 export const fetchMonthlyForecast = async (year, month) => {
-  const response = await http.get(API_ENDPOINTS.FORECAST_MONTHLY(year, month));
+  const response = await apiClient.get(API_ENDPOINTS.FORECAST_MONTHLY(year, month));
   return response.data;
 };
 
@@ -15,7 +15,7 @@ export const fetchMonthlyForecast = async (year, month) => {
  * @returns {Promise<Array<{transactionId, type, amount, categoryName, date, meanAmount, stdDev}>>}
  */
 export const fetchAnomalies = async (year, month) => {
-  const response = await http.get(API_ENDPOINTS.FORECAST_ANOMALIES(year, month));
+  const response = await apiClient.get(API_ENDPOINTS.FORECAST_ANOMALIES(year, month));
   return Array.isArray(response.data) ? response.data : [];
 };
 
@@ -24,7 +24,7 @@ export const fetchAnomalies = async (year, month) => {
  * @returns {Promise<{categoryName, dataPoints: Array}>}
  */
 export const fetchCategoryTrend = async (categoryId, months = 6) => {
-  const response = await http.get(
+  const response = await apiClient.get(
     API_ENDPOINTS.FORECAST_CATEGORY_TREND(categoryId, months)
   );
   return response.data;
@@ -36,6 +36,6 @@ export const fetchCategoryTrend = async (categoryId, months = 6) => {
  * @returns {Promise<{narrative, generatedAt}>}
  */
 export const fetchInsights = async (forecastData) => {
-  const response = await http.post(API_ENDPOINTS.FORECAST_INSIGHTS, forecastData);
+  const response = await apiClient.post(API_ENDPOINTS.FORECAST_INSIGHTS, forecastData);
   return response.data;
 };

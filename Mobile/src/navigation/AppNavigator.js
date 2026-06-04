@@ -13,8 +13,8 @@ import CreatePasswordScreen from "../screens/auth/CreatePasswordScreen";
 import ForgotPasswordScreen from "../screens/auth/ForgotPasswordScreen";
 import ForgotPasswordOtpScreen from "../screens/auth/ForgotPasswordOtpScreen";
 import ResetPasswordScreen from "../screens/auth/ResetPasswordScreen";
-import VerifyOtpScreen from "../screens/VerifyOtpScreen";
-import OnboardingScreen, { ONBOARDING_KEY } from "../screens/OnboardingScreen";
+import VerifyOtpScreen from "../screens/auth/VerifyOtpScreen";
+import OnboardingScreen, { ONBOARDING_KEY } from "../screens/onboarding/OnboardingScreen";
 
 const Stack = createNativeStackNavigator();
 

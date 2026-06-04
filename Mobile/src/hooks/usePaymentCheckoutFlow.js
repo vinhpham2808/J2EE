@@ -5,7 +5,7 @@ import {
   buildPaymentResultParams,
   isExternalPaymentScheme,
   isPaymentResultUrl
-} from "../utils/paymentCheckoutUrl";
+} from "../utils/paymentUrl";
 
 export default function usePaymentCheckoutFlow() {
   const navigation = useNavigation();

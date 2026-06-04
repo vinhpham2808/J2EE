@@ -8,21 +8,21 @@ import {
 } from "react-native";
 import { useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { AuthContext } from "../contexts/AuthContext";
-import { COLORS } from "../constants/colors";
-import { TREND_CONFIG } from "../constants/forecastConfig";
-import { formatMoney } from "../utils/format";
-import { getSafeAreaContentStyle } from "../utils/safeAreaSpacing";
-import useForecastData from "../hooks/useForecastData";
-import ForecastPaywall from "../components/Forecast/ForecastPaywall";
-import ForecastSummaryCard from "../components/Forecast/ForecastSummaryCard";
-import ForecastMonthPicker from "../components/Forecast/ForecastMonthPicker";
-import ForecastBarChart from "../components/Forecast/ForecastBarChart";
-import ForecastCategoryChips from "../components/Forecast/ForecastCategoryChips";
-import ForecastTrendChart from "../components/Forecast/ForecastTrendChart";
-import ForecastAnomalySection from "../components/Forecast/ForecastAnomalySection";
-import ForecastAISection from "../components/Forecast/ForecastAISection";
-import ForecastEmptyState from "../components/Forecast/ForecastEmptyState";
+import { AuthContext } from "../../contexts/AuthContext";
+import { COLORS } from "../../constants/colors";
+import { TREND_CONFIG } from "../../constants/forecastConfig";
+import { formatMoney } from "../../utils/format";
+import { getSafeAreaContentStyle } from "../../utils/safeArea";
+import useForecastData from "../../hooks/useForecastData";
+import ForecastPaywall from "../../components/Forecast/ForecastPaywall";
+import ForecastSummaryCard from "../../components/Forecast/ForecastSummaryCard";
+import ForecastMonthPicker from "../../components/Forecast/ForecastMonthPicker";
+import ForecastBarChart from "../../components/Forecast/ForecastBarChart";
+import ForecastCategoryChips from "../../components/Forecast/ForecastCategoryChips";
+import ForecastTrendChart from "../../components/Forecast/ForecastTrendChart";
+import ForecastAnomalySection from "../../components/Forecast/ForecastAnomalySection";
+import ForecastAISection from "../../components/Forecast/ForecastAISection";
+import ForecastEmptyState from "../../components/Forecast/ForecastEmptyState";
 
 export default function ForecastScreen() {
   const route = useRoute();

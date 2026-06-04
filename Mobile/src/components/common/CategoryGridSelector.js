@@ -1,350 +1,467 @@
-import React, { useRef, useState, useMemo } from "react";
-import { Animated, Pressable, StyleSheet, Text, View, Modal, ScrollView, Dimensions } from "react-native";
+import React, { useState, useMemo } from "react";
+import { Pressable, StyleSheet, Text, View, Modal, ScrollView, TextInput } from "react-native";
 import { COLORS } from "../../constants/colors";
-import { CategoryVectorIcon, getIconColor } from "../../utils/VectorIcons";
-
-/**
- * Modern 2-column pastel grid category selector.
- *
- * Features:
- * - 2-column grid layout — easy to scan on mobile
- * - Pastel card backgrounds with soft shadows
- * - Selected state: subtle fill, primary border, checkmark badge
- * - Scale animation on press and selection
- * - Icon rendered inside a pastel circular container (44×44)
- *
- * Props:
- * - categories: Array<{ id, name, icon, color? }>
- * - selectedId: string | number — currently selected category id
- * - onSelect: (id: string) => void
- * - loading: boolean — show loading state
- * - emptyText: string — text when no categories
- * - maxDisplay: number — max items to show directly (default: 6) before showing "Xem thêm"
- */
+import { CategoryVectorIcon, getIconColor } from "../../utils/categoryIcons";
 
 export default function CategoryGridSelector({
   categories = [],
   selectedId,
   onSelect,
+  onCreateNew,
+  recentIds = [],
+  label = "Danh mục",
+  placeholder = "Chọn danh mục",
   loading = false,
   emptyText = "Chưa có danh mục. Hãy tạo danh mục ở tab Danh mục.",
-  maxDisplay = 6
 }) {
-  const [sheetVisible, setSheetVisible] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [searchText, setSearchText] = useState("");
 
-  const displayData = useMemo(() => {
-    if (categories.length <= maxDisplay) return categories;
+  const selectedCategory = useMemo(() => {
+    if (!selectedId) return null;
+    return categories.find((c) => String(c.id) === String(selectedId));
+  }, [categories, selectedId]);
 
-    // Cần hiển thị (maxDisplay - 1) mục + 1 nút "Xem thêm"
-    const limit = maxDisplay - 1;
-    let topVisible = categories.slice(0, limit);
+  const filteredCategories = useMemo(() => {
+    if (!searchText.trim()) return categories;
+    const q = searchText.toLowerCase();
+    return categories.filter((c) => c.name.toLowerCase().includes(q));
+  }, [categories, searchText]);
 
-    // Luôn ưu tiên hiển thị mục đang được chọn
-    if (selectedId) {
-      const isSelectedVisible = topVisible.some(c => String(c.id) === String(selectedId));
-      if (!isSelectedVisible) {
-        const selectedItem = categories.find(c => String(c.id) === String(selectedId));
-        if (selectedItem) {
-          topVisible[limit - 1] = selectedItem; // Đổi chỗ cuối cùng cho item đang chọn
-        }
-      }
-    }
-    return topVisible;
-  }, [categories, selectedId, maxDisplay]);
+  const recentCategories = useMemo(() => {
+    if (searchText) return [];
+    return recentIds
+      .map((id) => categories.find((c) => String(c.id) === String(id)))
+      .filter(Boolean)
+      .slice(0, 5);
+  }, [categories, recentIds, searchText]);
+
+  const handleSelect = (id) => {
+    onSelect(String(id));
+    setModalVisible(false);
+    setSearchText("");
+  };
+
+  const handleClose = () => {
+    setModalVisible(false);
+    setSearchText("");
+  };
 
   if (loading) {
     return (
-      <View style={styles.stateWrap}>
-        <Text style={styles.stateText}>Đang tải danh mục...</Text>
-      </View>
-    );
-  }
-
-  if (categories.length === 0) {
-    return (
-      <View style={styles.stateWrap}>
-        <Text style={styles.stateText}>{emptyText}</Text>
+      <View style={styles.row}>
+        <Text style={styles.rowLabel}>{label}</Text>
+        <View style={styles.rowRight}>
+          <Text style={styles.rowPlaceholder}>Đang tải...</Text>
+        </View>
       </View>
     );
   }
 
   return (
     <>
-      <View style={styles.grid}>
-        {displayData.map((category) => (
-          <CategoryCard
-            key={String(category.id)}
-            category={category}
-            active={String(category.id) === String(selectedId)}
-            onPress={() => onSelect(String(category.id))}
-          />
-        ))}
-        {categories.length > maxDisplay && (
-          <MoreCard
-            onPress={() => setSheetVisible(true)}
-            count={categories.length - displayData.length}
-          />
-        )}
-      </View>
-
-      {/* Bottom Sheet hiển thị toàn bộ danh mục */}
-      <Modal
-        visible={sheetVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setSheetVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <Pressable style={styles.modalBackdrop} onPress={() => setSheetVisible(false)} />
-          <View style={styles.bottomSheet}>
-            <View style={styles.sheetHeader}>
-              <Text style={styles.sheetTitle}>Tất cả danh mục</Text>
-              <Pressable onPress={() => setSheetVisible(false)} style={styles.closeBtn}>
-                <Text style={styles.closeText}>Đóng</Text>
-              </Pressable>
+      <Pressable style={styles.row} onPress={() => setModalVisible(true)}>
+        <Text style={styles.rowLabel}>{label}</Text>
+        <View style={styles.rowRight}>
+          {selectedCategory ? (
+            <View style={styles.selectedWrap}>
+              <View
+                style={[
+                  styles.selectedIcon,
+                  {
+                    backgroundColor:
+                      (selectedCategory.color ||
+                        getIconColor(selectedCategory.icon) ||
+                        COLORS.PRIMARY) + "18",
+                  },
+                ]}
+              >
+                <CategoryVectorIcon
+                  iconValue={selectedCategory.icon}
+                  size={16}
+                  color={
+                    selectedCategory.color ||
+                    getIconColor(selectedCategory.icon) ||
+                    COLORS.PRIMARY
+                  }
+                />
+              </View>
+              <Text style={styles.rowValue}>{selectedCategory.name}</Text>
             </View>
-            <ScrollView contentContainerStyle={styles.sheetGrid}>
-              <View style={styles.grid}>
-                {categories.map((category) => (
-                  <CategoryCard
-                    key={String(category.id)}
-                    category={category}
-                    active={String(category.id) === String(selectedId)}
-                    onPress={() => {
-                      onSelect(String(category.id));
-                      setSheetVisible(false);
-                    }}
-                  />
-                ))}
+          ) : (
+            <Text style={styles.rowPlaceholder}>{placeholder}</Text>
+          )}
+
+        </View>
+      </Pressable>
+
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={handleClose}
+      >
+        <Pressable style={styles.backdrop} onPress={handleClose}>
+          <Pressable style={styles.modal} onPress={() => {}}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Chọn danh mục</Text>
+              
+            </View>
+
+            <View style={styles.searchWrap}>
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Tìm kiếm danh mục"
+                placeholderTextColor={COLORS.TEXT_SECONDARY}
+                value={searchText}
+                onChangeText={setSearchText}
+                returnKeyType="search"
+              />
+              {searchText.length > 0 && (
+                <Pressable onPress={() => setSearchText("")} hitSlop={8}>
+                  <Text style={styles.searchClear}>✕</Text>
+                </Pressable>
+              )}
+            </View>
+
+            <ScrollView
+              style={styles.modalBody}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              {recentCategories.length > 0 && (
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Gần đây</Text>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.recentList}
+                  >
+                    {recentCategories.map((cat) => {
+                      const isActive = String(cat.id) === String(selectedId);
+                      const chipColor =
+                        cat.color || getIconColor(cat.icon) || COLORS.PRIMARY;
+                      return (
+                        <Pressable
+                          key={String(cat.id)}
+                          style={[
+                            styles.recentChip,
+                            isActive && {
+                              backgroundColor: COLORS.PRIMARY,
+                              borderColor: COLORS.PRIMARY,
+                            },
+                          ]}
+                          onPress={() => handleSelect(cat.id)}
+                        >
+                          <CategoryVectorIcon
+                            iconValue={cat.icon}
+                            size={14}
+                            color={isActive ? COLORS.WHITE : chipColor}
+                          />
+                          <Text
+                            style={[
+                              styles.recentChipText,
+                              isActive && { color: COLORS.WHITE },
+                            ]}
+                          >
+                            {cat.name}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </ScrollView>
+                </View>
+              )}
+
+              <View style={styles.section}>
+                {!searchText && (
+                  <Text style={styles.sectionTitle}>Tất cả danh mục</Text>
+                )}
+                {filteredCategories.length === 0 ? (
+                  <Text style={styles.emptyText}>{emptyText}</Text>
+                ) : (
+                  filteredCategories.map((cat) => {
+                    const isActive = String(cat.id) === String(selectedId);
+                    const iconColor =
+                      cat.color || getIconColor(cat.icon) || COLORS.PRIMARY;
+                    return (
+                      <Pressable
+                        key={String(cat.id)}
+                        style={[
+                          styles.catItem,
+                          isActive && styles.catItemActive,
+                        ]}
+                        onPress={() => handleSelect(cat.id)}
+                      >
+                        <View
+                          style={[
+                            styles.catIcon,
+                            { backgroundColor: iconColor + "18" },
+                          ]}
+                        >
+                          <CategoryVectorIcon
+                            iconValue={cat.icon}
+                            size={18}
+                            color={iconColor}
+                          />
+                        </View>
+                        <Text
+                          style={[
+                            styles.catName,
+                            isActive && styles.catNameActive,
+                          ]}
+                        >
+                          {cat.name}
+                        </Text>
+                        <View
+                          style={[
+                            styles.radio,
+                            isActive && styles.radioActive,
+                          ]}
+                        >
+                          {isActive && <View style={styles.radioDot} />}
+                        </View>
+                      </Pressable>
+                    );
+                  })
+                )}
               </View>
             </ScrollView>
-          </View>
-        </View>
+
+            {onCreateNew && (
+              <Pressable
+                style={styles.createBtn}
+                onPress={() => {
+                  setModalVisible(false);
+                  setSearchText("");
+                  onCreateNew();
+                }}
+              >
+                <Text style={styles.createBtnPlus}>+</Text>
+                <Text style={styles.createBtnText}>Tạo danh mục mới</Text>
+              </Pressable>
+            )}
+          </Pressable>
+        </Pressable>
       </Modal>
     </>
   );
 }
 
-function MoreCard({ onPress, count }) {
-  const scale = useRef(new Animated.Value(1)).current;
-
-  const handlePressIn = () => {
-    Animated.spring(scale, { toValue: 0.95, useNativeDriver: true, speed: 36, bounciness: 8 }).start();
-  };
-
-  const handlePressOut = () => {
-    Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 36, bounciness: 8 }).start();
-  };
-
-  return (
-    <Animated.View style={{ width: "48%", transform: [{ scale }] }}>
-      <Pressable
-        style={[styles.card, { backgroundColor: COLORS.CARD, borderColor: COLORS.CARD_BORDER }]}
-        onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-      >
-        <View style={[styles.iconBubble, { backgroundColor: COLORS.CARD_BORDER + "40" }]}>
-          <Text style={{ fontSize: 20 }}>🔥</Text>
-        </View>
-        <Text style={[styles.label, { color: COLORS.TEXT_SECONDARY }]}>
-          +{count} Khác
-        </Text>
-      </Pressable>
-    </Animated.View>
-  );
-}
-
-function CategoryCard({ category, active, onPress }) {
-  const scale = useRef(new Animated.Value(1)).current;
-
-  const handlePressIn = () => {
-    Animated.spring(scale, {
-      toValue: 0.95,
-      useNativeDriver: true,
-      speed: 36,
-      bounciness: 8
-    }).start();
-  };
-
-  const handlePressOut = () => {
-    Animated.spring(scale, {
-      toValue: 1,
-      useNativeDriver: true,
-      speed: 36,
-      bounciness: 8
-    }).start();
-  };
-
-  // Icon color from preset or fallback to a soft pastel tone
-  const iconColor = category.color || getIconColor(category.icon) || COLORS.PRIMARY;
-
-  // Pastel bg: use icon color at ~12% opacity, or fallback
-  const iconBg = iconColor + "18";
-
-  // Selected fill: rose mist (app theme)
-  const cardBg = active ? COLORS.ROSE_MIST : COLORS.CARD;
-  const cardBorder = active ? COLORS.PRIMARY : COLORS.CARD_BORDER;
-
-  return (
-    <Animated.View style={{ width: "48%", transform: [{ scale }] }}>
-      <Pressable
-        style={[styles.card, { backgroundColor: cardBg, borderColor: cardBorder }]}
-        onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-      >
-        {/* Checkmark badge (selected only) */}
-        {active && (
-          <View style={styles.checkBadge}>
-            <Text style={styles.checkText}>✓</Text>
-          </View>
-        )}
-
-        {/* Icon container */}
-        <View style={[styles.iconBubble, { backgroundColor: active ? COLORS.WHITE : iconBg }]}>
-          <CategoryVectorIcon iconValue={category.icon} size={26} color={iconColor} />
-        </View>
-
-        {/* Label */}
-        <Text
-          style={[styles.label, active && styles.labelActive]}
-          numberOfLines={1}
-          ellipsizeMode="tail"
-        >
-          {category.name}
-        </Text>
-      </Pressable>
-    </Animated.View>
-  );
-}
-
-const CARD_BORDER_RADIUS = 20;
-const ICON_SIZE = 44;
-
 const styles = StyleSheet.create({
-  grid: {
+  row: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    marginBottom: 16,
-    rowGap: 10
-  },
-
-  card: {
-    borderRadius: CARD_BORDER_RADIUS,
-    borderWidth: 1.5,
-    paddingVertical: 16,
-    paddingHorizontal: 10,
     alignItems: "center",
-    // Soft shadow — subtle depth
-    shadowColor: COLORS.BLACK,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 2
+    justifyContent: "space-between",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    backgroundColor: COLORS.CARD,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.CARD_BORDER,
+    marginBottom: 16,
   },
-
-  iconBubble: {
-    width: ICON_SIZE,
-    height: ICON_SIZE,
-    borderRadius: ICON_SIZE / 2,
+  rowLabel: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: COLORS.TEXT,
+  },
+  rowRight: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  selectedWrap: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  selectedIcon: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 8
+  },
+  rowValue: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: COLORS.PRIMARY,
+  },
+  rowPlaceholder: {
+    fontSize: 15,
+    color: COLORS.TEXT_SECONDARY,
   },
 
-  label: {
+
+  backdrop: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.45)",
+    padding: 24,
+  },
+  modal: {
+    width: "100%",
+    maxHeight: "75%",
+    backgroundColor: COLORS.CARD,
+    borderRadius: 24,
+    overflow: "hidden",
+  },
+
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 12,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: COLORS.TEXT,
+  },
+  modalClose: {
+    fontSize: 20,
+    color: COLORS.TEXT_SECONDARY,
+    fontWeight: "400",
+  },
+
+  searchWrap: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 20,
+    marginBottom: 12,
+    backgroundColor: COLORS.BG,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    height: 42,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    color: COLORS.TEXT,
+    paddingVertical: 0,
+  },
+  searchClear: {
+    fontSize: 16,
+    color: COLORS.TEXT_SECONDARY,
+    paddingLeft: 8,
+  },
+
+  modalBody: {
+    paddingHorizontal: 20,
+  },
+
+  section: {
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: COLORS.TEXT_SECONDARY,
+    marginBottom: 10,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+
+  recentList: {
+    paddingBottom: 4,
+    gap: 8,
+  },
+  recentChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: COLORS.BG,
+    borderWidth: 1,
+    borderColor: COLORS.CARD_BORDER,
+  },
+  recentChipText: {
     fontSize: 13,
     fontWeight: "600",
     color: COLORS.TEXT,
-    textAlign: "center"
   },
 
-  labelActive: {
+  catItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: COLORS.CARD_BORDER,
+  },
+  catItemActive: {
+    backgroundColor: COLORS.ROSE_MIST + "40",
+    marginHorizontal: -4,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+  },
+  catIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  catName: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: "500",
+    color: COLORS.TEXT,
+  },
+  catNameActive: {
     color: COLORS.PRIMARY,
-    fontWeight: "700"
+    fontWeight: "700",
   },
 
-  checkBadge: {
-    position: "absolute",
-    top: 8,
-    right: 8,
+  radio: {
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: COLORS.PRIMARY,
+    borderWidth: 2,
+    borderColor: COLORS.CARD_BORDER,
     alignItems: "center",
     justifyContent: "center",
-    zIndex: 2
+  },
+  radioActive: {
+    borderColor: COLORS.PRIMARY,
+  },
+  radioDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: COLORS.PRIMARY,
   },
 
-  checkText: {
-    color: COLORS.WHITE,
-    fontSize: 13,
-    fontWeight: "800",
-    lineHeight: 15
-  },
-
-  stateWrap: {
-    width: "100%",
-    marginBottom: 16
-  },
-
-  stateText: {
+  emptyText: {
+    fontSize: 14,
     color: COLORS.TEXT_SECONDARY,
-    fontSize: 13,
-    lineHeight: 20
+    textAlign: "center",
+    paddingVertical: 20,
   },
 
-  // Modal / Bottom Sheet styles
-  modalOverlay: {
-    flex: 1,
-    justifyContent: "flex-end",
-    backgroundColor: "rgba(0, 0, 0, 0.4)"
-  },
-  modalBackdrop: {
-    ...StyleSheet.absoluteFillObject
-  },
-  bottomSheet: {
-    backgroundColor: COLORS.BG,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    maxHeight: Dimensions.get("window").height * 0.8,
-    minHeight: Dimensions.get("window").height * 0.5, // ensures it has enough space
-    paddingTop: 16,
-    paddingBottom: Dimensions.get("window").height * 0.05,
-    shadowColor: COLORS.BLACK,
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 10
-  },
-  sheetHeader: {
+  createBtn: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
-    marginBottom: 16
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 14,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: COLORS.CARD_BORDER,
   },
-  sheetTitle: {
+  createBtnPlus: {
     fontSize: 18,
-    fontWeight: "700",
-    color: COLORS.TEXT
-  },
-  closeBtn: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    backgroundColor: COLORS.CARD_BORDER,
-    borderRadius: 99
-  },
-  closeText: {
-    fontSize: 13,
     fontWeight: "600",
-    color: COLORS.TEXT_SECONDARY
+    color: COLORS.PRIMARY,
   },
-  sheetGrid: {
-    paddingHorizontal: 20,
-    paddingBottom: 20
-  }
+  createBtnText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: COLORS.PRIMARY,
+  },
 });

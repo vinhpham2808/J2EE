@@ -5,7 +5,7 @@ import { SUCCESS_ALERT_MESSAGES, SUCCESS_ALERT_TITLE } from "../constants/alertM
 import { deleteBudgetById, fetchBudgets, saveBudget } from "../services/budgetService";
 import { fetchCategoriesByType } from "../services/categoryService";
 import { formatCurrencyInput, getApiErrorMessage, parseCurrencyInput } from "../utils/format";
-import { summarizeBudgets } from "../utils/budgetUtils";
+import { summarizeBudgets } from "../utils/budget";
 
 export default function useBudget() {
   const now = new Date();

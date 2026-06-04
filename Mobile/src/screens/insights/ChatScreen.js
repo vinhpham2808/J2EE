@@ -8,16 +8,16 @@ import {
   Platform,
   ActivityIndicator
 } from "react-native";
-import { COLORS } from "../constants/colors";
-import ChatAssistantHeader from "../components/chatbotUI/ChatAssistantHeader";
-import MessageBubble from "../components/chatbotUI/MessageBubble";
-import QuickPromptChips from "../components/chatbotUI/QuickPromptChips";
-import ChatInputBar from "../components/chatbotUI/ChatInputBar";
-import SessionsModal from "../components/chatbotUI/SessionsModal";
-import EditMessageModal from "../components/chatbotUI/EditMessageModal";
-import useChatMessages from "../components/chatbotUI/useChatMessages";
-import useModelConfig from "../components/chatbotUI/useModelConfig";
-import useVoiceInput from "../components/chatbotUI/useVoiceInput";
+import { COLORS } from "../../constants/colors";
+import ChatAssistantHeader from "../../components/chatbotUI/ChatAssistantHeader";
+import MessageBubble from "../../components/chatbotUI/MessageBubble";
+import QuickPromptChips from "../../components/chatbotUI/QuickPromptChips";
+import ChatInputBar from "../../components/chatbotUI/ChatInputBar";
+import SessionsModal from "../../components/chatbotUI/SessionsModal";
+import EditMessageModal from "../../components/chatbotUI/EditMessageModal";
+import useChatMessages from "../../components/chatbotUI/useChatMessages";
+import useModelConfig from "../../components/chatbotUI/useModelConfig";
+import useVoiceInput from "../../components/chatbotUI/useVoiceInput";
 
 export default function ChatScreen() {
   const [inputText, setInputText] = useState("");

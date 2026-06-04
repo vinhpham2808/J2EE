@@ -1,7 +1,7 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { COLORS } from "../../constants/colors";
-import { CategoryVectorIcon, getIconLabel } from "../../utils/VectorIcons";
+import { CategoryVectorIcon, getIconLabel } from "../../utils/categoryIcons";
 import CategoryTypeSegmentedControl from "./CategoryTypeSegmentedControl";
 
 export default function CategoryForm({

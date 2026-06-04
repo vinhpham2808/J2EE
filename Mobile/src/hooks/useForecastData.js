@@ -5,12 +5,20 @@ import {
   fetchCategoryTrend,
   fetchInsights,
 } from "../services/forecastService";
-import { getAiForecastDraft } from "../services/forecastDraftCache";
+import { getAiForecastDraft } from "../services/forecastDraftCacheService";
 import {
   getRouteForecastMonth,
   buildForecastFromDraft,
   buildInsightFromDraft,
 } from "../constants/forecastConfig";
+import {
+  buildForecastBarChartData,
+  buildMonthOptions,
+  buildTrendLineChartData,
+  getForecastRequestKey,
+  getMonthPickerState,
+  getTopGrowthCategory
+} from "./forecastDataUtils";
 
 /**
  * Custom hook encapsulating all forecast data fetching, state management,
@@ -26,7 +34,7 @@ export default function useForecastData({ route, isPremium, currentMonth, curren
   // ── Route-driven initial state ─────────────────────────────
   const initialRouteForecast = getRouteForecastMonth(route.params);
   const initialRouteForecastKey = initialRouteForecast
-    ? `${initialRouteForecast.year}-${initialRouteForecast.month}-${route.params?.draftSavedAt || ""}`
+    ? getForecastRequestKey(initialRouteForecast.year, initialRouteForecast.month, route.params?.draftSavedAt || "")
     : "";
 
   const [selectedMonth, setSelectedMonth] = useState(
@@ -65,7 +73,7 @@ export default function useForecastData({ route, isPremium, currentMonth, curren
     [route.params?.month, route.params?.year]
   );
   const routeForecastKey = routeForecast
-    ? `${routeForecast.year}-${routeForecast.month}-${route.params?.draftSavedAt || ""}`
+    ? getForecastRequestKey(routeForecast.year, routeForecast.month, route.params?.draftSavedAt || "")
     : "";
 
   // ── Sync from route params ─────────────────────────────────
@@ -82,7 +90,7 @@ export default function useForecastData({ route, isPremium, currentMonth, curren
   // ── Fetch Monthly Forecast ─────────────────────────────────
   const loadMonthlyForecast = useCallback(async () => {
     if (!isPremium) return;
-    const requestKey = `${selectedYear}-${selectedMonth}`;
+    const requestKey = getForecastRequestKey(selectedYear, selectedMonth);
     forecastRequestKeyRef.current = requestKey;
     insightRequestKeyRef.current = requestKey;
     setIsLoading(true);
@@ -125,7 +133,7 @@ export default function useForecastData({ route, isPremium, currentMonth, curren
   // ── Fetch Anomalies ────────────────────────────────────────
   const loadAnomalies = useCallback(async () => {
     if (!isPremium) return;
-    const requestKey = `${selectedYear}-${selectedMonth}`;
+    const requestKey = getForecastRequestKey(selectedYear, selectedMonth);
     anomalyRequestKeyRef.current = requestKey;
     setAnomalies([]);
 
@@ -149,7 +157,7 @@ export default function useForecastData({ route, isPremium, currentMonth, curren
   const loadCategoryTrend = useCallback(
     async (categoryId) => {
       if (!categoryId || !isPremium) return;
-      const requestKey = `${selectedYear}-${selectedMonth}-${categoryId}`;
+      const requestKey = getForecastRequestKey(selectedYear, selectedMonth, categoryId);
       categoryTrendRequestKeyRef.current = requestKey;
       setIsTrendLoading(true);
       try {
@@ -174,7 +182,7 @@ export default function useForecastData({ route, isPremium, currentMonth, curren
       if (!forecastData?.categories?.length || !isPremium) return;
       if (forecastData.year === currentYear && forecastData.month === currentMonth) return;
 
-      const forecastKey = `${forecastData.year}-${forecastData.month}`;
+      const forecastKey = getForecastRequestKey(forecastData.year, forecastData.month);
       insightRequestKeyRef.current = forecastKey;
       setInsights(null);
       setInsightError(false);
@@ -235,15 +243,7 @@ export default function useForecastData({ route, isPremium, currentMonth, curren
   );
 
   const topCategory = useMemo(() => {
-    if (categories.length === 0) return null;
-    return (
-      [...categories]
-        .filter((c) => c?.trend === "UP")
-        .sort(
-          (a, b) =>
-            Number(b?.predictedAmount || 0) - Number(a?.predictedAmount || 0)
-        )[0] || null
-    );
+    return getTopGrowthCategory(categories);
   }, [categories]);
 
   const selectedCategory = useMemo(
@@ -257,74 +257,23 @@ export default function useForecastData({ route, isPremium, currentMonth, curren
   }, [insights, selectedYear, selectedMonth]);
 
   // ── Month picker options ───────────────────────────────────
-  const nextMonthDate = useMemo(
-    () => new Date(currentYear, currentMonth, 1),
-    [currentMonth, currentYear]
+  const { isNextMonthSelected, monthPickerLabel, monthPickerHint } = useMemo(
+    () => getMonthPickerState({ currentMonth, currentYear, selectedMonth, selectedYear }),
+    [currentMonth, currentYear, selectedMonth, selectedYear]
   );
 
-  const isNextMonthSelected =
-    selectedMonth === nextMonthDate.getMonth() + 1 &&
-    selectedYear === nextMonthDate.getFullYear();
-
-  const monthPickerLabel = `${MONTH_LABELS[selectedMonth - 1]} ${selectedYear}`;
-  const monthPickerHint = isNextMonthSelected
-    ? "Dự báo cho tháng tiếp theo"
-    : `Dự báo cho tháng ${selectedMonth}/${selectedYear}`;
-
   const monthOptions = useMemo(() => {
-    const options = [];
-    for (let offset = 0; offset <= 6; offset += 1) {
-      const d = new Date(currentYear, currentMonth - 1 + offset, 1);
-      options.push({
-        month: d.getMonth() + 1,
-        year: d.getFullYear(),
-        label: `${MONTH_LABELS[d.getMonth()]} ${d.getFullYear()}`,
-      });
-    }
-    return options;
+    return buildMonthOptions(currentYear, currentMonth);
   }, [currentMonth, currentYear]);
 
   // ── BarChart Data ──────────────────────────────────────────
   const barChartData = useMemo(() => {
-    if (categories.length === 0) return null;
-    const maxBars = Math.min(categories.length, 8);
-    const displayCats = categories.slice(0, maxBars);
-    return {
-      labels: displayCats.map((c) => {
-        const name = c?.categoryName || "";
-        return name.length > 6 ? name.slice(0, 5) + "…" : name;
-      }),
-      datasets: [
-        {
-          data: displayCats.map((c) => Number(c?.predictedAmount || 0)),
-          color: (opacity = 1) => `rgba(232, 89, 122, ${opacity})`,
-        },
-        {
-          data: displayCats.map((c) => Number(c?.historicalAverage || 0)),
-          color: (opacity = 1) => `rgba(107, 155, 210, ${opacity})`,
-        },
-      ],
-    };
+    return buildForecastBarChartData(categories);
   }, [categories]);
 
   // ── LineChart Data ─────────────────────────────────────────
   const lineChartData = useMemo(() => {
-    const points = categoryTrend?.dataPoints || [];
-    if (points.length === 0) return null;
-    return {
-      labels: points.map((p) => {
-        const parts = (p?.yearMonth || "").split("-");
-        const m = parseInt(parts[1] || "0", 10);
-        return m >= 1 && m <= 12 ? SHORT_MONTH_LABELS[m - 1] : "";
-      }),
-      datasets: [
-        {
-          data: points.map((p) => Number(p?.actual || 0)),
-          color: (opacity = 1) => `rgba(232, 89, 122, ${opacity})`,
-          strokeWidth: 2,
-        },
-      ],
-    };
+    return buildTrendLineChartData(categoryTrend);
   }, [categoryTrend]);
 
   // ── Month selection callback ───────────────────────────────
@@ -369,14 +318,3 @@ export default function useForecastData({ route, isPremium, currentMonth, curren
     selectMonth,
   };
 }
-
-// Local month labels (avoid circular dependency with forecastConfig)
-const MONTH_LABELS = [
-  "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
-  "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12",
-];
-
-const SHORT_MONTH_LABELS = [
-  "T1", "T2", "T3", "T4", "T5", "T6",
-  "T7", "T8", "T9", "T10", "T11", "T12",
-];

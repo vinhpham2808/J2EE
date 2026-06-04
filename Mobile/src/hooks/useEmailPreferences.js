@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import { Alert } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { API_ENDPOINTS } from "../constants/api";
-import http from "../services/http";
+import apiClient from "../services/apiClient";
 import { getApiErrorMessage } from "../utils/format";
 
 export default function useEmailPreferences() {
@@ -11,7 +11,7 @@ export default function useEmailPreferences() {
 
   const fetchPreferences = useCallback(async () => {
     try {
-      const response = await http.get(API_ENDPOINTS.GET_EMAIL_PREFERENCES);
+      const response = await apiClient.get(API_ENDPOINTS.GET_EMAIL_PREFERENCES);
       setPreferences(response.data || []);
     } catch (error) {
       console.error("Lỗi lấy cài đặt email:", error);
@@ -41,7 +41,7 @@ export default function useEmailPreferences() {
       setIsUpdating(true);
       try {
         setPreferences(updatedPreferences);
-        await http.put(API_ENDPOINTS.UPDATE_EMAIL_PREFERENCES, updatedPreferences);
+        await apiClient.put(API_ENDPOINTS.UPDATE_EMAIL_PREFERENCES, updatedPreferences);
       } catch (error) {
         setPreferences(previousPreferences);
         Alert.alert("Lỗi", getApiErrorMessage(error, "Không thể cập nhật cài đặt email."));

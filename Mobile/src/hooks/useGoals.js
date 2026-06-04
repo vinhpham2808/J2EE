@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { Alert } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
-import http from "../services/http";
+import apiClient from "../services/apiClient";
 import { API_ENDPOINTS } from "../constants/api";
 import { SUCCESS_ALERT_MESSAGES, SUCCESS_ALERT_TITLE } from "../constants/alertMessages";
 import { parseCurrencyInput, todayIso, getApiErrorMessage } from "../utils/format";
@@ -53,7 +53,7 @@ export default function useGoals() {
 
   // ── Fetch ──────────────────────────────────────────────────
   const fetchGoals = useCallback(async () => {
-    const response = await http.get(API_ENDPOINTS.GET_GOALS);
+    const response = await apiClient.get(API_ENDPOINTS.GET_GOALS);
     setGoals(Array.isArray(response.data) ? response.data : []);
   }, []);
 
@@ -97,7 +97,7 @@ export default function useGoals() {
 
     setLoading(true);
     try {
-      await http.post(API_ENDPOINTS.ADD_GOAL, {
+      await apiClient.post(API_ENDPOINTS.ADD_GOAL, {
         name: name.trim(),
         targetAmount: amount,
         startDate,
@@ -128,7 +128,7 @@ export default function useGoals() {
         style: "destructive",
         onPress: async () => {
           try {
-            await http.delete(API_ENDPOINTS.DELETE_GOAL(id));
+            await apiClient.delete(API_ENDPOINTS.DELETE_GOAL(id));
             setDetailGoal(null);
             await fetchGoals();
             Alert.alert(SUCCESS_ALERT_TITLE, SUCCESS_ALERT_MESSAGES.delete.goal);
@@ -172,7 +172,7 @@ export default function useGoals() {
     }
 
     try {
-      await http.post(API_ENDPOINTS.ADD_GOAL_CONTRIBUTION(selectedGoal.id), {
+      await apiClient.post(API_ENDPOINTS.ADD_GOAL_CONTRIBUTION(selectedGoal.id), {
         amount,
         contributionDate,
         note: contributionNote.trim(),

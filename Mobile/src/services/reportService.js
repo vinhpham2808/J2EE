@@ -1,4 +1,4 @@
-import http from "./http";
+import apiClient from "./apiClient";
 import { API_ENDPOINTS } from "../constants/api";
 
 /**
@@ -6,7 +6,7 @@ import { API_ENDPOINTS } from "../constants/api";
  * @returns {Promise<{success: boolean, data: object}>}
  */
 export const fetchCurrentMonthReport = async () => {
-  const response = await http.get(API_ENDPOINTS.MONTHLY_REPORT);
+  const response = await apiClient.get(API_ENDPOINTS.MONTHLY_REPORT);
   return response.data;
 };
 
@@ -17,6 +17,6 @@ export const fetchCurrentMonthReport = async () => {
  * @returns {Promise<{success: boolean, data: object}>}
  */
 export const fetchReportByMonth = async (year, month) => {
-  const response = await http.get(API_ENDPOINTS.MONTHLY_REPORT_BY_MONTH(year, month));
+  const response = await apiClient.get(API_ENDPOINTS.MONTHLY_REPORT_BY_MONTH(year, month));
   return response.data;
 };

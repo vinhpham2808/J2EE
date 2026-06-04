@@ -1,7 +1,7 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../../constants/colors";
-import { formatJarMoney, getJarActualPercent, getJarProgressWidth } from "../../utils/jarUtils";
+import { formatJarMoney, getJarActualPercent, getJarProgressWidth } from "../../utils/jar";
 
 export default function JarCard({ item, totalBalance, onPress }) {
   const { name, icon, color, targetPercentage, currentBalance } = item;

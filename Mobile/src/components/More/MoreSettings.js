@@ -61,9 +61,11 @@ export default function MoreSettings({ appNotifications, emailPreferences, onApp
     <>
       {MORE_MENU_GROUPS.map((group) => (
         <SettingGroup key={group.title} title={group.title}>
-          {group.items.map((item) => (
-            <SettingItem key={item.key} {...item} onPress={() => onItemPress(item)} />
-          ))}
+          {group.items.map((item) => {
+            const { key, ...settingItemProps } = item;
+
+            return <SettingItem key={key} {...settingItemProps} onPress={() => onItemPress(item)} />;
+          })}
         </SettingGroup>
       ))}
 

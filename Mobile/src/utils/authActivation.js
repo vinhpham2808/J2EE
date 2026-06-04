@@ -1,7 +1,7 @@
 import { API_ENDPOINTS } from "../constants/api";
-import http from "../services/http";
+import apiClient from "../services/apiClient";
 import { getApiErrorMessage } from "./format";
-import { getRetryAfterSeconds } from "./otp";
+import { getRetryAfterSeconds } from "./authOtp";
 
 export function isActivationRequiredError(error) {
   if (error?.response?.data?.needsActivation) {
@@ -25,7 +25,7 @@ export async function openActivationOtp(navigation, email) {
   const params = { email };
 
   try {
-    await http.post(API_ENDPOINTS.RESEND_OTP, { email });
+    await apiClient.post(API_ENDPOINTS.RESEND_OTP, { email });
   } catch (error) {
     const retryAfterSeconds = getRetryAfterSeconds(error);
     if (retryAfterSeconds > 0) {
