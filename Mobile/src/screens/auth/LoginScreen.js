@@ -1,146 +1,35 @@
-import React, { useContext, useEffect, useState } from "react";
+import React from "react";
 import {
-  Alert,
   Image,
-  Pressable,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
-  Switch,
   Text,
-  TextInput,
   View,
-  KeyboardAvoidingView,
-  Platform
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { AuthContext } from "../../components/AuthContext";
 import Loader from "../../components/Loader";
-import { getApiErrorMessage } from "../../utils/format";
-import {
-  getActivationEmail,
-  isActivationRequiredError,
-  openActivationOtp
-} from "../../utils/accountActivation";
-import { tokenStorage } from "../../storage/tokenStorage";
 import appLogo from "../../assets/applogo.png";
 import { COLORS } from "../../constants/colors";
 import { scale, clampScale } from "../../utils/dimensions";
+import useLoginActions from "../../hooks/useLoginActions";
+import LoginForm from "../../components/auth/LoginForm";
 
 export default function LoginScreen() {
   const navigation = useNavigation();
-  const { signIn, signInWithGoogle, googleAuthLoading } = useContext(AuthContext);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  const showActivationOption = (activationEmail) => {
-    Alert.alert(
-      "Tài khoản chưa được kích hoạt",
-      "Tài khoản này đã được đăng ký nhưng chưa xác thực OTP. Bạn có muốn tiếp tục kích hoạt tài khoản không?",
-      [
-        { text: "Để sau", style: "cancel" },
-        {
-          text: "Xác thực OTP",
-          onPress: async () => {
-            try {
-              await openActivationOtp(navigation, activationEmail);
-            } catch (error) {
-              const message = getApiErrorMessage(error, "Không thể gửi lại mã OTP. Vui lòng thử lại.");
-              Alert.alert("Không thể gửi OTP", message);
-            }
-          }
-        }
-      ]
-    );
-  };
-
-  useEffect(() => {
-    let active = true;
-
-    const loadRememberPreference = async () => {
-      try {
-        const remember = await tokenStorage.getRememberPreference();
-        if (active) {
-          setRememberMe(remember);
-        }
-      } catch {
-        if (active) {
-          setRememberMe(false);
-        }
-      }
-    };
-
-    loadRememberPreference();
-
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const onToggleRemember = async (value) => {
-    setRememberMe(value);
-    try {
-      await tokenStorage.setRememberPreference(value);
-    } catch {
-      // Ignore preference write errors and continue login flow.
-    }
-  };
-
-  const onSubmit = async () => {
-    const normalizedEmail = email.trim();
-
-    if (!normalizedEmail || !password.trim()) {
-      Alert.alert("Thiếu thông tin", "Vui lòng nhập đầy đủ email và mật khẩu.");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await signIn({ email: normalizedEmail, password, rememberMe });
-    } catch (error) {
-      const isTimeout = error?.code === "ECONNABORTED";
-      const isNetworkError = !error?.response && /network|timeout|socket|failed/i.test(String(error?.message || ""));
-      const statusCode = error?.response?.status;
-      const isServiceUnavailable = [502, 503, 504].includes(statusCode);
-
-      console.tron?.error?.("[Login] API error", {
-        code: error?.code,
-        statusCode,
-        message: error?.message,
-        responseMessage: error?.response?.data?.message
-      });
-
-      if (isTimeout || isNetworkError || isServiceUnavailable) {
-        Alert.alert(
-          "Không kết nối được với máy chủ",
-          "Hệ thống đang gặp sự cố kết nối. Vui lòng kiểm tra kết nối mạng của bạn hoặc thử lại sau ít phút."
-        );
-      } else if (statusCode === 403 && isActivationRequiredError(error)) {
-        showActivationOption(getActivationEmail(error, normalizedEmail));
-      } else {
-        const message = getApiErrorMessage(error, "Không thể đăng nhập. Vui lòng kiểm tra lại tài khoản.");
-        Alert.alert("Đăng nhập thất bại", message);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const onGooglePress = async () => {
-    try {
-      const result = await signInWithGoogle();
-
-      if (!result) return;
-    } catch (error) {
-      const message = getApiErrorMessage(
-        error,
-        "Không thể đăng nhập bằng Google. Vui lòng thử lại."
-      );
-
-      Alert.alert("Đăng nhập thất bại", message);
-    }
-  };
+  const {
+    email,
+    setEmail,
+    password,
+    setPassword,
+    rememberMe,
+    loading,
+    googleAuthLoading,
+    onToggleRemember,
+    onSubmit,
+    onGooglePress,
+  } = useLoginActions();
 
   return (
     <KeyboardAvoidingView
@@ -164,74 +53,20 @@ export default function LoginScreen() {
         <Text style={styles.title}>Đăng nhập tài khoản</Text>
         <Text style={styles.subtitle}>Chào mừng bạn quay lại. Hãy chọn cách đăng nhập.</Text>
 
-        <View style={styles.formCard}>
-          <View style={styles.inputWrap}>
-            <TextInput
-              autoCapitalize="none"
-              keyboardType="email-address"
-              placeholder="Nhập email"
-              placeholderTextColor="#7f9085"
-              style={styles.input}
-              value={email}
-              onChangeText={setEmail}
-            />
-          </View>
-
-          <View style={styles.inputWrap}>
-            <TextInput
-              secureTextEntry
-              placeholder="Nhập mật khẩu"
-              placeholderTextColor="#7f9085"
-              style={styles.input}
-              value={password}
-              onChangeText={setPassword}
-            />
-          </View>
-
-          <View style={styles.rowBetween}>
-            <View style={styles.rememberRow}>
-              <Switch
-                value={rememberMe}
-                onValueChange={onToggleRemember}
-                thumbColor={rememberMe ? COLORS.PRIMARY : "#9ca3af"}
-                trackColor={{ false: "#374151", true: COLORS.PRIMARY_DARK }}
-                style={styles.switch}
-              />
-              <Text style={styles.rememberText}>Ghi nhớ đăng nhập</Text>
-            </View>
-            <Pressable onPress={() => navigation.navigate("ForgotPassword")}>
-              <Text style={styles.forgotText}>Quên mật khẩu?</Text>
-            </Pressable>
-          </View>
-
-          <Pressable style={[styles.loginButton, loading && styles.loginButtonDisabled]} onPress={onSubmit} disabled={loading}>
-            <Text style={styles.loginButtonText}>{loading ? "Đang đăng nhập..." : "Đăng nhập"}</Text>
-          </Pressable>
-
-          <View style={styles.dividerRow}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>Hoặc tiếp tục với</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          <View style={styles.socialRow}>
-            <Pressable
-              style={[styles.socialBtn, googleAuthLoading && styles.socialBtnDisabled]}
-              onPress={onGooglePress}
-              disabled={googleAuthLoading}
-            >
-              <Text style={styles.socialIcon}>G</Text>
-              <Text style={styles.socialLabel}>Google</Text>
-            </Pressable>
-          </View>
-
-          <View style={styles.signupRow}>
-            <Text style={styles.signupText}>Chưa có tài khoản? </Text>
-            <Pressable onPress={() => navigation.navigate("Signup")}>
-              <Text style={styles.signupLink}>Đăng ký</Text>
-            </Pressable>
-          </View>
-        </View>
+        <LoginForm
+          email={email}
+          password={password}
+          rememberMe={rememberMe}
+          loading={loading}
+          googleLoading={googleAuthLoading}
+          onEmailChange={setEmail}
+          onPasswordChange={setPassword}
+          onToggleRemember={onToggleRemember}
+          onSubmit={onSubmit}
+          onForgotPassword={() => navigation.navigate("ForgotPassword")}
+          onGooglePress={onGooglePress}
+          onSignup={() => navigation.navigate("Signup")}
+        />
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -240,7 +75,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: COLORS.DARK_BG
+    backgroundColor: COLORS.DARK_BG,
   },
   bgGlowTop: {
     position: "absolute",
@@ -249,7 +84,7 @@ const styles = StyleSheet.create({
     width: scale(300),
     height: scale(300),
     borderRadius: scale(150),
-    backgroundColor: COLORS.PRIMARY_GLOW
+    backgroundColor: COLORS.PRIMARY_GLOW,
   },
   bgGlowBottom: {
     position: "absolute",
@@ -258,151 +93,33 @@ const styles = StyleSheet.create({
     width: scale(320),
     height: scale(320),
     borderRadius: scale(160),
-    backgroundColor: COLORS.PRIMARY_GLOW
+    backgroundColor: COLORS.PRIMARY_GLOW,
   },
   content: {
     flexGrow: 1,
     justifyContent: "center",
     paddingHorizontal: scale(16),
     paddingTop: scale(70),
-    paddingBottom: scale(30)
+    paddingBottom: scale(30),
   },
   brandRow: {
     alignSelf: "center",
-    marginBottom: scale(20)
+    marginBottom: scale(20),
   },
   brandLogo: {
     width: 90,
-    height: 90
+    height: 90,
   },
   title: {
     color: COLORS.DARK_TEXT,
     fontSize: clampScale(24, 20, 28),
     fontWeight: "700",
-    textAlign: "center"
+    textAlign: "center",
   },
   subtitle: {
     marginTop: scale(8),
     color: COLORS.DARK_TEXT_SECONDARY,
     fontSize: clampScale(13, 11, 15),
-    textAlign: "center"
+    textAlign: "center",
   },
-  formCard: {
-    marginTop: scale(24),
-    borderRadius: scale(16),
-    borderWidth: 1,
-    borderColor: COLORS.DARK_BORDER_LIGHT,
-    backgroundColor: COLORS.DARK_CARD,
-    padding: scale(14)
-  },
-  inputWrap: {
-    borderRadius: scale(10),
-    borderWidth: 1,
-    borderColor: COLORS.DARK_BORDER,
-    backgroundColor: COLORS.DARK_INPUT_BG,
-    marginBottom: scale(10)
-  },
-  input: {
-    paddingVertical: scale(12),
-    paddingHorizontal: scale(12),
-    color: COLORS.DARK_TEXT
-  },
-  rowBetween: {
-    marginTop: scale(2),
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between"
-  },
-  rememberRow: {
-    flexDirection: "row",
-    alignItems: "center"
-  },
-  switch: {
-    transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }]
-  },
-  rememberText: {
-    color: COLORS.DARK_TEXT_SECONDARY,
-    fontSize: clampScale(12, 10, 14),
-    marginLeft: scale(2)
-  },
-  forgotText: {
-    color: COLORS.PRIMARY_LIGHT,
-    fontSize: clampScale(12, 10, 14),
-    fontWeight: "600"
-  },
-  loginButton: {
-    marginTop: scale(14),
-    borderRadius: scale(10),
-    backgroundColor: COLORS.PRIMARY,
-    paddingVertical: scale(12),
-    alignItems: "center"
-  },
-  loginButtonDisabled: {
-    opacity: 0.7
-  },
-  loginButtonText: {
-    color: COLORS.DARK_TEXT,
-    fontSize: clampScale(15, 13, 17),
-    fontWeight: "800"
-  },
-  dividerRow: {
-    marginTop: scale(18),
-    marginBottom: scale(14),
-    flexDirection: "row",
-    alignItems: "center",
-    gap: scale(8)
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: COLORS.DARK_BORDER
-  },
-  dividerText: {
-    color: COLORS.DARK_TEXT_SECONDARY,
-    fontSize: clampScale(12, 10, 14)
-  },
-  socialRow: {
-    flexDirection: "row",
-    gap: scale(10)
-  },
-  socialBtn: {
-    flex: 1,
-    borderRadius: scale(10),
-    borderWidth: 1,
-    borderColor: COLORS.DARK_BORDER,
-    backgroundColor: COLORS.DARK_INPUT_BG,
-    paddingVertical: scale(11),
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: scale(8)
-  },
-  socialBtnDisabled: {
-    opacity: 0.6
-  },
-  socialIcon: {
-    color: COLORS.DARK_TEXT,
-    fontSize: clampScale(16, 14, 18),
-    fontWeight: "700"
-  },
-  socialLabel: {
-    color: COLORS.DARK_TEXT,
-    fontWeight: "600",
-    fontSize: clampScale(13, 11, 15)
-  },
-  signupRow: {
-    marginTop: scale(16),
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  signupText: {
-    color: COLORS.DARK_TEXT_SECONDARY,
-    fontSize: clampScale(12, 10, 14)
-  },
-  signupLink: {
-    color: COLORS.PRIMARY_LIGHT,
-    fontSize: clampScale(12, 10, 14),
-    fontWeight: "700"
-  }
 });

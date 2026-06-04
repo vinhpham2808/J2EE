@@ -1,11 +1,9 @@
 import React, { useCallback } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import JarSelector from "../components/Receipt/JarSelector";
 import ReceiptItemRow from "../components/Receipt/ReceiptItemRow";
-import ReceiptPreviewEmptyState from "../components/Receipt/ReceiptPreviewEmptyState";
-import ReceiptPreviewFooter from "../components/Receipt/ReceiptPreviewFooter";
 import ReceiptSummaryCard from "../components/Receipt/ReceiptSummaryCard";
 import { COLORS } from "../constants/colors";
 import useReceiptPreview from "../hooks/useReceiptPreview";
@@ -89,6 +87,40 @@ export default function ReceiptPreviewScreen() {
   );
 }
 
+function ReceiptPreviewEmptyState({ onBack }) {
+  return (
+    <View style={styles.emptyContainer}>
+      <Text style={styles.emptyIcon}>🧾</Text>
+      <Text style={styles.emptyTitle}>Không nhận diện được khoản chi</Text>
+      <Text style={styles.emptyText}>
+        Gemini không tìm thấy mặt hàng nào trong ảnh.{"\n"}
+        Hãy thử lại với ảnh rõ hơn hoặc nhập tay.
+      </Text>
+      <Pressable style={styles.backButton} onPress={onBack}>
+        <Text style={styles.backButtonText}>← Quay lại</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+function ReceiptPreviewFooter({ itemCount, onCancel, onConfirm, submitting }) {
+  return (
+    <View style={styles.footer}>
+      <Pressable style={styles.confirmButton} onPress={onConfirm} disabled={submitting}>
+        {submitting ? (
+          <ActivityIndicator color={COLORS.WHITE} size="small" />
+        ) : (
+          <Text style={styles.confirmButtonText}>✅ Xác nhận lưu ({itemCount} mục)</Text>
+        )}
+      </Pressable>
+
+      <Pressable style={styles.cancelButton} onPress={onCancel} disabled={submitting}>
+        <Text style={styles.cancelButtonText}>Hủy</Text>
+      </Pressable>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -102,5 +134,76 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     gap: 12,
     paddingBottom: 24
+  },
+  emptyContainer: {
+    flex: 1,
+    backgroundColor: COLORS.BG,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 32
+  },
+  emptyIcon: {
+    fontSize: 56,
+    marginBottom: 16
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: COLORS.TEXT,
+    marginBottom: 8,
+    textAlign: "center"
+  },
+  emptyText: {
+    fontSize: 14,
+    color: COLORS.TEXT_SECONDARY,
+    textAlign: "center",
+    marginBottom: 24,
+    lineHeight: 20
+  },
+  backButton: {
+    backgroundColor: COLORS.PRIMARY,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 28
+  },
+  backButtonText: {
+    color: COLORS.WHITE,
+    fontWeight: "700",
+    fontSize: 15
+  },
+  footer: {
+    padding: 16,
+    backgroundColor: COLORS.CARD,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.CARD_BORDER,
+    gap: 10
+  },
+  confirmButton: {
+    backgroundColor: COLORS.PRIMARY,
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: "center",
+    shadowColor: COLORS.PRIMARY,
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3
+  },
+  confirmButtonText: {
+    color: COLORS.WHITE,
+    fontWeight: "800",
+    fontSize: 16
+  },
+  cancelButton: {
+    borderRadius: 14,
+    paddingVertical: 12,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: COLORS.CARD_BORDER
+  },
+  cancelButtonText: {
+    color: COLORS.TEXT_SECONDARY,
+    fontWeight: "600",
+    fontSize: 14
   }
 });

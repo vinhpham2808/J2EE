@@ -1,21 +1,24 @@
 import React, { useCallback, useContext } from "react";
-import { FlatList, RefreshControl, StyleSheet, View } from "react-native";
+import { FlatList, Pressable, RefreshControl, StyleSheet, Text, TextInput, View } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AuthContext } from "../components/AuthContext";
-import ExpenseEmptyState from "../components/Expenses/ExpenseEmptyState";
-import ExpenseFilterTabs from "../components/Expenses/ExpenseFilterTabs";
 import ExpenseForm from "../components/Expenses/ExpenseForm";
 import ExpenseItem from "../components/Expenses/ExpenseItem";
 import ExpenseListOverview from "../components/Expenses/ExpenseListOverview";
-import ExpenseSearchBar from "../components/Expenses/ExpenseSearchBar";
 import ExpenseSummaryActions from "../components/Expenses/ExpenseSummaryActions";
 import QuickExpenseTemplates from "../components/QuickExpenseTemplates";
 import { COLORS } from "../constants/colors";
+import { EXPENSE_FILTER_TYPES } from "../constants/expenseConfig";
 import useExpenseReceiptImport from "../hooks/useExpenseReceiptImport";
 import useExpenseForm from "../hooks/useExpenseForm";
 import useExpenses from "../hooks/useExpenses";
 import { getSafeAreaBottom, getSafeAreaContentStyle, getSafeAreaTop } from "../utils/safeAreaSpacing";
+
+const FILTER_OPTIONS = [
+  { label: "Tháng này", value: EXPENSE_FILTER_TYPES.current },
+  { label: "Tất cả", value: EXPENSE_FILTER_TYPES.all }
+];
 
 export default function ExpenseScreen() {
   const route = useRoute();
@@ -186,6 +189,75 @@ function ExpenseListRoute() {
   );
 }
 
+function ExpenseFilterTabs({ filterType, onChange }) {
+  return (
+    <View style={styles.filterCard}>
+      <Text style={styles.filterTitle}>Khung thời gian</Text>
+      <View style={styles.filterRow}>
+        {FILTER_OPTIONS.map((option, index) => {
+          const isActive = filterType === option.value;
+          return (
+            <Pressable
+              key={option.value}
+              style={[
+                styles.filterChip,
+                index === FILTER_OPTIONS.length - 1 && styles.filterChipLast,
+                isActive && styles.filterChipActive
+              ]}
+              onPress={() => onChange(option.value)}
+            >
+              <Text style={[styles.filterChipText, isActive && styles.filterChipTextActive]}>
+                {option.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+function ExpenseSearchBar({ value, onChangeText, onClear }) {
+  return (
+    <View style={styles.searchBar}>
+      <Text style={styles.searchIcon}>🔍</Text>
+      <TextInput
+        style={styles.searchInput}
+        value={value}
+        onChangeText={onChangeText}
+        placeholder="Tìm kiếm ghi chú, tên chi tiêu..."
+        placeholderTextColor={COLORS.TEXT_MUTED}
+      />
+      {value ? (
+        <Pressable onPress={onClear} style={styles.searchClear}>
+          <Text style={styles.searchClearText}>✕</Text>
+        </Pressable>
+      ) : null}
+    </View>
+  );
+}
+
+function ExpenseEmptyState({ hasSearch, onAddExpense }) {
+  return (
+    <View style={styles.emptyState}>
+      <Text style={styles.emptyIcon}>🧾</Text>
+      <Text style={styles.emptyTitle}>
+        {hasSearch ? "Không tìm thấy kết quả" : "Chưa có khoản chi nào"}
+      </Text>
+      <Text style={styles.emptyText}>
+        {hasSearch
+          ? "Thử tìm kiếm với từ khóa khác."
+          : "Hãy thêm giao dịch đầu tiên để bắt đầu theo dõi chi tiêu dễ hơn."}
+      </Text>
+      {!hasSearch && (
+        <Pressable style={styles.emptyAction} onPress={onAddExpense}>
+          <Text style={styles.emptyActionText}>+ Thêm chi tiêu</Text>
+        </Pressable>
+      )}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -202,5 +274,104 @@ const styles = StyleSheet.create({
   listContentEmpty: {
     flexGrow: 1,
     justifyContent: "center"
+  },
+  filterCard: {
+    backgroundColor: COLORS.CARD,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.CARD_BORDER,
+    padding: 12,
+    marginBottom: 12
+  },
+  filterTitle: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: COLORS.TEXT,
+    marginBottom: 10
+  },
+  filterRow: {
+    flexDirection: "row"
+  },
+  filterChip: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: COLORS.CARD_BORDER,
+    backgroundColor: COLORS.CARD,
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: "center",
+    marginRight: 8
+  },
+  filterChipLast: {
+    marginRight: 0
+  },
+  filterChipActive: {
+    borderColor: COLORS.PRIMARY,
+    backgroundColor: COLORS.ROSE_MIST
+  },
+  filterChipText: {
+    color: COLORS.TEXT,
+    fontWeight: "700",
+    fontSize: 12
+  },
+  filterChipTextActive: {
+    color: COLORS.PRIMARY
+  },
+  searchBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.CARD,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.CARD_BORDER,
+    paddingHorizontal: 12,
+    marginBottom: 10
+  },
+  searchIcon: {
+    fontSize: 14,
+    marginRight: 8
+  },
+  searchInput: {
+    flex: 1,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: COLORS.TEXT
+  },
+  searchClear: {
+    padding: 6
+  },
+  searchClearText: {
+    fontSize: 14,
+    color: COLORS.TEXT_SECONDARY
+  },
+  emptyState: {
+    alignItems: "center",
+    paddingHorizontal: 24
+  },
+  emptyIcon: {
+    fontSize: 34,
+    marginBottom: 8
+  },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: COLORS.TEXT,
+    marginBottom: 6
+  },
+  emptyText: {
+    textAlign: "center",
+    color: COLORS.TEXT_SECONDARY,
+    lineHeight: 19,
+    marginBottom: 14
+  },
+  emptyAction: {
+    backgroundColor: COLORS.PRIMARY,
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 10
+  },
+  emptyActionText: {
+    color: COLORS.WHITE,
+    fontWeight: "800"
   }
 });

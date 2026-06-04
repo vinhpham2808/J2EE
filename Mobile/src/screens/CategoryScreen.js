@@ -1,7 +1,6 @@
 import React, { useCallback } from "react";
-import { FlatList, Modal, RefreshControl, StyleSheet, View } from "react-native";
+import { FlatList, Modal, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import CategoryEmptyState from "../components/Categories/CategoryEmptyState";
 import CategoryForm from "../components/Categories/CategoryForm";
 import CategoryItem from "../components/Categories/CategoryItem";
 import CategoryListHeader from "../components/Categories/CategoryListHeader";
@@ -107,6 +106,16 @@ export default function CategoryScreen() {
   );
 }
 
+function CategoryEmptyState() {
+  return (
+    <View style={styles.emptyState}>
+      <Text style={styles.emptyIcon}>🗂️</Text>
+      <Text style={styles.emptyTitle}>Chưa có danh mục nào</Text>
+      <Text style={styles.emptyText}>Tạo danh mục đầu tiên để bắt đầu quản lý giao dịch gọn gàng hơn.</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -128,5 +137,25 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 14,
     maxHeight: "80%"
+  },
+  emptyState: {
+    alignItems: "center",
+    marginTop: 44,
+    paddingHorizontal: 24
+  },
+  emptyIcon: {
+    fontSize: 36,
+    marginBottom: 8
+  },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: COLORS.TEXT,
+    marginBottom: 6
+  },
+  emptyText: {
+    textAlign: "center",
+    color: COLORS.TEXT_SECONDARY,
+    lineHeight: 19
   }
 });

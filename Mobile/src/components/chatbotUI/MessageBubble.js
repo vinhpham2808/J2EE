@@ -1,8 +1,8 @@
 import React from "react";
-import { StyleSheet, Text, View, Pressable } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../../constants/colors";
 import AIConfirmationForm from "../AIConfirmationForm";
-import AssistantAvatar from "./AssistantAvatar";
+import appLogo from "../../assets/applogo.png";
 import { INTENT_ICONS, INTENT_LABELS } from "../../utils/aiIntentParser";
 
 // Helper to format/clean markdown formatting for React Native Text display
@@ -111,6 +111,14 @@ export default function MessageBubble({ message, onConfirm, onCancel, onUndo, on
           {message.time}
         </Text>
       </View>
+    </View>
+  );
+}
+
+function AssistantAvatar() {
+  return (
+    <View style={styles.assistantAvatar}>
+      <Image source={appLogo} style={styles.assistantAvatarImage} resizeMode="cover" />
     </View>
   );
 }
@@ -254,5 +262,26 @@ const styles = StyleSheet.create({
     color: COLORS.PRIMARY,
     fontSize: 12,
     fontWeight: "700"
+  },
+  assistantAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
+    backgroundColor: COLORS.ROSE_MIST,
+    borderWidth: 1,
+    borderColor: "rgba(239, 94, 131, 0.18)",
+    shadowColor: COLORS.PRIMARY,
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+    overflow: "hidden"
+  },
+  assistantAvatarImage: {
+    width: 40,
+    height: 40
   }
 });
