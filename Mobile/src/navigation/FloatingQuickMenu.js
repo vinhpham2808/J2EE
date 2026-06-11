@@ -207,21 +207,12 @@ export default function FloatingQuickMenu({ visible, onClose, onSelectRoute, foc
             },
           ]}
         >
-          <View style={styles.dockHeader}>
-            <View style={styles.dockTitleBlock}>
-              <Text style={[styles.dockTitle, { color: colors.TEXT }]}>Thao tác nhanh</Text>
-              <Text style={[styles.dockSubtitle, { color: colors.TEXT_SECONDARY }]}>
-                Mở nhanh các mục thường dùng
-              </Text>
-            </View>
-          </View>
-
           <View style={styles.actionRow}>
             {SUB_ACTIONS.map((action, index) => {
               const anim = animations[index];
               const isFocused = focusedKey === action.key;
               const actionBackground = isFocused ? `${action.color}18` : inactiveActionBackground;
-              const actionBorderColor = isFocused ? action.color : colors.CARD_BORDER;
+              const actionBorderColor = isFocused ? action.color : isDark ? "rgba(255,255,255,0.14)" : "rgba(239,94,131,0.18)";
               const actionLabelColor = isFocused ? action.color : colors.TEXT;
 
               return (
@@ -301,7 +292,7 @@ const styles = StyleSheet.create({
     right: 18,
     borderRadius: 28,
     borderWidth: 1,
-    padding: 14,
+    padding: 12,
     shadowOffset: {
       width: 0,
       height: 12,
@@ -309,24 +300,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.18,
     shadowRadius: 22,
     elevation: 14,
-  },
-  dockHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 12,
-  },
-  dockTitleBlock: {
-    flex: 1,
-  },
-  dockTitle: {
-    fontSize: 15,
-    fontWeight: "800",
-  },
-  dockSubtitle: {
-    marginTop: 2,
-    fontSize: 11,
-    fontWeight: "600",
   },
   actionRow: {
     flexDirection: "row",
@@ -338,7 +311,7 @@ const styles = StyleSheet.create({
   actionCard: {
     minHeight: 82,
     borderRadius: 20,
-    borderWidth: 1,
+    borderWidth: 1.2,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 3,

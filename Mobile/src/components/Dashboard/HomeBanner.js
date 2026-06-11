@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
 import { useAppColors } from "../../constants/colors";
 import AppIcon from "../ui/AppIcon";
 import WalletGradientCard from "../ui/WalletGradientCard";
@@ -30,12 +30,13 @@ export default function HomeBanner({ balanceData, isBalanceVisible = true, month
 
   return (
     <WalletGradientCard style={styles.card}>
+      <Image source={require("../../assets/expense/wallet.png")} style={styles.walletImage} />
+
       <View style={styles.header}>
         <View style={styles.titleRow}>
           <AppIcon name="albums-outline" size={18} color="#FFFFFF" style={styles.walletIcon} />
           <Text style={styles.titleText}>Ví cá nhân</Text>
         </View>
-        <AppIcon name="shield-checkmark-outline" size={18} color="rgba(255, 255, 255, 0.75)" />
       </View>
 
       <View style={styles.balanceContainer}>
@@ -62,6 +63,16 @@ const styles = StyleSheet.create({
   card: {
     marginHorizontal: 2,
     marginBottom: 8,
+    overflow: "hidden",
+  },
+  walletImage: {
+    position: "absolute",
+    right: 16,
+    bottom: 18,
+    width: 96,
+    height: 96,
+    resizeMode: "contain",
+    opacity: 0.95,
   },
   header: {
     flexDirection: "row",
@@ -83,6 +94,7 @@ const styles = StyleSheet.create({
   },
   balanceContainer: {
     marginBottom: 16,
+    paddingRight: 108,
   },
   balanceText: {
     color: "#FFFFFF",
@@ -92,6 +104,7 @@ const styles = StyleSheet.create({
   footer: {
     flexDirection: "row",
     alignItems: "center",
+    paddingRight: 108,
   },
   badge: {
     // Styling defined inside ChangeRateBadge

@@ -43,7 +43,8 @@ function SettingItem({ colors, icon, image, title, value, onPress, hasChevron = 
             value={switchValue}
             onValueChange={onSwitchChange}
             disabled={disabled}
-            trackColor={{ false: colors.CARD_BORDER, true: colors.ACTION_VOICE || '#A855F7' }}
+            trackColor={{ false: colors.TEXT_MUTED, true: colors.ACTION_VOICE || '#A855F7' }}
+            ios_backgroundColor={colors.TEXT_MUTED}
             thumbColor={colors.WHITE}
           />
         ) : hasChevron ? (
