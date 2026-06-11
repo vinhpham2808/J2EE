@@ -1,9 +1,9 @@
-# === Personal configuration files (top-level guidance docs) ===
 CLAUDE.md
 COPILOT.md
 ANTIGRAVITY.md
-
-# === AI Assistant Rules & Guidelines (LOCAL ONLY) ===
+AGENTS.md
+COMMANDCODE.md
+HELP.md
 .claude/
 .commandcode/
 .antigravity/
@@ -12,42 +12,23 @@ ANTIGRAVITY.md
 .gemini
 .copilot/
 .codex/
-.claude/.instructions.md
+.github/agents/
+.github/skills/
+.agents/
+!.agents/skills/
+!.agents/skills/**
 .instructions.md
 .prompt.md
 .agent.md
-AGENTS.md
-COMMANDCODE.md
-
-# GitHub Copilot agent-skills (local only — copied from agent-skills repo)
-.github/agents/
-.github/skills/
-
-.agents/
-!.agents/skills/
-
-# === Milens Code Intelligence (LOCAL ONLY) ===
-# Milens index database & session cache — tool-generated, regenerate with: npx milens analyze -p . --force
 .milens/
 .milens-session/
-
-# Milens generated files
 AGENTS.md.bak
 milens-session.json
 .milens-*.log
-
-
-# === Environment files (ALL levels — never commit secrets) ===
 .env
 .env.*
 !.env.example
-**/.env
-**/.env.*
-!**/.env.example
 *.env
-
-
-# === Java / Maven / Spring Boot ===
 Backend/moneymanager/target/
 Backend/moneymanager/build/
 Backend/moneymanager/dist/
@@ -59,17 +40,10 @@ Backend/moneymanager/.settings/
 !**/gradle/wrapper/gradle-wrapper.jar
 *.war
 *.ear
-*.log
-logs/
-out/
 **/application-local*.properties
 **/application-local*.yml
-
-# Maven wrapper jar (can be regenerated)
 .mvn/wrapper/maven-wrapper.jar
-
-
-# === Node.js / NPM / Yarn / PNPM ===
+Backend/moneymanager/.mvn/wrapper/maven-wrapper.jar
 node_modules/
 .pnpm-store/
 .yarn/cache
@@ -79,68 +53,41 @@ node_modules/
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
-
-# Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 .pnpm-debug.log*
 lerna-debug.log*
-
-# npm cache
+*.log
 .npm/
+.npmrc
+.yarnrc
 .eslintcache
 .stylelintcache
-
-# Bundle analyzer
 dist/stats.html
 reports/
-
-
-# === Frontend / Vite ===
 Frontend/dist/
+Frontend/dist-ssr/
 Frontend/build/
-Frontend/.env
-Frontend/.env.local
-Frontend/.env.*.local
-Frontend/.env.production
-Frontend/.env.production.local
 *.local
-
-# Test coverage
-Frontend/coverage/
-.nyc_output/
-
-
-# === Mobile / React Native / Expo ===
-Mobile/node_modules/
 Mobile/.expo/
 Mobile/.expo-shared/
 Mobile/dist/
 Mobile/web-build/
-Mobile/.env
-Mobile/.env.*
-!Mobile/.env.example
-
-# Android build artifacts
 Mobile/android/.gradle/
 Mobile/android/build/
 Mobile/android/app/build/
 Mobile/android/local.properties
 Mobile/android/app/google-services.json
-
-# iOS build artifacts
+Mobile/android/.cxx/
+Mobile/android/app/.cxx/
 Mobile/ios/Pods/
 Mobile/ios/build/
 Mobile/ios/.xcode.env.local
 Mobile/ios/GoogleService-Info.plist
-
-# Expo generated
-Mobile/.expo/packager-info.json
-Mobile/.expo/settings.json
-
-
-# === Certificate & Secret files ===
+*.jsbundle
+*.hprof
 *.jks
 *.keystore
 *.p8
@@ -152,19 +99,16 @@ Mobile/.expo/settings.json
 *.mobileprovision
 google-services.json
 GoogleService-Info.plist
-
-
-# === VS Code / IDE ===
 .vscode/
-.vscode/settings.json
-.vscode/launch.json
-.vscode/extensions.json
-.vscode/debug.log
-.vscode/ipynb_checkpoints/
 .idea/
 *.iml
 *.iws
 *.ipr
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 *.sublime-workspace
 *.sublime-project
 .factorypath
@@ -176,9 +120,6 @@ GoogleService-Info.plist
 /nbbuild/
 /nbdist/
 /.nb-gradle/
-
-
-# === OS & Temporary files ===
 .DS_Store
 .DS_Store?
 .AppleDouble
@@ -200,42 +141,23 @@ $RECYCLE.BIN/
 *.pid
 *.seed
 *.pid.lock
-
-
-# === Build & Cache directories ===
 .cache/
 .temp/
 .vite/
 **/.vite/
 .parcel-cache/
 .turbo/
-.eslintcache
-.stylelintcache
 *.tsbuildinfo
-
-
-# === Test & Coverage output ===
 coverage/
 test-results/
 playwright-report/
 .nyc_output/
 *.lcov
-
-
-# === Database & Runtime files ===
 *.db
 *.sqlite
 *.sqlite3
 *.db-journal
-
-
-# === Development logs ===
-*.log
+logs/
 debug.log
-lerna-debug.log
-.npmrc
-.yarnrc
-
-# === Local Startup Scripts ===
 run-backend.bat
 run-backend.ps1

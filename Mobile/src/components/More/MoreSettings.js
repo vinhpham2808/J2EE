@@ -19,7 +19,7 @@ function SettingGroup({ colors, title, children }) {
   );
 }
 
-function SettingItem({ colors, icon, image, title, value, onPress, hasChevron = true, isSwitch = false, switchValue, onSwitchChange, disabled = false }) {
+function SettingItem({ colors, icon, image, title, value, valueStyle, onPress, hasChevron = true, isSwitch = false, switchValue, onSwitchChange, disabled = false }) {
   return (
     <Pressable
       style={({ pressed }) => [styles.itemRow, { borderBottomColor: colors.BG }, pressed && !isSwitch && styles.itemRowPressed, disabled && styles.itemRowDisabled]}
@@ -37,7 +37,7 @@ function SettingItem({ colors, icon, image, title, value, onPress, hasChevron = 
         <Text style={[styles.itemTitle, { color: colors.TEXT }]}>{title}</Text>
       </View>
       <View style={styles.itemRight}>
-        {value ? <Text style={[styles.itemValueText, { color: colors.TEXT_SECONDARY }]}>{value}</Text> : null}
+        {value ? <Text style={[styles.itemValueText, { color: colors.TEXT_SECONDARY }, valueStyle]}>{value}</Text> : null}
         {isSwitch ? (
           <Switch
             value={switchValue}
@@ -65,7 +65,7 @@ export function LogoutButton({ onPress }) {
   );
 }
 
-export default function MoreSettings({ appNotifications, emailPreferences, onAppNotificationsChange, onItemPress }) {
+export default function MoreSettings({ appNotifications, emailPreferences, languageLabel, onAppNotificationsChange, onItemPress }) {
   const colors = useAppColors();
 
   return (
@@ -74,8 +74,11 @@ export default function MoreSettings({ appNotifications, emailPreferences, onApp
         <SettingGroup key={group.title} colors={colors} title={group.title}>
           {group.items.map((item) => {
             const { key, ...settingItemProps } = item;
+            const dynamicProps = key === "language"
+              ? { value: languageLabel, valueStyle: styles.languageValueText, hasChevron: true }
+              : {};
 
-            return <SettingItem key={key} colors={colors} {...settingItemProps} onPress={() => onItemPress(item)} />;
+            return <SettingItem key={key} colors={colors} {...settingItemProps} {...dynamicProps} onPress={() => onItemPress(item)} />;
           })}
         </SettingGroup>
       ))}
@@ -175,6 +178,10 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "600",
     marginRight: 6,
+  },
+  languageValueText: {
+    color: "#EF4444",
+    fontWeight: "900",
   },
   logoutButton: {
     flexDirection: "row",

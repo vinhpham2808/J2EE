@@ -6,18 +6,18 @@ export const DEFAULT_ALERT_BUTTON_TEXT = "Đã hiểu";
 export const APP_ALERT_VARIANTS = {
   success: {
     label: "Thành công",
-    icon: "checkmark-circle-outline",
-    accent: COLORS.INCOME,
-    accentDark: "#0F766E",
+    icon: "checkmark",
+    accent: "#4ADE70",
+    accentDark: "#22C55E",
     soft: COLORS.INCOME_LIGHT,
     glow: "rgba(34, 197, 94, 0.15)",
     title: COLORS.TEXT
   },
   error: {
     label: "Có lỗi",
-    icon: "alert-circle-outline",
-    accent: COLORS.EXPENSE,
-    accentDark: "#B93815",
+    icon: "close",
+    accent: "#EF3B3B",
+    accentDark: "#DC2626",
     soft: COLORS.EXPENSE_LIGHT,
     glow: "rgba(239, 68, 68, 0.15)",
     title: COLORS.TEXT

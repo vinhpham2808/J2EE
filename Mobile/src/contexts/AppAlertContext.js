@@ -180,28 +180,16 @@ export function AppAlertProvider({ children }) {
                 }
               ]}
             >
-              <View style={[styles.topBeam, { backgroundColor: visual.accent }]} />
-
-              <View style={[styles.header, { backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.72)" }]}>
-                <View style={[styles.iconContainer, { backgroundColor: visual.soft, borderColor: visual.accent }]}>
-                  <AppIcon name={visual.icon} size={24} color={visual.accent} />
-                </View>
-
-                <View style={styles.headerTextWrap}>
-                  <View style={[styles.badgeContainer, { backgroundColor: visual.soft, borderColor: visual.accent }]}>
-                    <Text style={[styles.badgeText, { color: visual.accent }]} numberOfLines={1}>
-                      {visual.label}
-                    </Text>
-                  </View>
-
-                  <Text style={[styles.title, { color: colors.TEXT }]} numberOfLines={2}>
-                    {alertConfig.title}
-                  </Text>
-                </View>
+              <View style={[styles.iconContainer, { backgroundColor: visual.accent, shadowColor: visual.accent }]}> 
+                <AppIcon name={visual.icon} size={48} color="#FFFFFF" />
               </View>
 
+              <Text style={[styles.title, { color: colors.TEXT }]} numberOfLines={2}>
+                {alertConfig.title}
+              </Text>
+
               {alertConfig.message ? (
-                <Text style={[styles.message, { color: colors.TEXT_SECONDARY }]}>
+                <Text style={[styles.message, { color: colors.TEXT_SECONDARY }]}> 
                   {alertConfig.message}
                 </Text>
               ) : null}
