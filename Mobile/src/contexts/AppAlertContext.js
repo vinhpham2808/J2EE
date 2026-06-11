@@ -4,7 +4,9 @@ import {
   Animated,
   Easing,
   Modal,
+  Platform,
   Pressable,
+  StyleSheet,
   Text,
   View
 } from "react-native";
@@ -17,7 +19,6 @@ import {
 } from "../utils/appAlertConfig";
 import { useAppColors } from "../constants/colors";
 import AppIcon from "../components/ui/AppIcon";
-import styles from "./AppAlertStyles";
 
 const originalAlert = NativeAlert.alert.bind(NativeAlert);
 let presenter = null;
@@ -142,6 +143,10 @@ export function AppAlertProvider({ children }) {
   const actionButtons = useMemo(() => alertConfig?.buttons || [], [alertConfig]);
   const variant = alertConfig?.variant || "info";
   const visual = APP_ALERT_VARIANTS[variant] || APP_ALERT_VARIANTS.info;
+  const hasDestructiveAction = actionButtons.some((button) => button.style === "destructive");
+  const displayVisual = hasDestructiveAction
+    ? { ...APP_ALERT_VARIANTS.error, icon: "trash-outline" }
+    : visual;
   const isDark = colors.BG === "#0F0D0C";
   const shouldStackActions = actionButtons.length > 2;
 
@@ -175,13 +180,13 @@ export function AppAlertProvider({ children }) {
                 {
                   backgroundColor: colors.CARD,
                   borderColor: colors.CARD_BORDER,
-                  shadowColor: visual.accent,
+                  shadowColor: displayVisual.accent,
                   transform: [{ translateY: slideAnim }, { scale: scaleAnim }]
                 }
               ]}
             >
-              <View style={[styles.iconContainer, { backgroundColor: visual.accent, shadowColor: visual.accent }]}> 
-                <AppIcon name={visual.icon} size={48} color="#FFFFFF" />
+              <View style={[styles.iconContainer, { backgroundColor: displayVisual.glow }]}>
+                <AppIcon name={displayVisual.icon} size={24} color={displayVisual.accent} />
               </View>
 
               <Text style={[styles.title, { color: colors.TEXT }]} numberOfLines={2}>
@@ -189,7 +194,7 @@ export function AppAlertProvider({ children }) {
               </Text>
 
               {alertConfig.message ? (
-                <Text style={[styles.message, { color: colors.TEXT_SECONDARY }]}> 
+                <Text style={[styles.message, { color: colors.TEXT_SECONDARY }]}>
                   {alertConfig.message}
                 </Text>
               ) : null}
@@ -203,8 +208,8 @@ export function AppAlertProvider({ children }) {
                   const isCancel = button.style === "cancel";
                   const isDestructive = button.style === "destructive";
                   const isPrimary = !isCancel && index === actionButtons.length - 1;
-                  const buttonAccent = isDestructive ? APP_ALERT_VARIANTS.error.accent : visual.accent;
-                  const buttonAccentDark = isDestructive ? APP_ALERT_VARIANTS.error.accentDark : visual.accentDark;
+                  const buttonAccent = isDestructive ? APP_ALERT_VARIANTS.error.accent : displayVisual.accent;
+                  const buttonAccentDark = isDestructive ? APP_ALERT_VARIANTS.error.accentDark : displayVisual.accentDark;
 
                   return (
                     <Pressable
@@ -252,3 +257,93 @@ export function AppAlertProvider({ children }) {
 export const AppAlert = {
   alert: showAlert
 };
+
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.48)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject
+  },
+  card: {
+    width: "100%",
+    maxWidth: 320,
+    borderRadius: 16,
+    borderWidth: 1,
+    paddingHorizontal: 22,
+    paddingTop: 28,
+    paddingBottom: 22,
+    alignItems: "center",
+    shadowOffset: {
+      width: 0,
+      height: 10
+    },
+    shadowOpacity: Platform.OS === "ios" ? 0.12 : 0.2,
+    shadowRadius: 18,
+    elevation: 8
+  },
+  iconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 0,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 18
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: "800",
+    lineHeight: 22,
+    textAlign: "center",
+    marginBottom: 8
+  },
+  message: {
+    width: "100%",
+    minHeight: 0,
+    fontSize: 12,
+    lineHeight: 18,
+    textAlign: "center",
+    marginBottom: 26
+  },
+  actions: {
+    width: "100%",
+    gap: 12
+  },
+  actionsMulti: {
+    flexDirection: "row",
+    gap: 12
+  },
+  actionsStacked: {
+    gap: 10
+  },
+  actionButton: {
+    minHeight: 34,
+    borderRadius: 0,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 12
+  },
+  actionButtonMulti: {
+    flex: 1
+  },
+  actionButtonStacked: {
+    width: "100%"
+  },
+  actionText: {
+    fontSize: 12,
+    fontWeight: "700"
+  },
+  primaryText: {
+    color: "#FFFFFF"
+  },
+  buttonPressed: {
+    opacity: 0.86,
+    transform: [{ scale: 0.98 }]
+  }
+});

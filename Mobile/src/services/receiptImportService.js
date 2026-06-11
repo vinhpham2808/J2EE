@@ -3,7 +3,7 @@ import { API_ENDPOINTS } from "../constants/api";
 
 /**
  * Upload ảnh hóa đơn hoặc file PDF để backend phân tích (Gemini Vision OCR).
- * Dùng cho ExpenseScreen (ImagePicker — camera/thư viện ảnh).
+ * Dùng cho ExpenseScreen form route (ImagePicker - camera/thư viện ảnh).
  *
  * @param {object} imageAsset - Kết quả từ expo-image-picker (có uri, mimeType, fileName)
  * @returns {Promise<object>} ReceiptImportAnalyzeResponseDTO

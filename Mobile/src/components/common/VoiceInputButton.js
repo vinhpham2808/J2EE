@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import {
   Alert,
+  Image,
   Modal,
   Pressable,
   StyleSheet,
@@ -88,7 +89,7 @@ const MicIcon = ({ size = 24, barColor = COLORS.PRIMARY }) => {
   );
 };
 
-export default function VoiceInputButton({ onResult, language = "vi-VN" }) {
+export default function VoiceInputButton({ iconSource, iconStyle, onResult, language = "vi-VN" }) {
   const colors = useAppColors();
   const [modalVisible, setModalVisible] = useState(false);
   const [recognizing, setRecognizing] = useState(false);
@@ -208,7 +209,11 @@ export default function VoiceInputButton({ onResult, language = "vi-VN" }) {
         accessibilityLabel="Nhập liệu bằng giọng nói"
         accessibilityRole="button"
       >
-        <MicIcon size={24} barColor={colors.PRIMARY} />
+        {iconSource ? (
+          <Image source={iconSource} style={[styles.triggerIcon, iconStyle]} resizeMode="contain" />
+        ) : (
+          <MicIcon size={24} barColor={colors.PRIMARY} />
+        )}
       </Pressable>
 
       {/* Modal voice input */}
@@ -286,6 +291,10 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.ROSE_MIST,
     alignItems: "center",
     justifyContent: "center"
+  },
+  triggerIcon: {
+    width: 24,
+    height: 24
   },
   micButtonPressed: {
     backgroundColor: COLORS.PRIMARY_LIGHT

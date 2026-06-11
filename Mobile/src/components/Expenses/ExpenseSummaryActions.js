@@ -1,10 +1,12 @@
 import React from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { COLORS, useAppColors } from "../../constants/colors";
 import { formatMoney } from "../../utils/format";
 import VoiceInputButton from "../common/VoiceInputButton";
 
 const ALL_EXPENSE_FILTER = "all";
+const MIC_ICON = require("../../assets/accessories/mic.png");
+const CAMERA_ICON = require("../../assets/accessories/camera.png");
 
 export default function ExpenseSummaryActions({
   expenseCount,
@@ -32,16 +34,16 @@ export default function ExpenseSummaryActions({
         <Pressable style={[styles.addButtonMain, { backgroundColor: colors.PRIMARY, shadowColor: colors.PRIMARY }]} onPress={onAddExpense}>
           <Text style={styles.addButtonText}>+ Thêm chi tiêu</Text>
         </Pressable>
-        <VoiceInputButton onResult={onVoiceResult} />
+        <VoiceInputButton iconSource={MIC_ICON} onResult={onVoiceResult} />
         <Pressable
-          style={[styles.scanButton, { backgroundColor: colors.CARD, borderColor: `${colors.PRIMARY}40` }, isScanning && { opacity: 0.6 }]}
+          style={[styles.scanButton, { backgroundColor: colors.CARD }, isScanning && { opacity: 0.6 }]}
           onPress={onScanReceipt}
           disabled={isScanning}
         >
           {isScanning ? (
             <ActivityIndicator color={colors.PRIMARY} size="small" />
           ) : (
-            <Text style={styles.scanButtonIcon}>📷</Text>
+            <Image source={CAMERA_ICON} style={styles.scanButtonIcon} resizeMode="contain" />
           )}
         </Pressable>
       </View>
@@ -135,12 +137,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: COLORS.CARD,
     justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1.5,
-    borderColor: `${COLORS.PRIMARY}40`
+    alignItems: "center"
   },
   scanButtonIcon: {
-    fontSize: 20
+    width: 24,
+    height: 24
   },
   premiumHint: {
     fontSize: 11,

@@ -1,48 +1,56 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
+import { Animated, Easing, Pressable, StyleSheet, View } from "react-native";
 import { COLORS, useAppColors } from "../../constants/colors";
 
 export default function CategoryTypeSegmentedControl({ value, onChange }) {
   const colors = useAppColors();
-  const slideAnim = useRef(new Animated.Value(value === "expense" ? 1 : 0)).current;
-  const thumbScaleAnim = useRef(new Animated.Value(1)).current;
+  const typeAnim = useRef(new Animated.Value(value === "expense" ? 1 : 0)).current;
   const [width, setWidth] = useState(0);
   const segmentWidth = width > 0 ? (width - 8) / 2 : 0;
+  const incomeColor = colors.ACTION_INCOME || colors.INCOME || "#22C55E";
+  const expenseColor = colors.ACTION_EXPENSE || colors.EXPENSE || colors.PRIMARY || "#F97316";
 
   useEffect(() => {
-    slideAnim.stopAnimation();
-    thumbScaleAnim.stopAnimation();
+    typeAnim.stopAnimation();
+    Animated.timing(typeAnim, {
+      toValue: value === "expense" ? 1 : 0,
+      duration: 240,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false
+    }).start();
+  }, [typeAnim, value]);
 
-    Animated.parallel([
-      Animated.spring(slideAnim, {
-        toValue: value === "expense" ? 1 : 0,
-        friction: 8,
-        tension: 120,
-        useNativeDriver: true
-      }),
-      Animated.sequence([
-        Animated.timing(thumbScaleAnim, {
-          toValue: 0.96,
-          duration: 80,
-          useNativeDriver: true
-        }),
-        Animated.spring(thumbScaleAnim, {
-          toValue: 1,
-          friction: 5,
-          tension: 160,
-          useNativeDriver: true
-        })
-      ])
-    ]).start();
-  }, [slideAnim, thumbScaleAnim, value]);
-
-  const indicatorTranslateX = slideAnim.interpolate({
+  const indicatorTranslateX = typeAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [0, segmentWidth]
   });
+  const indicatorColor = typeAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [incomeColor, expenseColor]
+  });
+  const borderColor = typeAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [incomeColor, expenseColor]
+  });
+  const incomeTextColor = typeAnim.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [colors.WHITE || "#FFFFFF", colors.TEXT_SECONDARY, colors.TEXT_SECONDARY]
+  });
+  const expenseTextColor = typeAnim.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [colors.TEXT_SECONDARY, colors.TEXT_SECONDARY, colors.WHITE || "#FFFFFF"]
+  });
+  const incomeScale = typeAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1.04, 1]
+  });
+  const expenseScale = typeAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 1.04]
+  });
 
   return (
-    <View style={[styles.typeRow, { backgroundColor: colors.BG, borderColor: colors.PRIMARY }]} onLayout={(event) => setWidth(event.nativeEvent.layout.width)}>
+    <Animated.View style={[styles.typeRow, { backgroundColor: colors.BG, borderColor }]} onLayout={(event) => setWidth(event.nativeEvent.layout.width)}>
       {segmentWidth > 0 ? (
         <Animated.View
           pointerEvents="none"
@@ -50,21 +58,21 @@ export default function CategoryTypeSegmentedControl({ value, onChange }) {
             styles.typeActiveIndicator,
             {
               width: segmentWidth,
-              backgroundColor: colors.PRIMARY,
-              shadowColor: colors.PRIMARY,
-              transform: [{ translateX: indicatorTranslateX }, { scale: thumbScaleAnim }]
+              backgroundColor: indicatorColor,
+              shadowColor: value === "expense" ? expenseColor : incomeColor,
+              transform: [{ translateX: indicatorTranslateX }]
             }
           ]}
         />
       ) : null}
 
       <Pressable style={styles.typeButton} onPress={() => onChange("income")}>
-        <Text style={[styles.typeText, { color: value === "income" ? colors.WHITE : colors.TEXT_SECONDARY }]}>Thu nhập</Text>
+        <Animated.Text style={[styles.typeText, { color: incomeTextColor, transform: [{ scale: incomeScale }] }]}>Thu nhập</Animated.Text>
       </Pressable>
       <Pressable style={styles.typeButton} onPress={() => onChange("expense")}>
-        <Text style={[styles.typeText, { color: value === "expense" ? colors.WHITE : colors.TEXT_SECONDARY }]}>Chi tiêu</Text>
+        <Animated.Text style={[styles.typeText, { color: expenseTextColor, transform: [{ scale: expenseScale }] }]}>Chi tiêu</Animated.Text>
       </Pressable>
-    </View>
+    </Animated.View>
   );
 }
 

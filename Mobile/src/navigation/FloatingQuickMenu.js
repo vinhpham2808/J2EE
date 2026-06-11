@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
   Easing,
+  Image,
   Pressable,
   StyleSheet,
   Text,
@@ -15,35 +16,35 @@ import AppIcon from "../components/ui/AppIcon";
 const SUB_ACTIONS = [
   {
     key: "Income",
-    icon: "wallet-outline",
+    iconSource: require("../assets/income/income.png"),
     label: "Thu nhập",
     color: "#22C55E",
     gradient: ["#22C55E", "#16A34A"],
   },
   {
-    key: "AddExpense",
-    icon: "cart-outline",
+    key: "Expense",
+    iconSource: require("../assets/expense/expenses.png"),
     label: "Chi tiêu",
     color: "#F97316",
     gradient: ["#FB923C", "#F97316"],
   },
   {
     key: "Forecast",
-    icon: "trending-up-outline",
+    iconSource: require("../assets/ai-insight/forecast-analytics.png"),
     label: "Dự báo",
     color: "#26A69A",
     gradient: ["#2DD4BF", "#0F766E"],
   },
   {
     key: "Budget",
-    icon: "pie-chart-outline",
+    iconSource: require("../assets/accessories/budget.png"),
     label: "Ngân sách",
     color: "#A855F7",
     gradient: ["#A855F7", "#7C3AED"],
   },
   {
     key: "Chat",
-    icon: "chatbubble-ellipses-outline",
+    iconSource: require("../assets/ai-insight/robot.png"),
     label: "Chat AI",
     color: "#7C4DFF",
     gradient: ["#8B5CF6", "#6D22E8"],
@@ -245,7 +246,7 @@ export default function FloatingQuickMenu({ visible, onClose, onSelectRoute, foc
                       end={{ x: 1, y: 1 }}
                       style={[styles.actionIcon, { shadowColor: action.color }]}
                     >
-                      <AppIcon name={action.icon} size={22} color="#FFFFFF" />
+                      <Image source={action.iconSource} style={styles.actionIconImage} resizeMode="contain" />
                     </LinearGradient>
                     <Text
                       style={[styles.actionLabel, { color: actionLabelColor }]}
@@ -330,6 +331,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.22,
     shadowRadius: 8,
     elevation: 5,
+  },
+  actionIconImage: {
+    width: 24,
+    height: 24
   },
   actionLabel: {
     marginTop: 7,

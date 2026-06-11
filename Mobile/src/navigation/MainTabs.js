@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAppColors } from "../constants/colors";
 import DashboardScreen from "../screens/dashboard/DashboardScreen";
 import ExpenseScreen from "../screens/finance/ExpenseScreen";
+import TransactionHistoryScreen from "../screens/finance/TransactionHistoryScreen";
 import MoreScreen from "../screens/profile/MoreScreen";
 import IncomeScreen from "../screens/finance/IncomeScreen";
 import BudgetScreen from "../screens/finance/BudgetScreen";
@@ -82,6 +83,7 @@ export function HomeStack() {
   return (
     <Stack.Navigator screenOptions={hiddenHeaderOptions}>
       <Stack.Screen name="Dashboard" component={DashboardScreen} />
+      <Stack.Screen name="Expense" component={ExpenseScreen} />
       <Stack.Screen name="AddExpense" component={ExpenseScreen} />
       <Stack.Screen name="AddIncome" component={IncomeScreen} />
       <Stack.Screen name="Income" component={IncomeScreen} />
@@ -110,7 +112,8 @@ export function CategoryStack() {
 export function ExpenseStack() {
   return (
     <Stack.Navigator screenOptions={hiddenHeaderOptions}>
-      <Stack.Screen name="ExpenseMain" component={ExpenseScreen} />
+      <Stack.Screen name="TransactionHistory" component={TransactionHistoryScreen} />
+      <Stack.Screen name="Expense" component={ExpenseScreen} />
       <Stack.Screen name="AddExpense" component={ExpenseScreen} />
       <Stack.Screen name="AddIncome" component={IncomeScreen} />
     </Stack.Navigator>

@@ -1,176 +1,101 @@
 import { useCallback, useMemo, useState } from "react";
 import { Alert } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
-import { deleteExpenseById, fetchExpensesByFilter } from "../services/expenseService";
-import { deleteIncomeById, fetchIncomesByFilter } from "../services/incomeService";
+import { SUCCESS_ALERT_MESSAGES, SUCCESS_ALERT_TITLE } from "../constants/alertMessages";
+import { deleteExpenseById, exportExpenseReport, fetchExpensesByFilter, parseExpenseVoice } from "../services/expenseService";
 import { getApiErrorMessage } from "../utils/format";
 
-export default function useExpenses() {
-  const [allTransactions, setAllTransactions] = useState([]);
-  const [refreshing, setRefreshing] = useState(false);
-  const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [selectedDay, setSelectedDay] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showSearch, setShowSearch] = useState(false);
-  const [activeType, setActiveType] = useState("expense");
+export const EXPENSE_FILTER_TYPES = {
+  current: "current",
+  all: "all"
+};
 
-  const loadData = useCallback(async () => {
+export default function useExpenses() {
+  const [expenses, setExpenses] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [filterType, setFilterType] = useState(EXPENSE_FILTER_TYPES.current);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const totalExpense = useMemo(() => expenses.reduce((sum, item) => sum + Number(item?.amount || 0), 0), [expenses]);
+
+  const fetchExpenses = useCallback(async () => {
+    const data = await fetchExpensesByFilter(filterType);
+    setExpenses(data);
+  }, [filterType]);
+
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      const [expenses, incomes] = await Promise.all([
-        fetchExpensesByFilter("all"),
-        fetchIncomesByFilter("all")
-      ]);
-
-      const merged = [
-        ...expenses.map((expense) => ({ ...expense, type: "expense" })),
-        ...incomes.map((income) => ({ ...income, type: "income" }))
-      ];
-
-      merged.sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date));
-      setAllTransactions(merged);
+      await fetchExpenses();
     } catch (error) {
-      Alert.alert("Lỗi", getApiErrorMessage(error, "Không tải được lịch sử giao dịch"));
+      Alert.alert("Lỗi", getApiErrorMessage(error, "Không tải được danh sách chi tiêu"));
     } finally {
       setRefreshing(false);
     }
-  }, []);
+  }, [fetchExpenses]);
+
+  const onDelete = useCallback(
+    async (id) => {
+      if (!id) return;
+
+      Alert.alert("Xác nhận", "Bạn có chắc muốn xóa khoản chi này?", [
+        { text: "Hủy", style: "cancel" },
+        {
+          text: "Xóa",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteExpenseById(id);
+              await fetchExpenses();
+              Alert.alert(SUCCESS_ALERT_TITLE, SUCCESS_ALERT_MESSAGES.delete.expense);
+            } catch (error) {
+              Alert.alert("Xóa thất bại", getApiErrorMessage(error, "Không thể xóa khoản chi này"));
+            }
+          }
+        }
+      ]);
+    },
+    [fetchExpenses]
+  );
 
   useFocusEffect(
     useCallback(() => {
-      loadData();
-    }, [loadData])
+      onRefresh();
+    }, [onRefresh])
   );
 
-  const handleDelete = useCallback((item) => {
-    const isIncome = item.type === "income";
-    Alert.alert("Xác nhận", `Bạn có chắc muốn xóa khoản ${isIncome ? "thu nhập" : "chi tiêu"} này?`, [
-      { text: "Hủy", style: "cancel" },
-      {
-        text: "Xóa",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            if (isIncome) {
-              await deleteIncomeById(item.id);
-            } else {
-              await deleteExpenseById(item.id);
-            }
-            loadData();
-          } catch (error) {
-            Alert.alert("Thất bại", getApiErrorMessage(error, "Không thể xóa giao dịch"));
-          }
-        }
+  const handleVoiceResult = useCallback(async (text, onParsed) => {
+    try {
+      const data = await parseExpenseVoice(text);
+      if (data) {
+        onParsed?.(data);
       }
-    ]);
-  }, [loadData]);
-
-  const nextMonth = () => {
-    setCurrentMonth((previous) => new Date(previous.getFullYear(), previous.getMonth() + 1, 1));
-    setSelectedDay(null);
-  };
-
-  const prevMonth = () => {
-    setCurrentMonth((previous) => new Date(previous.getFullYear(), previous.getMonth() - 1, 1));
-    setSelectedDay(null);
-  };
-
-  const filteredTransactions = useMemo(() => {
-    const year = currentMonth.getFullYear();
-    const month = currentMonth.getMonth();
-    const keyword = searchQuery.toLowerCase().trim();
-
-    return allTransactions.filter((transaction) => {
-      if (transaction.type !== activeType) return false;
-
-      const transactionDate = new Date(transaction.createdAt || transaction.date);
-      const isSameMonth = transactionDate.getFullYear() === year && transactionDate.getMonth() === month;
-      if (!isSameMonth) return false;
-
-      if (!keyword) return true;
-
-      return (
-        (transaction.name || "").toLowerCase().includes(keyword) ||
-        (transaction.note || "").toLowerCase().includes(keyword) ||
-        (transaction.categoryName || "").toLowerCase().includes(keyword)
-      );
-    });
-  }, [activeType, allTransactions, currentMonth, searchQuery]);
-
-  const displayedTransactions = useMemo(() => {
-    if (selectedDay === null) return filteredTransactions;
-    return filteredTransactions.filter((transaction) => {
-      const transactionDate = new Date(transaction.createdAt || transaction.date);
-      return transactionDate.getDate() === selectedDay;
-    });
-  }, [filteredTransactions, selectedDay]);
-
-  const monthlySummary = useMemo(() => {
-    const year = currentMonth.getFullYear();
-    const month = currentMonth.getMonth();
-    let income = 0;
-    let expense = 0;
-
-    allTransactions.forEach((transaction) => {
-      const transactionDate = new Date(transaction.createdAt || transaction.date);
-      if (transactionDate.getFullYear() !== year || transactionDate.getMonth() !== month) return;
-      if (transaction.type === "income") income += Number(transaction.amount || 0);
-      else expense += Number(transaction.amount || 0);
-    });
-
-    return { income, expense, net: income - expense };
-  }, [allTransactions, currentMonth]);
-
-  const groupedTransactions = useMemo(() => {
-    const groups = {};
-    displayedTransactions.forEach((transaction) => {
-      const transactionDate = new Date(transaction.createdAt || transaction.date);
-      const dateKey = transactionDate.toDateString();
-      if (!groups[dateKey]) {
-        groups[dateKey] = { date: transactionDate, items: [], totalIncome: 0, totalExpense: 0 };
-      }
-      groups[dateKey].items.push(transaction);
-      if (transaction.type === "income") groups[dateKey].totalIncome += Number(transaction.amount || 0);
-      else groups[dateKey].totalExpense += Number(transaction.amount || 0);
-    });
-
-    return Object.values(groups).sort((a, b) => b.date - a.date);
-  }, [displayedTransactions]);
-
-  const daysInMonth = useMemo(() => {
-    const year = currentMonth.getFullYear();
-    const month = currentMonth.getMonth();
-    const firstDayIndex = new Date(year, month, 1).getDay();
-    const totalDays = new Date(year, month + 1, 0).getDate();
-    const days = [];
-
-    for (let index = 0; index < firstDayIndex; index += 1) {
-      days.push({ id: `empty-${index}`, day: null });
+    } catch (error) {
+      Alert.alert("Lỗi AI", getApiErrorMessage(error, "Không thể phân tích nội dung giọng nói"));
     }
-    for (let day = 1; day <= totalDays; day += 1) {
-      days.push({ id: `day-${day}`, day });
+  }, []);
+
+  const handleExport = useCallback(async () => {
+    setIsExporting(true);
+    try {
+      await exportExpenseReport(filterType);
+    } catch (error) {
+      Alert.alert("Lỗi xuất file", getApiErrorMessage(error, "Không thể xuất báo cáo"));
+    } finally {
+      setIsExporting(false);
     }
-    return days;
-  }, [currentMonth]);
+  }, [filterType]);
 
   return {
-    activeType,
-    currentMonth,
-    daysInMonth,
-    filteredTransactions,
-    groupedTransactions,
-    monthlySummary,
+    expenses,
+    filterType,
+    handleExport,
+    handleVoiceResult,
+    isExporting,
+    onDelete,
+    onRefresh,
     refreshing,
-    searchQuery,
-    selectedDay,
-    showSearch,
-    handleDelete,
-    loadData,
-    nextMonth,
-    prevMonth,
-    setActiveType,
-    setSearchQuery,
-    setSelectedDay,
-    setShowSearch
+    setFilterType,
+    totalExpense
   };
 }

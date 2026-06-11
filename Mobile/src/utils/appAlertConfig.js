@@ -33,11 +33,11 @@ export const APP_ALERT_VARIANTS = {
   },
   confirm: {
     label: "Xác nhận",
-    icon: "help-circle-outline",
-    accent: COLORS.PRIMARY,
-    accentDark: COLORS.PRIMARY_DARK,
+    icon: "warning-outline",
+    accent: COLORS.WARNING,
+    accentDark: "#D97706",
     soft: COLORS.ROSE_MIST,
-    glow: COLORS.PRIMARY_GLOW_STRONG,
+    glow: "rgba(255, 184, 77, 0.2)",
     title: COLORS.TEXT
   },
   info: {

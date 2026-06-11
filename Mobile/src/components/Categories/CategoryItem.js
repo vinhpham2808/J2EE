@@ -2,6 +2,7 @@ import React, { useRef, useState } from "react";
 import { Dimensions, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { useAppColors } from "../../constants/colors";
 import { getIconColor } from "../../utils/categoryIcons";
+import { formatDate } from "../../utils/format";
 import { CATEGORY_TYPE_META } from "./categoryTypeMeta";
 import AppIcon from "../ui/AppIcon";
 import TransactionIcon from "../ui/TransactionIcon";
@@ -9,6 +10,23 @@ import TransactionIcon from "../ui/TransactionIcon";
 const MENU_HEIGHT = 116;
 const MENU_BOTTOM_MARGIN = 88;
 const MENU_SCREEN_PADDING = 12;
+
+function getCreatedAtLabel(item) {
+  const createdAt = item?.createdAt || item?.createdDate || item?.created_at;
+  if (!createdAt) return null;
+
+  try {
+    const date = new Date(createdAt);
+    if (Number.isNaN(date.getTime())) return null;
+    const time = new Intl.DateTimeFormat("vi-VN", {
+      hour: "2-digit",
+      minute: "2-digit"
+    }).format(date);
+    return `${time} • ${formatDate(date)}`;
+  } catch {
+    return `${formatDate(createdAt)}`;
+  }
+}
 
 export default function CategoryItem({ item, onEditCategory, onDeleteCategory }) {
   const colors = useAppColors();
@@ -19,6 +37,7 @@ export default function CategoryItem({ item, onEditCategory, onDeleteCategory })
     chipBg: colors.BG,
     chipText: colors.TEXT_SECONDARY
   };
+  const createdAtLabel = getCreatedAtLabel(item);
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, right: 16 });
   const menuButtonRef = useRef(null);
@@ -72,6 +91,9 @@ export default function CategoryItem({ item, onEditCategory, onDeleteCategory })
         <View style={[styles.typeChip, { backgroundColor: meta.chipBg }]}>
           <Text style={[styles.typeChipText, { color: meta.chipText }]}>{meta.label}</Text>
         </View>
+        {createdAtLabel ? (
+          <Text style={[styles.createdAtText, { color: colors.TEXT_MUTED }]} numberOfLines={1}>{createdAtLabel}</Text>
+        ) : null}
       </View>
 
       <Modal visible={menuVisible} transparent animationType="fade" onRequestClose={() => setMenuVisible(false)}>
@@ -152,6 +174,11 @@ const styles = StyleSheet.create({
   typeChipText: {
     fontWeight: "700",
     fontSize: 10,
+  },
+  createdAtText: {
+    marginTop: 6,
+    fontSize: 11,
+    fontWeight: "500"
   },
   menuOverlay: {
     flex: 1,
