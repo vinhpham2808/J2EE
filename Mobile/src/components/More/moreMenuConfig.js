@@ -4,6 +4,8 @@ export const MORE_MENU_GROUPS = [
     items: [
       { key: "edit-profile", image: require("../../assets/auth/reset-password.png"), title: "Đổi mật khẩu", route: "EditProfile" },
       { key: "payment", image: require("../../assets/accessories/upgrade.png"), title: "Thanh toán & Nâng cấp", route: "Payment" }
+      { key: "payment-history", image: require("../../assets/accessories/monthly-bill.png"), title: "Lịch sử thanh toán", route: "PaymentHistory" }
+
     ]
   },
   {

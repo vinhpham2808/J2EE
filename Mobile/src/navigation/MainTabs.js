@@ -21,6 +21,7 @@ import ProfileScreen from "../screens/profile/ProfileScreen";
 import EditProfileScreen from "../screens/profile/EditProfileScreen";
 import PaymentScreen from "../screens/payment/PaymentScreen";
 import PaymentCheckoutScreen from "../screens/payment/PaymentCheckoutScreen";
+import PaymentHistoryScreen from "../screens/payment/PaymentHistoryScreen";
 import PaymentResultScreen from "../screens/payment/PaymentResultScreen";
 import FloatingQuickMenu, { FloatingTabButton } from "./FloatingQuickMenu";
 import { appNavigationRef } from "./navigationRef";
@@ -127,6 +128,7 @@ export function SettingStack() {
       <Stack.Screen name="Profile" component={ProfileScreen} />
       <Stack.Screen name="EditProfile" component={EditProfileScreen} />
       <Stack.Screen name="Payment" component={PaymentScreen} />
+      <Stack.Screen name="PaymentHistory" component={PaymentHistoryScreen} />
       <Stack.Screen name="PaymentCheckout" component={PaymentCheckoutScreen} />
       <Stack.Screen name="PaymentResult" component={PaymentResultScreen} />
     </Stack.Navigator>

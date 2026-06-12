@@ -26,6 +26,7 @@ export default function useVoiceInput({ language = "vi-VN", onResult } = {}) {
   // Ref lưu transcript cuối cùng để callback onResult (tránh stale closure)
   const transcriptRef = useRef("");
   const onResultRef = useRef(onResult);
+  const ignoreNextEndRef = useRef(false);
   onResultRef.current = onResult; // luôn fresh
 
   // ── Speech recognition events ──────────────────────────
@@ -39,11 +40,19 @@ export default function useVoiceInput({ language = "vi-VN", onResult } = {}) {
 
   useSpeechRecognitionEvent("end", () => {
     setIsRecording(false);
+    if (ignoreNextEndRef.current) {
+      ignoreNextEndRef.current = false;
+      transcriptRef.current = "";
+      setVoiceTranscript("");
+      return;
+    }
+
     // Gọi onResult với transcript cuối cùng
     const final = transcriptRef.current.trim();
     if (final && onResultRef.current) {
       onResultRef.current(final);
     }
+    transcriptRef.current = "";
   });
 
   useSpeechRecognitionEvent("result", (event) => {
@@ -79,6 +88,8 @@ export default function useVoiceInput({ language = "vi-VN", onResult } = {}) {
 
     try {
       setIsStartingVoice(true);
+      setVoiceTranscript("");
+      transcriptRef.current = "";
 
       // Xin quyền microphone
       const { status } = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
@@ -93,8 +104,10 @@ export default function useVoiceInput({ language = "vi-VN", onResult } = {}) {
       }
 
       // Huỷ session cũ (nếu có) trước khi bắt đầu session mới
+      ignoreNextEndRef.current = true;
       await ExpoSpeechRecognitionModule.abort();
       await new Promise((resolve) => setTimeout(resolve, 100));
+      ignoreNextEndRef.current = false;
 
       ExpoSpeechRecognitionModule.start({
         lang: language,
@@ -108,6 +121,7 @@ export default function useVoiceInput({ language = "vi-VN", onResult } = {}) {
       }, 3000);
     } catch (err) {
       console.error("[useVoiceInput] handleMicPress error:", err);
+      ignoreNextEndRef.current = false;
       setIsStartingVoice(false);
       Alert.alert("Lỗi", "Không thể khởi động voice input. Vui lòng thử lại.");
     }

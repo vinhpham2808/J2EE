@@ -99,7 +99,12 @@ export default function ChatScreen() {
   const handleVoiceResult = useCallback((transcript) => {
     setInputText((prev) => {
       const trimmed = transcript.trim();
-      return prev ? `${prev} ${trimmed}` : trimmed;
+      const current = prev.trim();
+      if (!current) return trimmed;
+      if (trimmed.toLowerCase().startsWith(current.toLowerCase())) {
+        return trimmed;
+      }
+      return `${current} ${trimmed}`;
     });
   }, []);
 

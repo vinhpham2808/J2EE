@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-nati
 import AppIcon from "../ui/AppIcon";
 import { COLORS, useAppColors } from "../../constants/colors";
 import { formatMoney } from "../../utils/format";
-import { canSyncPaymentStatus, formatPaymentDate, getPaymentStatusMeta } from "../../utils/paymentStatus";
+import { formatPaymentDate, getPaymentStatusMeta } from "../../utils/paymentStatus";
 
 function getToneColors(colors, tone) {
   switch (tone) {
@@ -26,10 +26,8 @@ export default function PaymentHistorySection({
   loading,
   onDelete,
   onRefresh,
-  onSync,
   payments,
-  refreshing,
-  syncingCode
+  refreshing
 }) {
   const colors = useAppColors();
 
@@ -38,7 +36,7 @@ export default function PaymentHistorySection({
       <View style={styles.headerRow}>
         <View style={styles.headerText}>
           <Text style={[styles.title, { color: colors.TEXT }]}>Lịch sử thanh toán</Text>
-          <Text style={[styles.subtitle, { color: colors.TEXT_SECONDARY }]}>Kiểm tra hóa đơn và cập nhật trạng thái PayOS.</Text>
+          <Text style={[styles.subtitle, { color: colors.TEXT_SECONDARY }]}>Kiểm tra hóa đơn PayOS gần đây của bạn.</Text>
         </View>
         <Pressable
           style={[styles.refreshButton, { backgroundColor: colors.BG, borderColor: colors.CARD_BORDER }]}
@@ -71,16 +69,20 @@ export default function PaymentHistorySection({
             const orderCode = String(payment?.orderCode || "");
             const statusMeta = getPaymentStatusMeta(payment?.status);
             const toneColors = getToneColors(colors, statusMeta.tone);
-            const isSyncing = syncingCode === orderCode;
             const isDeleting = deletingCode === orderCode;
 
             return (
-              <View key={orderCode || payment?.paymentLinkId} style={[styles.card, { backgroundColor: colors.BG, borderColor: colors.CARD_BORDER }]}>
+              <View key={orderCode || payment?.paymentLinkId} style={[styles.card, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }]}>
                 <View style={styles.cardTopRow}>
+                  <View style={[styles.receiptIcon, { backgroundColor: colors.BG }]}>
+                    <AppIcon name="receipt-outline" size={20} color={colors.PRIMARY} />
+                  </View>
                   <View style={styles.cardTitleBlock}>
-                    <Text style={[styles.orderCode, { color: colors.TEXT }]}>#{orderCode || "--"}</Text>
-                    <Text style={[styles.planName, { color: colors.TEXT_SECONDARY }]} numberOfLines={1}>
+                    <Text style={[styles.planName, { color: colors.TEXT }]} numberOfLines={1}>
                       {payment?.planName || payment?.description || "Gói dịch vụ"}
+                    </Text>
+                    <Text style={[styles.receiptLabel, { color: colors.TEXT_SECONDARY }]}>
+                      Hóa đơn thanh toán
                     </Text>
                   </View>
                   <View style={[styles.statusBadge, { backgroundColor: toneColors.backgroundColor }]}>
@@ -90,28 +92,17 @@ export default function PaymentHistorySection({
                 </View>
 
                 <View style={styles.detailGrid}>
-                  <View style={styles.detailItem}>
+                  <View style={[styles.detailItem, { backgroundColor: colors.BG }]}>
                     <Text style={[styles.detailLabel, { color: colors.TEXT_MUTED }]}>Số tiền</Text>
                     <Text style={[styles.detailValue, { color: colors.TEXT }]}>{formatMoney(payment?.amount)}</Text>
                   </View>
-                  <View style={styles.detailItem}>
+                  <View style={[styles.detailItem, { backgroundColor: colors.BG }]}>
                     <Text style={[styles.detailLabel, { color: colors.TEXT_MUTED }]}>Cập nhật</Text>
                     <Text style={[styles.detailValue, { color: colors.TEXT }]}>{formatPaymentDate(payment?.updatedAt || payment?.createdAt)}</Text>
                   </View>
                 </View>
 
                 <View style={styles.actionsRow}>
-                  {canSyncPaymentStatus(payment?.status) ? (
-                    <Pressable
-                      style={[styles.actionButton, { backgroundColor: colors.PRIMARY, opacity: isSyncing ? 0.7 : 1 }]}
-                      onPress={() => onSync(orderCode)}
-                      disabled={isSyncing || !orderCode}
-                    >
-                      {isSyncing ? <ActivityIndicator color={COLORS.WHITE} size="small" /> : <AppIcon name="sync-outline" size={15} color={COLORS.WHITE} />}
-                      <Text style={styles.primaryActionText}>{isSyncing ? "Đang cập nhật" : "Cập nhật trạng thái"}</Text>
-                    </Pressable>
-                  ) : null}
-
                   <Pressable
                     style={[styles.deleteButton, { backgroundColor: colors.EXPENSE_LIGHT, opacity: isDeleting ? 0.7 : 1 }]}
                     onPress={() => onDelete(orderCode)}
@@ -187,27 +178,42 @@ const styles = StyleSheet.create({
   },
   card: {
     borderWidth: 1,
-    borderRadius: 14,
+    borderRadius: 16,
     padding: 12,
-    gap: 10
+    gap: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    shadowOffset: {
+      width: 0,
+      height: 4
+    },
+    elevation: 2
   },
   cardTopRow: {
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
     justifyContent: "space-between",
     gap: 10
+  },
+  receiptIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center"
   },
   cardTitleBlock: {
     flex: 1
   },
-  orderCode: {
-    fontSize: 15,
+  planName: {
+    fontSize: 14,
     fontWeight: "800"
   },
-  planName: {
+  receiptLabel: {
     marginTop: 3,
-    fontSize: 12,
-    fontWeight: "600"
+    fontSize: 11,
+    fontWeight: "700"
   },
   statusBadge: {
     minHeight: 28,
@@ -226,7 +232,10 @@ const styles = StyleSheet.create({
     gap: 10
   },
   detailItem: {
-    flex: 1
+    flex: 1,
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 9
   },
   detailLabel: {
     fontSize: 11,
@@ -241,23 +250,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 8
   },
-  actionButton: {
-    flex: 1,
-    minHeight: 38,
-    borderRadius: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6
-  },
-  primaryActionText: {
-    color: COLORS.WHITE,
-    fontSize: 12,
-    fontWeight: "800"
-  },
   deleteButton: {
     minHeight: 38,
     borderRadius: 12,
+    flex: 1,
     paddingHorizontal: 12,
     flexDirection: "row",
     alignItems: "center",
