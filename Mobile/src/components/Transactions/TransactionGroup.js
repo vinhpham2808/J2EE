@@ -67,22 +67,27 @@ export default function TransactionGroup({ colors, group, onDelete, onEdit }) {
 
 const styles = StyleSheet.create({
   dateGroupContainer: {
-    borderRadius: 14,
-    padding: 12,
-    marginBottom: 12,
-    borderWidth: 0.5
+    borderRadius: 18,
+    padding: 14,
+    marginBottom: 14,
+    borderWidth: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2
   },
   groupHeaderRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingBottom: 8,
-    borderBottomWidth: 0.5,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
     marginBottom: 8
   },
   groupDateText: {
-    fontSize: 12,
-    fontWeight: "700"
+    fontSize: 13,
+    fontWeight: "900"
   },
   groupTotalRow: {
     flexDirection: "row",
@@ -96,7 +101,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 8
+    paddingVertical: 10
   },
   rowLeft: {
     flexDirection: "row",
@@ -105,20 +110,20 @@ const styles = StyleSheet.create({
     marginRight: 8
   },
   rowTexts: {
-    marginLeft: 10,
+    marginLeft: 12,
     flex: 1
   },
   rowName: {
-    fontSize: 14,
-    fontWeight: "600"
+    fontSize: 15,
+    fontWeight: "800"
   },
   rowNote: {
-    fontSize: 11,
+    fontSize: 12,
     marginTop: 2
   },
   rowAmount: {
     fontSize: 14,
-    fontWeight: "700"
+    fontWeight: "900"
   },
   rowRight: {
     alignItems: "flex-end",
@@ -131,9 +136,10 @@ const styles = StyleSheet.create({
     marginTop: 5
   },
   rowActionButton: {
-    width: 28,
-    height: 24,
-    borderRadius: 12,
+    width: 30,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "rgba(148, 163, 184, 0.12)",
     alignItems: "center",
     justifyContent: "center"
   }

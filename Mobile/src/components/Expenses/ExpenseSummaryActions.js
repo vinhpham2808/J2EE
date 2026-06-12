@@ -34,7 +34,7 @@ export default function ExpenseSummaryActions({
         <Pressable style={[styles.addButtonMain, { backgroundColor: colors.PRIMARY, shadowColor: colors.PRIMARY }]} onPress={onAddExpense}>
           <Text style={styles.addButtonText}>+ Thêm chi tiêu</Text>
         </Pressable>
-        <VoiceInputButton iconSource={MIC_ICON} onResult={onVoiceResult} />
+        <VoiceInputButton iconSource={MIC_ICON} noBackground onResult={onVoiceResult} />
         <Pressable
           style={[styles.scanButton, { backgroundColor: colors.CARD }, isScanning && { opacity: 0.6 }]}
           onPress={onScanReceipt}

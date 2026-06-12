@@ -14,6 +14,8 @@ import {
 } from "expo-speech-recognition";
 import { COLORS, useAppColors } from "../../constants/colors";
 
+const MIC_ICON = require("../../assets/accessories/mic.png");
+
 /**
  * VoiceInputButton — Nút microphone để nhập liệu bằng giọng nói
  *
@@ -22,74 +24,7 @@ import { COLORS, useAppColors } from "../../constants/colors";
  *   language: string                  — Mã ngôn ngũ (VD: "vi-VN", "en-US")
  */
 
-// Stylized microphone icon — dark gray body with red accent bars
-const MicIcon = ({ size = 24, barColor = COLORS.PRIMARY }) => {
-  const scale = size / 48;
-  const micBodyColor = "#3D3D3D";
-
-  return (
-    <View style={{ alignItems: "center" }}>
-      {/* Mic head (rounded rectangle) */}
-      <View style={{
-        width: 14 * scale,
-        height: 18 * scale,
-        borderTopLeftRadius: 7 * scale,
-        borderTopRightRadius: 7 * scale,
-        borderBottomLeftRadius: 2 * scale,
-        borderBottomRightRadius: 2 * scale,
-        backgroundColor: micBodyColor,
-        justifyContent: "flex-end",
-        alignItems: "center",
-        paddingBottom: 2 * scale,
-        gap: 1.5 * scale,
-      }}>
-        {/* Three horizontal red bars on mic body */}
-        <View style={{ width: 8 * scale, height: 1.5 * scale, borderRadius: 0.75 * scale, backgroundColor: barColor }} />
-        <View style={{ width: 8 * scale, height: 1.5 * scale, borderRadius: 0.75 * scale, backgroundColor: barColor }} />
-        <View style={{ width: 8 * scale, height: 1.5 * scale, borderRadius: 0.75 * scale, backgroundColor: barColor }} />
-      </View>
-
-      {/* Stem */}
-      <View style={{
-        width: 2 * scale,
-        height: 4 * scale,
-        backgroundColor: micBodyColor,
-      }} />
-
-      {/* Stand base (horizontal bar) */}
-      <View style={{
-        width: 16 * scale,
-        height: 2.5 * scale,
-        borderRadius: 1.25 * scale,
-        backgroundColor: micBodyColor,
-      }} />
-      {/* Stand legs */}
-      <View style={{
-        flexDirection: "row",
-        justifyContent: "space-between",
-        width: 16 * scale,
-        marginTop: -0.5 * scale,
-      }}>
-        <View style={{
-          width: 2 * scale,
-          height: 3 * scale,
-          borderBottomLeftRadius: 1 * scale,
-          borderBottomRightRadius: 1 * scale,
-          backgroundColor: micBodyColor,
-        }} />
-        <View style={{
-          width: 2 * scale,
-          height: 3 * scale,
-          borderBottomLeftRadius: 1 * scale,
-          borderBottomRightRadius: 1 * scale,
-          backgroundColor: micBodyColor,
-        }} />
-      </View>
-    </View>
-  );
-};
-
-export default function VoiceInputButton({ iconSource, iconStyle, onResult, language = "vi-VN" }) {
+export default function VoiceInputButton({ iconSource, iconStyle, noBackground = false, onResult, language = "vi-VN" }) {
   const colors = useAppColors();
   const [modalVisible, setModalVisible] = useState(false);
   const [recognizing, setRecognizing] = useState(false);
@@ -200,8 +135,9 @@ export default function VoiceInputButton({ iconSource, iconStyle, onResult, lang
       <Pressable
         style={({ pressed }) => [
           styles.micButton,
-          { backgroundColor: colors.ROSE_MIST },
-          pressed && styles.micButtonPressed,
+          !noBackground && { backgroundColor: colors.ROSE_MIST },
+          noBackground && styles.micButtonNoBackground,
+          pressed && !noBackground && styles.micButtonPressed,
           (recognizing || isStarting) && styles.micButtonDisabled
         ]}
         onPress={handleStart}
@@ -212,7 +148,7 @@ export default function VoiceInputButton({ iconSource, iconStyle, onResult, lang
         {iconSource ? (
           <Image source={iconSource} style={[styles.triggerIcon, iconStyle]} resizeMode="contain" />
         ) : (
-          <MicIcon size={24} barColor={colors.PRIMARY} />
+          <Image source={MIC_ICON} style={styles.triggerIcon} resizeMode="contain" />
         )}
       </Pressable>
 
@@ -226,11 +162,8 @@ export default function VoiceInputButton({ iconSource, iconStyle, onResult, lang
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { backgroundColor: colors.CARD }]}>
             {/* Icon mic lớn */}
-            <View style={[styles.micCircle, { backgroundColor: colors.ROSE_MIST }, recognizing && styles.micCircleActive]}>
-              <MicIcon
-                size={48}
-                barColor={recognizing ? colors.WHITE : colors.PRIMARY}
-              />
+            <View style={[styles.micIconWrap, recognizing && styles.micIconActive]}>
+              <Image source={MIC_ICON} style={styles.modalMicIcon} resizeMode="contain" />
             </View>
 
             {/* Trạng thái */}
@@ -287,10 +220,11 @@ const styles = StyleSheet.create({
   micButton: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.ROSE_MIST,
     alignItems: "center",
     justifyContent: "center"
+  },
+  micButtonNoBackground: {
+    backgroundColor: COLORS.TRANSPARENT
   },
   triggerIcon: {
     width: 24,
@@ -323,17 +257,12 @@ const styles = StyleSheet.create({
     shadowRadius: 24,
     elevation: 10
   },
-  micCircle: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    backgroundColor: COLORS.ROSE_MIST,
+  micIconWrap: {
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 16
   },
-  micCircleActive: {
-    backgroundColor: COLORS.PRIMARY,
+  micIconActive: {
     shadowColor: COLORS.PRIMARY,
     shadowOffset: {
       width: 0,
@@ -342,6 +271,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.5,
     shadowRadius: 16,
     elevation: 8
+  },
+  modalMicIcon: {
+    width: 72,
+    height: 72
   },
   statusText: {
     fontSize: 16,

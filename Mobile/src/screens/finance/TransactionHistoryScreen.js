@@ -61,7 +61,7 @@ export default function TransactionHistoryScreen() {
           styles.calendarDayCell,
           isSelected && {
             backgroundColor: activeType === "expense" ? (colors.ACTION_EXPENSE || "#F97316") : (colors.ACTION_INCOME || "#22C55E"),
-            borderRadius: 8
+            borderRadius: 14
           }
         ]}
         onPress={() => setSelectedDay(isSelected ? null : item.day)}
@@ -95,17 +95,17 @@ export default function TransactionHistoryScreen() {
       <View style={styles.topHeader}>
         <Text style={[styles.headerTitle, { color: colors.TEXT }]}>Lịch sử</Text>
         <View style={styles.headerActions}>
-          <Pressable style={styles.actionIcon} onPress={() => setShowSearch((previous) => !previous)}>
+          <Pressable style={[styles.actionIcon, { backgroundColor: colors.CARD, borderColor: colors.BORDER }]} onPress={() => setShowSearch((previous) => !previous)}>
             <AppIcon name={showSearch ? "close" : "search-outline"} size={20} color={colors.TEXT} />
           </Pressable>
-          <Pressable style={styles.actionIcon} onPress={handleAddTransaction}>
+          <Pressable style={[styles.actionIcon, { backgroundColor: colors.CARD, borderColor: colors.BORDER }]} onPress={handleAddTransaction}>
             <AppIcon name="add" size={24} color={colors.TEXT} />
           </Pressable>
         </View>
       </View>
 
       {showSearch ? (
-        <View style={[styles.searchBar, { backgroundColor: colors.SURFACE, borderColor: colors.BORDER }]}>
+        <View style={[styles.searchBar, { backgroundColor: colors.CARD, borderColor: colors.BORDER }]}>
           <AppIcon name="search-outline" size={16} color={colors.TEXT_MUTED} style={styles.searchIcon} />
           <TextInput
             style={[styles.searchInput, { color: colors.TEXT }]}
@@ -146,34 +146,51 @@ export default function TransactionHistoryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 16
+    paddingHorizontal: 14
   },
   topHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 12
+    paddingTop: 12,
+    paddingBottom: 14
   },
   headerTitle: {
-    fontSize: 22,
-    fontWeight: "700"
+    fontSize: 26,
+    fontWeight: "900",
+    letterSpacing: -0.4
   },
   headerActions: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 16
+    gap: 10
   },
   actionIcon: {
-    padding: 4
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 5,
+    elevation: 1
   },
   searchBar: {
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginBottom: 12
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 1
   },
   searchIcon: {
     marginRight: 8
@@ -191,12 +208,12 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     justifyContent: "center",
     alignItems: "center",
-    marginVertical: 2,
+    marginVertical: 3,
     paddingBottom: 4
   },
   dayText: {
     fontSize: 14,
-    fontWeight: "500"
+    fontWeight: "700"
   },
   dotsRow: {
     flexDirection: "row",

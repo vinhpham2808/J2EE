@@ -1,9 +1,11 @@
 import React, { useEffect, useRef } from "react";
-import { StyleSheet, Text, View, TextInput, Pressable, Platform, Animated } from "react-native";
+import { Image, StyleSheet, Text, View, TextInput, Pressable, Platform, Animated } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS, useAppColors } from "../../constants/colors";
 import { getSafeAreaBottom } from "../../utils/safeArea";
+
+const MIC_ICON = require("../../assets/accessories/mic.png");
 
 export default function ChatInputBar({
   value = "",
@@ -90,7 +92,7 @@ export default function ChatInputBar({
         onPress={onMicPress}
         disabled={isDisabled}
       >
-        <Ionicons name="mic" size={18} color={COLORS.WHITE} />
+        <Image source={MIC_ICON} style={styles.micIcon} resizeMode="contain" />
       </Pressable>
     );
   };
@@ -167,6 +169,10 @@ const styles = StyleSheet.create({
   },
   actionCircleDisabled: {
     backgroundColor: COLORS.CHAT_MUTED
+  },
+  micIcon: {
+    width: 20,
+    height: 20
   },
   actionCircleRecording: {
     backgroundColor: "#EF4444"

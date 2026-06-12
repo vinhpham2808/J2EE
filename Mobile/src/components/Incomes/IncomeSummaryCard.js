@@ -5,6 +5,8 @@ import { INCOME_FILTER_TYPES } from "../../hooks/useIncomes";
 import { formatMoney } from "../../utils/format";
 import VoiceInputButton from "../common/VoiceInputButton";
 
+const MIC_ICON = require("../../assets/accessories/mic.png");
+
 export default function IncomeSummaryCard({
   filterType,
   incomeCount,
@@ -26,7 +28,7 @@ export default function IncomeSummaryCard({
         <Pressable style={[styles.addButtonMain, { backgroundColor: colors.ACTION_INCOME || colors.INCOME }]} onPress={onAddIncome}>
           <Text style={styles.addButtonText}>+ Thêm thu nhập</Text>
         </Pressable>
-        <VoiceInputButton onResult={onVoiceResult} />
+        <VoiceInputButton iconSource={MIC_ICON} noBackground onResult={onVoiceResult} />
       </View>
       <Pressable
         style={[styles.exportButton, { backgroundColor: colors.BG, borderColor: colors.INCOME_LIGHT }, isExporting && styles.exportButtonDisabled]}

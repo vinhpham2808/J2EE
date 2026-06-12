@@ -56,7 +56,7 @@ export default function TransactionCalendarHeader({
         </View>
       ) : null}
 
-      <View style={[styles.monthSelector, { borderColor: colors.BORDER, backgroundColor: colors.CARD }]}> 
+      <View style={[styles.monthSelector, { borderColor: colors.BORDER, backgroundColor: colors.CARD }]}>
         <Pressable onPress={prevMonth} style={styles.monthNavBtn}>
           <AppIcon name="chevron-back" size={20} color={colors.TEXT} />
         </Pressable>
@@ -66,22 +66,24 @@ export default function TransactionCalendarHeader({
         </Pressable>
       </View>
 
-      <View style={styles.weekdayRow}>
-        {["CN", "T2", "T3", "T4", "T5", "T6", "T7"].map((weekday) => (
-          <Text key={weekday} style={[styles.weekdayText, { color: colors.TEXT_MUTED || "#B8A6AC" }]}>{weekday}</Text>
-        ))}
+      <View style={[styles.calendarCard, { backgroundColor: colors.CARD, borderColor: colors.BORDER }]}>
+        <View style={styles.weekdayRow}>
+          {["CN", "T2", "T3", "T4", "T5", "T6", "T7"].map((weekday) => (
+            <Text key={weekday} style={[styles.weekdayText, { color: colors.TEXT_MUTED || "#B8A6AC" }]}>{weekday}</Text>
+          ))}
+        </View>
+
+        <FlatList
+          data={daysInMonth}
+          renderItem={renderCalendarDay}
+          keyExtractor={(item) => item.id}
+          numColumns={7}
+          scrollEnabled={false}
+          style={styles.calendarGrid}
+        />
       </View>
 
-      <FlatList
-        data={daysInMonth}
-        renderItem={renderCalendarDay}
-        keyExtractor={(item) => item.id}
-        numColumns={7}
-        scrollEnabled={false}
-        style={styles.calendarGrid}
-      />
-
-      <View style={[styles.summaryCard, { backgroundColor: colors.SURFACE, borderColor: colors.BORDER }]}> 
+      <View style={[styles.summaryCard, { backgroundColor: colors.SURFACE, borderColor: colors.BORDER }]}>
         <View style={styles.summaryCol}>
           <Text style={[styles.summaryLabel, { color: colors.TEXT_SECONDARY }]}>{activeType === "income" ? "Thu nhập" : "Chi phí"}</Text>
           <AmountText value={activeType === "income" ? monthlySummary.income : monthlySummary.expense} type={activeType} style={styles.summaryValue} />
@@ -102,29 +104,34 @@ export default function TransactionCalendarHeader({
 
 const styles = StyleSheet.create({
   listHeader: {
-    marginBottom: 16
+    marginBottom: 18
   },
   monthSelector: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     borderWidth: 1,
-    borderRadius: 12,
-    paddingVertical: 8,
+    borderRadius: 16,
+    paddingVertical: 10,
     paddingHorizontal: 16,
-    marginBottom: 16
+    marginBottom: 14,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 5,
+    elevation: 1
   },
   segmentContainer: {
     flexDirection: "row",
-    borderRadius: 12,
-    padding: 3,
-    marginBottom: 16
+    borderRadius: 16,
+    padding: 4,
+    marginBottom: 14
   },
   segmentButton: {
     flex: 1,
-    paddingVertical: 10,
+    paddingVertical: 11,
     alignItems: "center",
-    borderRadius: 10
+    borderRadius: 12
   },
   segmentButtonActive: {
     elevation: 2,
@@ -141,17 +148,34 @@ const styles = StyleSheet.create({
     color: "#FFF"
   },
   monthNavBtn: {
-    padding: 4
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center"
   },
   monthLabel: {
     fontSize: 15,
-    fontWeight: "600"
+    fontWeight: "800"
+  },
+  calendarCard: {
+    borderWidth: 1,
+    borderRadius: 18,
+    paddingHorizontal: 8,
+    paddingTop: 14,
+    paddingBottom: 8,
+    marginBottom: 14,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2
   },
   weekdayRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingHorizontal: 8,
-    marginBottom: 8
+    paddingHorizontal: 0,
+    marginBottom: 10
   },
   weekdayText: {
     width: "14%",
@@ -160,19 +184,19 @@ const styles = StyleSheet.create({
     fontWeight: "600"
   },
   calendarGrid: {
-    marginBottom: 16
+    marginBottom: 2
   },
   summaryCard: {
     flexDirection: "row",
     borderWidth: 1,
-    borderRadius: 14,
-    paddingVertical: 12,
+    borderRadius: 18,
+    paddingVertical: 14,
     paddingHorizontal: 8,
-    elevation: 1,
+    elevation: 2,
     shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8
   },
   summaryCol: {
     flex: 1,
@@ -184,12 +208,12 @@ const styles = StyleSheet.create({
     alignSelf: "center"
   },
   summaryLabel: {
-    fontSize: 10,
-    fontWeight: "500",
-    marginBottom: 4
+    fontSize: 11,
+    fontWeight: "700",
+    marginBottom: 5
   },
   summaryValue: {
-    fontSize: 13,
-    fontWeight: "700"
+    fontSize: 14,
+    fontWeight: "800"
   }
 });

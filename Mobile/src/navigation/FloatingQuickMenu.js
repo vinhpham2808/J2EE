@@ -11,7 +11,8 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAppColors } from "../constants/colors";
-import AppIcon from "../components/ui/AppIcon";
+
+const PLUS_ICON = require("../assets/accessories/plus.png");
 
 const SUB_ACTIONS = [
   {
@@ -78,7 +79,7 @@ export function FloatingTabButton({ onPress, isOpen }) {
         style={[styles.fabMain, { shadowColor: "#7C4DFF" }]}
       >
         <Animated.View style={{ transform: [{ rotate: rotation }] }}>
-          <AppIcon name="add" size={28} color={colors.WHITE || "#FFFFFF"} />
+          <Image source={PLUS_ICON} style={styles.fabPlusIcon} resizeMode="contain" />
         </Animated.View>
       </LinearGradient>
     </Pressable>
@@ -283,6 +284,10 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 8,
     alignSelf: "center",
+  },
+  fabPlusIcon: {
+    width: 28,
+    height: 28,
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
