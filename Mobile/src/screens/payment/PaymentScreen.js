@@ -83,7 +83,7 @@ export default function PaymentScreen() {
         </LinearGradient>
         <Text style={[styles.title, { color: colors.TEXT }]}>Money Manager Premium</Text>
         <Text style={[styles.subtitle, { color: colors.TEXT_SECONDARY }]}>
-          Chọn gói phù hợp để thanh toán nhanh qua PayOS và mở khóa trải nghiệm quản lý tài chính tốt hơn.
+          Chọn gói phù hợp để thanh toán và mở khóa trải nghiệm quản lý tài chính tốt hơn.
         </Text>
       </View>
 
@@ -171,7 +171,7 @@ export default function PaymentScreen() {
       })}
 
       <Text style={[styles.noteText, { color: colors.TEXT_SECONDARY }]}>
-        Lưu ý: Phí dịch vụ được thanh toán qua cổng PayOS theo gói bạn chọn. Sau khi giao dịch thành công, quyền lợi Basic hoặc Premium sẽ được kích hoạt cho tài khoản trong ứng dụng. Nếu kết quả thanh toán chưa hiển thị ngay, vui lòng thoát ra và mở lại màn hình thanh toán sau ít phút để hệ thống kiểm tra giao dịch. Gói dịch vụ không tự động gia hạn; khi hết thời hạn, bạn có thể chủ động thanh toán lại để tiếp tục sử dụng các tính năng nâng cấp.
+        Lưu ý: Phí dịch vụ được thanh toán theo gói bạn chọn. Sau khi giao dịch thành công, quyền lợi Basic hoặc Premium sẽ được kích hoạt cho tài khoản trong ứng dụng. Nếu kết quả thanh toán chưa hiển thị ngay, vui lòng thoát ra và mở lại màn hình thanh toán sau ít phút để hệ thống kiểm tra giao dịch. Gói dịch vụ không tự động gia hạn; khi hết thời hạn, bạn có thể chủ động thanh toán lại để tiếp tục sử dụng các tính năng nâng cấp.
       </Text>
 
       <Pressable

@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Alert, Image, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -12,7 +12,6 @@ import { useAppColors } from "../../constants/colors";
 import useEmailPreferences from "../../hooks/useEmailPreferences";
 import useLanguagePreference from "../../hooks/useLanguagePreference";
 import { getSafeAreaContentStyle } from "../../utils/safeArea";
-import darkModeIcon from "../../assets/accessories/dark-mode.png";
 
 export default function MoreScreen() {
   const navigation = useNavigation();
@@ -65,32 +64,12 @@ export default function MoreScreen() {
         <MoreSettings
           appNotifications={appNotifications}
           emailPreferences={emailPreferences}
+          isDark={isDark}
           languageLabel={languagePreference.language.settingsLabel}
           onAppNotificationsChange={setAppNotifications}
+          onThemeChange={toggleTheme}
           onItemPress={handleItemPress}
         />
-
-        <View style={[styles.themeCard, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }]}> 
-          <View style={styles.themeRow}>
-            <View style={styles.themeLeft}>
-              <View style={styles.iconWrap}>
-                <Image source={darkModeIcon} style={styles.themeIconImage} resizeMode="contain" />
-              </View>
-              <View>
-                <Text style={[styles.themeTitle, { color: colors.TEXT }]}>Giao diện tối</Text>
-                <Text style={[styles.themeSubtitle, { color: colors.TEXT_SECONDARY }]}> 
-                  {isDark ? "Đang bật chế độ tối" : "Đang bật chế độ sáng"}
-                </Text>
-              </View>
-            </View>
-            <Switch
-              value={isDark}
-              onValueChange={toggleTheme}
-              trackColor={{ false: colors.CARD_BORDER, true: colors.ACTION_VOICE || '#A855F7' }}
-              thumbColor={colors.WHITE}
-            />
-          </View>
-        </View>
 
         <LogoutButton onPress={signOut} />
       </ScrollView>
@@ -125,50 +104,6 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 16,
     paddingBottom: 90,
-  },
-  themeCard: {
-    borderRadius: 18,
-    borderWidth: 1,
-    marginBottom: 16,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOpacity: 0.02,
-    shadowRadius: 6,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    elevation: 2,
-  },
-  themeRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  themeLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  iconWrap: {
-    width: 34,
-    height: 34,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  themeIconImage: {
-    width: 26,
-    height: 26,
-  },
-  themeTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  themeSubtitle: {
-    fontSize: 12,
-    marginTop: 2,
   },
   languageToast: {
     position: "absolute",

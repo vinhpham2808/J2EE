@@ -3,6 +3,7 @@ import {
   Alert as NativeAlert,
   Animated,
   Easing,
+  Image,
   Modal,
   Platform,
   Pressable,
@@ -18,7 +19,6 @@ import {
   resolveAlertVariant
 } from "../utils/appAlertConfig";
 import { useAppColors } from "../constants/colors";
-import AppIcon from "../components/ui/AppIcon";
 
 const originalAlert = NativeAlert.alert.bind(NativeAlert);
 let presenter = null;
@@ -143,10 +143,7 @@ export function AppAlertProvider({ children }) {
   const actionButtons = useMemo(() => alertConfig?.buttons || [], [alertConfig]);
   const variant = alertConfig?.variant || "info";
   const visual = APP_ALERT_VARIANTS[variant] || APP_ALERT_VARIANTS.info;
-  const hasDestructiveAction = actionButtons.some((button) => button.style === "destructive");
-  const displayVisual = hasDestructiveAction
-    ? { ...APP_ALERT_VARIANTS.error, icon: "trash-outline" }
-    : visual;
+  const displayVisual = visual;
   const isDark = colors.BG === "#0F0D0C";
   const shouldStackActions = actionButtons.length > 2;
 
@@ -186,7 +183,7 @@ export function AppAlertProvider({ children }) {
               ]}
             >
               <View style={[styles.iconContainer, { backgroundColor: displayVisual.glow }]}>
-                <AppIcon name={displayVisual.icon} size={24} color={displayVisual.accent} />
+                <Image source={displayVisual.image} style={styles.alertImage} resizeMode="contain" />
               </View>
 
               <Text style={[styles.title, { color: colors.TEXT }]} numberOfLines={2}>
@@ -207,13 +204,15 @@ export function AppAlertProvider({ children }) {
                 {actionButtons.map((button, index) => {
                   const isCancel = button.style === "cancel";
                   const isDestructive = button.style === "destructive";
-                  const isPrimary = !isCancel && index === actionButtons.length - 1;
+                  const isImageAction = Boolean(button.image);
+                  const isPrimary = !isImageAction && !isCancel && index === actionButtons.length - 1;
                   const buttonAccent = isDestructive ? APP_ALERT_VARIANTS.error.accent : displayVisual.accent;
                   const buttonAccentDark = isDestructive ? APP_ALERT_VARIANTS.error.accentDark : displayVisual.accentDark;
 
                   return (
                     <Pressable
                       key={`${button.text}-${index}`}
+                      accessibilityLabel={button.accessibilityLabel || button.text}
                       style={({ pressed }) => [
                         styles.actionButton,
                         {
@@ -231,17 +230,26 @@ export function AppAlertProvider({ children }) {
                       ]}
                       onPress={() => dismissAlert(button)}
                     >
-                      <Text
-                        style={[
-                          styles.actionText,
-                          { color: colors.TEXT },
-                          isCancel && { color: colors.TEXT_SECONDARY },
-                          (isPrimary || isDestructive) && styles.primaryText
-                        ]}
-                        numberOfLines={1}
-                      >
-                        {button.text}
-                      </Text>
+                      {button.image ? (
+                        <View style={styles.imageActionContent}>
+                          <Image source={button.image} style={styles.actionImage} resizeMode="contain" />
+                          <Text style={[styles.imageActionText, { color: colors.TEXT }]} numberOfLines={1}>
+                            {button.text}
+                          </Text>
+                        </View>
+                      ) : (
+                        <Text
+                          style={[
+                            styles.actionText,
+                            { color: colors.TEXT },
+                            isCancel && { color: colors.TEXT_SECONDARY },
+                            (isPrimary || isDestructive) && styles.primaryText
+                          ]}
+                          numberOfLines={1}
+                        >
+                          {button.text}
+                        </Text>
+                      )}
                     </Pressable>
                   );
                 })}
@@ -287,13 +295,17 @@ const styles = StyleSheet.create({
     elevation: 8
   },
   iconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     borderWidth: 0,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 18
+  },
+  alertImage: {
+    width: 38,
+    height: 38
   },
   title: {
     fontSize: 16,
@@ -336,6 +348,20 @@ const styles = StyleSheet.create({
     width: "100%"
   },
   actionText: {
+    fontSize: 12,
+    fontWeight: "700"
+  },
+  actionImage: {
+    width: 22,
+    height: 22
+  },
+  imageActionContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8
+  },
+  imageActionText: {
     fontSize: 12,
     fontWeight: "700"
   },

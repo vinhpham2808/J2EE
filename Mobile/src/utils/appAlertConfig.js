@@ -6,7 +6,7 @@ export const DEFAULT_ALERT_BUTTON_TEXT = "Đã hiểu";
 export const APP_ALERT_VARIANTS = {
   success: {
     label: "Thành công",
-    icon: "checkmark",
+    image: require("../assets/alert/success.png"),
     accent: "#4ADE70",
     accentDark: "#22C55E",
     soft: COLORS.INCOME_LIGHT,
@@ -15,7 +15,7 @@ export const APP_ALERT_VARIANTS = {
   },
   error: {
     label: "Có lỗi",
-    icon: "close",
+    image: require("../assets/alert/error.png"),
     accent: "#EF3B3B",
     accentDark: "#DC2626",
     soft: COLORS.EXPENSE_LIGHT,
@@ -24,7 +24,7 @@ export const APP_ALERT_VARIANTS = {
   },
   warning: {
     label: "Cần chú ý",
-    icon: "warning-outline",
+    image: require("../assets/alert/warning.png"),
     accent: COLORS.WARNING,
     accentDark: "#D97706",
     soft: COLORS.WARNING_LIGHT,
@@ -33,7 +33,7 @@ export const APP_ALERT_VARIANTS = {
   },
   confirm: {
     label: "Xác nhận",
-    icon: "warning-outline",
+    image: require("../assets/alert/confirm.png"),
     accent: COLORS.WARNING,
     accentDark: "#D97706",
     soft: COLORS.ROSE_MIST,
@@ -42,7 +42,7 @@ export const APP_ALERT_VARIANTS = {
   },
   info: {
     label: "Thông tin",
-    icon: "information-circle-outline",
+    image: require("../assets/alert/information.png"),
     accent: COLORS.INFO,
     accentDark: "#2563EB",
     soft: COLORS.INFO_LIGHT,

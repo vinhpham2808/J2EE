@@ -5,6 +5,10 @@ import * as ImagePicker from "expo-image-picker";
 import { analyzeReceiptFile } from "../services/receiptImportService";
 import { getApiErrorMessage } from "../utils/format";
 
+const CAMERA_ICON = require("../assets/accessories/camera.png");
+const GALLERY_ICON = require("../assets/accessories/gallery.png");
+const DOCUMENT_ICON = require("../assets/accessories/documentation.png");
+
 const EXPENSE_RECEIPT_MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 export default function useExpenseReceiptImport({ isPremium, navigation }) {
@@ -131,10 +135,9 @@ export default function useExpenseReceiptImport({ isPremium, navigation }) {
     }
 
     Alert.alert("Nhập từ hóa đơn", "Chọn nguồn tệp hóa đơn:", [
-      { text: "📷", onPress: pickCamera },
-      { text: "🖼️", onPress: pickImage },
-      { text: "📄", onPress: pickPdf },
-      { text: "✕", style: "cancel" }
+      { text: "Camera", image: CAMERA_ICON, accessibilityLabel: "Chụp ảnh hóa đơn", onPress: pickCamera },
+      { text: "Thư viện", image: GALLERY_ICON, accessibilityLabel: "Chọn ảnh hóa đơn", onPress: pickImage },
+      { text: "Tài liệu", image: DOCUMENT_ICON, accessibilityLabel: "Chọn file PDF hóa đơn", onPress: pickPdf }
     ]);
   }, [isPremium, navigation, pickCamera, pickImage, pickPdf]);
 
