@@ -3,7 +3,6 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -15,7 +14,7 @@ import { useTranslation } from "react-i18next";
 import apiClient from "../../services/apiClient";
 import { API_ENDPOINTS } from "../../constants/api";
 import { getApiErrorMessage } from "../../utils/format";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import {
   validatePasswordRequirements,
   isPasswordValid,
@@ -23,11 +22,13 @@ import {
 import PasswordInput from "../../components/auth/PasswordInput";
 import PasswordRequirement from "../../components/auth/PasswordRequirement";
 import { scale, clampScale } from "../../utils/layoutScale";
+import AppButton from "../../components/ui/AppButton";
 
 export default function CreatePasswordScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const insets = useSafeAreaInsets();
+  const colors = useAppColors();
   const { t } = useTranslation();
   const email = route.params?.email || "";
   const fullName = route.params?.fullName || "";
@@ -83,20 +84,19 @@ export default function CreatePasswordScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.screen}
+      style={[styles.screen, { backgroundColor: colors.APP_BACKGROUND || "#F2F2F7" }]}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <View style={[styles.screen, { paddingTop: insets.top }]}>
-        <View style={styles.bgGlowTop} />
-        <View style={styles.bgGlowBottom} />
+      <View style={{ flex: 1, paddingTop: insets.top }}>
+        <View style={[styles.bgGlow, { backgroundColor: colors.PRIMARY_GLOW || "rgba(255, 178, 191, 0.25)" }]} />
 
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.title}>{t("auth.createPassword.title")}</Text>
-          <Text style={styles.subtitle}>{t("auth.createPassword.subtitle")}</Text>
+          <Text style={[styles.title, { color: colors.TEXT }]}>{t("auth.createPassword.title")}</Text>
+          <Text style={[styles.subtitle, { color: colors.TEXT_SECONDARY }]}>{t("auth.createPassword.subtitle")}</Text>
 
           <PasswordInput
             value={password}
@@ -107,15 +107,14 @@ export default function CreatePasswordScreen() {
             placeholder={t("auth.common.enterPassword")}
           />
 
-          <Pressable
-            style={[styles.nextButton, (!canProceed || loading) && styles.nextButtonDisabled]}
+          <AppButton
+            variant="primary"
+            title={loading ? t("auth.createPassword.loading") : t("auth.common.next")}
             onPress={onNext}
+            loading={loading}
             disabled={!canProceed || loading}
-          >
-            <Text style={styles.nextButtonText}>
-              {loading ? t("auth.createPassword.loading") : t("auth.common.next")}
-            </Text>
-          </Pressable>
+            style={styles.nextButton}
+          />
 
           <PasswordRequirement req={req} extraMet={extraMet} />
         </ScrollView>
@@ -127,25 +126,14 @@ export default function CreatePasswordScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: COLORS.DARK_BG,
   },
-  bgGlowTop: {
+  bgGlow: {
     position: "absolute",
     top: -120,
     left: -100,
     width: scale(300),
     height: scale(300),
     borderRadius: scale(150),
-    backgroundColor: COLORS.PRIMARY_GLOW,
-  },
-  bgGlowBottom: {
-    position: "absolute",
-    right: -140,
-    bottom: -120,
-    width: scale(320),
-    height: scale(320),
-    borderRadius: scale(160),
-    backgroundColor: COLORS.PRIMARY_GLOW,
   },
   scrollContent: {
     flexGrow: 1,
@@ -156,37 +144,16 @@ const styles = StyleSheet.create({
   title: {
     fontSize: clampScale(26, 22, 30),
     fontWeight: "800",
-    color: COLORS.DARK_TEXT,
     marginBottom: scale(8),
     textAlign: "center",
   },
   subtitle: {
     fontSize: 14,
-    color: COLORS.DARK_TEXT_SECONDARY,
     textAlign: "center",
     marginBottom: scale(28),
   },
   nextButton: {
-    backgroundColor: COLORS.PRIMARY,
-    borderRadius: scale(12),
-    height: scale(50),
-    alignItems: "center",
-    justifyContent: "center",
     marginBottom: scale(24),
     marginTop: scale(4),
-    shadowColor: COLORS.PRIMARY,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  nextButtonDisabled: {
-    backgroundColor: COLORS.DARK_BORDER,
-    opacity: 0.5,
-  },
-  nextButtonText: {
-    color: COLORS.WHITE || "#FFFFFF",
-    fontSize: clampScale(16, 14, 18),
-    fontWeight: "800",
   },
 });

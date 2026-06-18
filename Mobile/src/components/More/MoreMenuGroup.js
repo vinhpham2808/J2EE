@@ -43,9 +43,9 @@ export function getMoreMenuGroups(t) {
       key: "app-info",
       title: t("more.groups.appInfo"),
       items: [
-        { key: "help", image: require("../../assets/accessories/help-support.png"), title: t("more.items.help"), hasChevron: true },
+        { key: "help", image: require("../../assets/accessories/help-support.png"), title: t("more.items.help"), hasChevron: true, route: "Help" },
         { key: "privacy", image: require("../../assets/accessories/policy.png"), title: t("more.items.privacy"), hasChevron: true, route: "Privacy" },
-        { key: "about", image: require("../../assets/accessories/about-application.png"), title: t("more.items.about"), value: "1.5", hasChevron: true }
+        // { key: "about", image: require("../../assets/accessories/about-application.png"), title: t("more.items.about"), value: "1.5", hasChevron: true }
       ]
     },
     {

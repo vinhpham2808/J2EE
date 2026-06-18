@@ -16,6 +16,7 @@ import { COLORS, useAppColors } from "../../constants/colors";
 import { scale, clampScale } from "../../utils/layoutScale";
 import useLoginActions from "../../hooks/useLoginActions";
 import LoginForm from "../../components/auth/LoginForm";
+import LanguagePill from "../../components/common/LanguagePill";
 
 function LoginLoadingOverlay({ colors }) {
   const { t } = useTranslation();
@@ -58,6 +59,8 @@ export default function LoginScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       {loading || googleAuthLoading ? <LoginLoadingOverlay colors={colors} /> : null}
+
+      <LanguagePill />
 
       <View style={[styles.bgGlowTop, { backgroundColor: colors.BADGE_POSITIVE_BG || "rgba(124, 77, 255, 0.08)" }]} />
       <View style={[styles.bgGlowMiddle, { backgroundColor: colors.BADGE_POSITIVE_BG || "rgba(249, 115, 22, 0.05)" }]} />

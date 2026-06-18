@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -46,6 +46,10 @@ export default function MoreScreen() {
         t("more.aboutMessage"),
         [{ text: t("common.close"), style: "cancel" }]
       );
+      return;
+    }
+    if (item.key === "privacy") {
+      Linking.openURL("https://www.privacypolicies.com/live/c9bcdecb-94c6-422f-a464-143a10f62e33");
       return;
     }
     if (!item.route) return;
