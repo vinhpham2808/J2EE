@@ -27,14 +27,16 @@ describe("useLanguagePreference", () => {
     mockI18n.hydrateStoredLanguage.mockResolvedValue("en");
   });
 
-  test("initial language code is set", () => {
+  test("initial language code is set", async () => {
     const { result } = renderHook(() => useLanguagePreference());
     expect(result.current.languageCode).toBeTruthy();
+    await waitFor(() => expect(result.current.loaded).toBe(true));
   });
 
-  test("starts with loaded false", () => {
+  test("starts with loaded false", async () => {
     const { result } = renderHook(() => useLanguagePreference());
     expect(result.current.loaded).toBe(false);
+    await waitFor(() => expect(result.current.loaded).toBe(true));
   });
 
   test("becomes loaded after hydration", async () => {

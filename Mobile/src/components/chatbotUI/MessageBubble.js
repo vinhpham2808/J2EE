@@ -6,6 +6,8 @@ import { COLORS, useAppColors } from "../../constants/colors";
 import { clampScale, scale } from "../../utils/layoutScale";
 import AppIcon from "../ui/AppIcon";
 import MarkdownContent from "./MarkdownContent";
+import AIConfirmationForm from "./AIConfirmationForm";
+import { INTENT_ICONS, INTENT_LABELS } from "../../utils/aiIntent";
 import appLogo from "../../assets/logo&banner/applogo.png";
 
 function AssistantAvatar() {
