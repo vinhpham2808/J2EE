@@ -25,7 +25,7 @@ describe("ThemeContext", () => {
 
   test("loaded becomes true after mount", async () => {
     const { result } = renderHook(() => useTheme(), { wrapper: ThemeProvider });
-    await act(async () => {});
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
     expect(result.current.loaded).toBe(true);
   });
 
@@ -66,7 +66,7 @@ describe("ThemeContext", () => {
     const { result } = renderHook(() => useTheme(), { wrapper: ThemeProvider });
 
     act(() => { result.current.toggleTheme(); });
-    await act(async () => {});
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
 
     expect(AsyncStorage.setItem).toHaveBeenCalledWith("@app_theme", "dark");
   });
@@ -75,7 +75,7 @@ describe("ThemeContext", () => {
     await AsyncStorage.setItem("@app_theme", "dark");
 
     const { result } = renderHook(() => useTheme(), { wrapper: ThemeProvider });
-    await act(async () => {});
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
 
     expect(result.current.theme).toBe(THEME_MODES.DARK);
   });
@@ -85,13 +85,15 @@ describe("ThemeContext", () => {
   });
 
   test("handles AsyncStorage error gracefully", async () => {
+    const consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
     AsyncStorage.getItem.mockRejectedValueOnce(new Error("Storage error"));
 
     const { result } = renderHook(() => useTheme(), { wrapper: ThemeProvider });
-    await act(async () => {});
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
 
     expect(result.current.theme).toBe(THEME_MODES.LIGHT);
     expect(result.current.loaded).toBe(true);
+    consoleWarnSpy.mockRestore();
   });
 
   test("setThemeMode persists to AsyncStorage", () => {

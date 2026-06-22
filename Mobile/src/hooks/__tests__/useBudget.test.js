@@ -15,8 +15,9 @@ import useBudget from "../useBudget";
 describe("useBudget", () => {
   beforeEach(() => { jest.clearAllMocks(); });
 
-  test("returns initial state", () => {
+  test("returns initial state", async () => {
     const { result } = renderHook(() => useBudget());
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
     expect(result.current.budgets).toEqual([]);
     expect(result.current.amountLimit).toBe("");
     expect(result.current.submitting).toBe(false);
@@ -28,9 +29,10 @@ describe("useBudget", () => {
     expect(result.current.amountLimit).toBe("100000");
   });
 
-  test("initial month/year are set", () => {
+  test("initial month/year are set", async () => {
     const now = new Date();
     const { result } = renderHook(() => useBudget());
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
     expect(result.current.month).toBe(String(now.getMonth() + 1));
     expect(result.current.year).toBe(String(now.getFullYear()));
   });

@@ -50,18 +50,22 @@ describe("downloadFile", () => {
   });
 
   test("throws error when download status is not 200", async () => {
+    const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
     mockFileSystem.downloadAsync.mockResolvedValueOnce({ uri: "file:///tmp/bad.xlsx", status: 500 });
 
     await downloadAndShareFile("https://example.com/bad.xlsx", "bad.xlsx");
 
     expect(alertSpy).toHaveBeenCalledWith("Lỗi", "Không thể tải file báo cáo lúc này.");
+    consoleErrorSpy.mockRestore();
   });
 
   test("catches and alerts on network error", async () => {
+    const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
     mockFileSystem.downloadAsync.mockRejectedValueOnce(new Error("Network failure"));
 
     await downloadAndShareFile("https://example.com/fail.xlsx", "fail.xlsx");
 
     expect(alertSpy).toHaveBeenCalledWith("Lỗi", "Không thể tải file báo cáo lúc này.");
+    consoleErrorSpy.mockRestore();
   });
 });

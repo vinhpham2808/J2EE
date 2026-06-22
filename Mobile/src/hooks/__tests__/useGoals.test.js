@@ -8,14 +8,16 @@ jest.mock("@react-navigation/native", () => {
   return { useFocusEffect: jest.fn((cb) => React.useEffect(() => { cb(); }, [])) };
 });
 
-import { renderHook } from "@testing-library/react-native";
+import { renderHook, act } from "@testing-library/react-native";
 import useGoals from "../useGoals";
 
 describe("useGoals", () => {
   beforeEach(() => { jest.clearAllMocks(); });
 
-  test("returns initial state", () => {
+  test("returns initial state", async () => {
     const { result } = renderHook(() => useGoals());
+    // Flush async focus effect
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
     expect(result.current.goals).toEqual([]);
     expect(result.current.loading).toBe(false);
     expect(result.current.overview.totalTarget).toBe(0);

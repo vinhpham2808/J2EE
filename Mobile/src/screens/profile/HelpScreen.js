@@ -16,7 +16,7 @@ const HELP_ITEMS = [
   {
     key: "website",
     icon: "globe-outline",
-    url: "https://moneymanager.example.com"
+    url: "https://botdevgroup.me/"
   },
   {
     key: "followFacebook",

@@ -14,7 +14,7 @@ describe("useMonthlyReport", () => {
     apiClient.get.mockResolvedValueOnce({ data: { success: true, data: { totalExpense: 500 } } });
 
     const { result } = renderHook(() => useMonthlyReport(null));
-    await act(async () => {});
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
 
     expect(apiClient.get).toHaveBeenCalledWith("/reports/monthly/2026/6");
     expect(result.current.loading).toBe(false);
@@ -25,7 +25,7 @@ describe("useMonthlyReport", () => {
     apiClient.get.mockResolvedValueOnce({ data: { success: false, message: "No data" } });
 
     const { result } = renderHook(() => useMonthlyReport(null));
-    await act(async () => {});
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
 
     expect(result.current.error).toBe("No data");
     expect(result.current.report).toBeNull();
@@ -35,7 +35,7 @@ describe("useMonthlyReport", () => {
     apiClient.get.mockRejectedValueOnce(new Error("Network error"));
 
     const { result } = renderHook(() => useMonthlyReport(null));
-    await act(async () => {});
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
 
     expect(result.current.error).toBeTruthy();
     expect(result.current.report).toBeNull();

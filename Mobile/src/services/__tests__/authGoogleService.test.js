@@ -181,9 +181,11 @@ describe("authGoogleService", () => {
     });
 
     test("does not throw on signOut failure", async () => {
+      const consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
       GoogleSignin.signOut.mockRejectedValueOnce(new Error("Sign out failed"));
 
       await expect(authGoogleService.signOutGoogle()).resolves.toBeUndefined();
+      consoleWarnSpy.mockRestore();
     });
   });
 });

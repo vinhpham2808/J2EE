@@ -28,7 +28,7 @@ describe("AuthContext", () => {
     apiClient.get.mockResolvedValueOnce({ data: mockUser });
 
     const { result } = renderHook(() => React.useContext(AuthContext), { wrapper: AuthProvider });
-    await act(async () => {});
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
 
     expect(tokenStorage.getToken).toHaveBeenCalled();
     expect(apiClient.get).toHaveBeenCalledWith("/profile/me");
@@ -40,7 +40,7 @@ describe("AuthContext", () => {
     tokenStorage.getToken.mockResolvedValueOnce(null);
 
     const { result } = renderHook(() => React.useContext(AuthContext), { wrapper: AuthProvider });
-    await act(async () => {});
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
 
     expect(result.current.user).toBeNull();
     expect(result.current.isBootstrapping).toBe(false);
@@ -51,7 +51,7 @@ describe("AuthContext", () => {
     apiClient.get.mockRejectedValueOnce(new Error("Unauthorized"));
 
     const { result } = renderHook(() => React.useContext(AuthContext), { wrapper: AuthProvider });
-    await act(async () => {});
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
 
     expect(tokenStorage.clearToken).toHaveBeenCalled();
     expect(result.current.user).toBeNull();
@@ -63,7 +63,7 @@ describe("AuthContext", () => {
     apiClient.post.mockResolvedValueOnce({ data: { token: "new-token", user: { id: 1, email: "test@example.com" } } });
 
     const { result } = renderHook(() => React.useContext(AuthContext), { wrapper: AuthProvider });
-    await act(async () => {});
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
 
     let user;
     await act(async () => { user = await result.current.signIn({ email: "test@example.com", password: "pass123" }); });
@@ -79,7 +79,7 @@ describe("AuthContext", () => {
     apiClient.post.mockResolvedValueOnce({ data: {} });
 
     const { result } = renderHook(() => React.useContext(AuthContext), { wrapper: AuthProvider });
-    await act(async () => {});
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
 
     await expect(async () => {
       await act(async () => { await result.current.signIn({ email: "test@example.com", password: "pass123" }); });
@@ -91,7 +91,7 @@ describe("AuthContext", () => {
     apiClient.post.mockResolvedValueOnce({ data: { token: "new-token", user: { id: 1 } } });
 
     const { result } = renderHook(() => React.useContext(AuthContext), { wrapper: AuthProvider });
-    await act(async () => {});
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
 
     await act(async () => { await result.current.signIn({ email: "test@example.com", password: "pass123", rememberMe: true }); });
 
@@ -103,7 +103,7 @@ describe("AuthContext", () => {
     signOutGoogle.mockResolvedValueOnce(undefined);
 
     const { result } = renderHook(() => React.useContext(AuthContext), { wrapper: AuthProvider });
-    await act(async () => {});
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
 
     await act(async () => { await result.current.signOut(); });
 
@@ -118,7 +118,7 @@ describe("AuthContext", () => {
     exchangeGoogleToken.mockResolvedValueOnce({ token: "backend-token", user: { id: 2, email: "google@example.com" } });
 
     const { result } = renderHook(() => React.useContext(AuthContext), { wrapper: AuthProvider });
-    await act(async () => {});
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
 
     let user;
     await act(async () => { user = await result.current.signInWithGoogle(); });
@@ -133,7 +133,7 @@ describe("AuthContext", () => {
     signInWithGoogleNative.mockResolvedValueOnce(null);
 
     const { result } = renderHook(() => React.useContext(AuthContext), { wrapper: AuthProvider });
-    await act(async () => {});
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
 
     const user = await act(async () => result.current.signInWithGoogle());
     expect(user).toBeNull();
@@ -145,23 +145,25 @@ describe("AuthContext", () => {
     signInWithGoogleNative.mockRejectedValueOnce(new Error("SIGN_IN_CANCELLED"));
 
     const { result } = renderHook(() => React.useContext(AuthContext), { wrapper: AuthProvider });
-    await act(async () => {});
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
 
     const user = await act(async () => result.current.signInWithGoogle());
     expect(user).toBeNull();
   });
 
   test("signInWithGoogle handles backend error response", async () => {
+    const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
     tokenStorage.getToken.mockResolvedValueOnce(null);
     signInWithGoogleNative.mockResolvedValueOnce({ idToken: "google-token" });
     exchangeGoogleToken.mockRejectedValueOnce({ response: { data: { message: "Backend error" } } });
 
     const { result } = renderHook(() => React.useContext(AuthContext), { wrapper: AuthProvider });
-    await act(async () => {});
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
 
     await expect(async () => {
       await act(async () => { await result.current.signInWithGoogle(); });
     }).rejects.toThrow("Backend error");
+    consoleErrorSpy.mockRestore();
   });
 
   test("refreshUser fetches and sets user", async () => {
@@ -170,7 +172,7 @@ describe("AuthContext", () => {
     apiClient.get.mockResolvedValueOnce({ data: mockUser });
 
     const { result } = renderHook(() => React.useContext(AuthContext), { wrapper: AuthProvider });
-    await act(async () => {});
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
 
     let data;
     await act(async () => { data = await result.current.refreshUser(); });

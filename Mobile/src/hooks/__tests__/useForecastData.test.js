@@ -52,7 +52,7 @@ describe("useForecastData", () => {
     fetchAnomalies.mockResolvedValueOnce([]);
 
     const { result } = renderHook(() => useForecastData(defaultProps));
-    await act(async () => {});
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
 
     expect(fetchMonthlyForecast).toHaveBeenCalledWith(2026, 6);
     expect(result.current.monthlyForecast).toEqual(mockForecast);
@@ -69,7 +69,7 @@ describe("useForecastData", () => {
     buildInsightFromDraft.mockReturnValueOnce({ summary: "Draft insight" });
 
     const { result } = renderHook(() => useForecastData(defaultProps));
-    await act(async () => {});
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
 
     expect(buildForecastFromDraft).toHaveBeenCalledWith(draft);
     expect(result.current.monthlyForecast).toEqual({ year: 2026, month: 6, categories: draft.categories });
@@ -84,7 +84,7 @@ describe("useForecastData", () => {
     fetchAnomalies.mockResolvedValueOnce(anomalies);
 
     const { result } = renderHook(() => useForecastData(defaultProps));
-    await act(async () => {});
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
 
     expect(fetchAnomalies).toHaveBeenCalledWith(2026, 6);
     expect(result.current.anomalies).toEqual(anomalies);
@@ -99,7 +99,7 @@ describe("useForecastData", () => {
     fetchCategoryTrend.mockResolvedValueOnce(trendData);
 
     const { result } = renderHook(() => useForecastData(defaultProps));
-    await act(async () => {});
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
 
     act(() => { result.current.setSelectedCategoryId(2); });
     await waitFor(() => expect(result.current.categoryTrend).toEqual(trendData));
@@ -146,7 +146,7 @@ describe("useForecastData", () => {
     fetchAnomalies.mockResolvedValueOnce([]);
 
     const { result } = renderHook(() => useForecastData(defaultProps));
-    await act(async () => {});
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
 
     expect(result.current.monthlyForecast).toBeNull();
     expect(result.current.isLoading).toBe(false);

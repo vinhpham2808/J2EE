@@ -20,7 +20,7 @@ describe("useEmailPreferences", () => {
 
     const { result } = renderHook(() => useEmailPreferences());
 
-    await act(async () => {});
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
     expect(apiClient.get).toHaveBeenCalledWith("/profile/email-preferences");
     expect(result.current.dailyReportPref).toEqual({ type: "DAILY_EXPENSE_REPORT", isEnabled: true });
     expect(result.current.isDailyEnabled).toBe(true);
@@ -30,20 +30,22 @@ describe("useEmailPreferences", () => {
     apiClient.get.mockResolvedValueOnce({ data: [] });
 
     const { result } = renderHook(() => useEmailPreferences());
-    await act(async () => {});
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
 
     expect(result.current.isDailyEnabled).toBe(false);
     expect(result.current.dailyReportPref).toBeUndefined();
   });
 
   test("handles fetch error gracefully", async () => {
+    const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
     apiClient.get.mockRejectedValueOnce(new Error("Network error"));
 
     const { result } = renderHook(() => useEmailPreferences());
-    await act(async () => {});
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
 
     expect(result.current.isDailyEnabled).toBe(false);
     expect(result.current.dailyReportPref).toBeUndefined();
+    consoleErrorSpy.mockRestore();
   });
 
   test("toggleDailyEmail updates preference and calls API", async () => {
@@ -53,7 +55,7 @@ describe("useEmailPreferences", () => {
     apiClient.put.mockResolvedValueOnce({});
 
     const { result } = renderHook(() => useEmailPreferences());
-    await act(async () => {});
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
 
     expect(result.current.isDailyEnabled).toBe(false);
 
