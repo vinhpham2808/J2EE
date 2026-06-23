@@ -1,4 +1,4 @@
-import { translatePhrase } from "./i18n.js";
+import { translatePhrase, SUPPORTED_LANGUAGES } from "./i18n.js";
 
 const ORIGINAL_TEXT = new WeakMap();
 const TRANSLATABLE_ATTRIBUTES = ["placeholder", "title", "aria-label", "alt"];
@@ -16,12 +16,15 @@ function translateTextNode(node, dictionaries, language) {
   if (!ORIGINAL_TEXT.has(node)) {
     ORIGINAL_TEXT.set(node, node.nodeValue);
   } else {
-    // If the DOM text no longer matches the translated version of our stored original,
-    // something external (e.g. React re-render) has updated the node. Adopt the new
-    // value as the new original so we never revert React-rendered text.
+    // If the DOM text no longer matches the translated version of our stored original in ANY
+    // supported language, something external (e.g. React re-render) has updated the node.
+    // Adopt the new value as the new original so we never revert React-rendered text.
     const storedOriginal = ORIGINAL_TEXT.get(node);
-    const expectedTranslation = translatePhrase(dictionaries, language, storedOriginal);
-    if (node.nodeValue !== expectedTranslation && node.nodeValue !== storedOriginal) {
+    const isTranslationOfOriginal = SUPPORTED_LANGUAGES.some((lang) => {
+      const expected = translatePhrase(dictionaries, lang, storedOriginal);
+      return node.nodeValue === expected;
+    });
+    if (!isTranslationOfOriginal) {
       ORIGINAL_TEXT.set(node, node.nodeValue);
     }
   }
@@ -102,8 +105,12 @@ export function observeStaticTranslations(root, dictionaries, getLanguage) {
         // the observer would have set, treat the new value as the new "original" so we
         // don't revert dynamic data (e.g. numbers, API-loaded values) back to stale content.
         if (ORIGINAL_TEXT.has(node)) {
-          const expectedValue = translatePhrase(dictionaries, lang, ORIGINAL_TEXT.get(node));
-          if (node.nodeValue !== expectedValue) {
+          const storedOriginal = ORIGINAL_TEXT.get(node);
+          const isTranslationOfOriginal = SUPPORTED_LANGUAGES.some((l) => {
+            const expected = translatePhrase(dictionaries, l, storedOriginal);
+            return node.nodeValue === expected;
+          });
+          if (!isTranslationOfOriginal) {
             ORIGINAL_TEXT.set(node, node.nodeValue);
           }
         }
