@@ -101,9 +101,10 @@ public class ProfileController {
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody AuthDTO authDTO, HttpServletResponse response) {
-        if (!profileService.isAccountActive(authDTO.getEmail())) {
+        String errorMessage = profileService.validateLoginAndGetError(authDTO);
+        if (errorMessage != null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
-                    "message", "Tài khoản chưa được kích hoạt. Vui lòng nhập mã OTP trong email."
+                    "message", errorMessage
             ));
         }
         Map<String, Object> result = profileService.authenticateAndGenerateToken(authDTO);

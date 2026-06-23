@@ -194,6 +194,22 @@ public class ProfileService {
                 .orElse(false);
     }
 
+    public String validateLoginAndGetError(AuthDTO authDTO) {
+        String email = authDTO.getEmail() != null ? authDTO.getEmail().trim() : "";
+        Optional<ProfileEntity> profileOpt = profileRepository.findByEmail(email);
+        if (profileOpt.isEmpty()) {
+            return "Sai tài khoản hoặc mật khẩu.";
+        }
+        ProfileEntity profile = profileOpt.get();
+        if (profile.getPassword() == null || !passwordEncoder.matches(authDTO.getPassword(), profile.getPassword())) {
+            return "Mật khẩu không đúng. Vui lòng nhập lại.";
+        }
+        if (!Boolean.TRUE.equals(profile.getIsActive())) {
+            return "Tài khoản chưa được kích hoạt. Vui lòng nhập mã OTP trong email.";
+        }
+        return null;
+    }
+
     public Map<String, Object> authenticateAndGenerateToken(AuthDTO authDTO) {
         try {
             authenticationManager.authenticate(
