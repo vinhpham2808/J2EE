@@ -909,10 +909,13 @@ Aurora MySQL        Redis Cache      DynamoDB      SQS + DLQ
         <li><input type="checkbox" class="task-cb"> <span>Tạo RDS Proxy</span></li>
         <li><input type="checkbox" class="task-cb"> <span>Tạo ElastiCache Redis</span></li>
         <li><input type="checkbox" class="task-cb"> <span>Tạo DynamoDB cho chat history</span></li>
+        <li><input type="checkbox" class="task-cb"> <span><strong>Seed tài khoản Admin</strong> — đặt biến môi trường <code>ADMIN_EMAIL</code>, <code>ADMIN_PASSWORD</code> trong Secrets Manager; backend tự tạo khi khởi động lần đầu qua <code>AdminSeeder</code></span></li>
+        <li><input type="checkbox" class="task-cb"> <span>Đổi mật khẩu Admin ngay sau khi đăng nhập lần đầu</span></li>
       </ul>
-      <span class="step-result">✓ Backend có đủ DB, cache và storage cho chat</span>
+      <span class="step-result">✓ Backend có đủ DB, cache và storage cho chat; tài khoản Admin đã sẵn sàng</span>
     </div>
   </div>
+
 
   <div class="step-card">
     <div class="step-head">

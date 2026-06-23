@@ -2,10 +2,12 @@ package com.example.moneymanager.config;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
+@Order(1)
 @ConditionalOnProperty(name = "app.seeders.enabled", havingValue = "true", matchIfMissing = true)
 public class RoleInitializer implements CommandLineRunner {
 
