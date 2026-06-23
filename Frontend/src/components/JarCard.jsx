@@ -61,7 +61,7 @@ const JarCard = ({ jar, totalBalance, totalAbsBalance, onEdit, onDelete, onClick
           <div className="min-w-0">
             <h3 className="text-sm sm:text-base font-bold text-slate-800 dark:text-white truncate tracking-tight">{name}</h3>
             <p className="text-[11px] font-semibold text-slate-400 dark:text-slate-500">
-              Target: <span className="text-amber-500">{targetPercentage ?? 0}%</span>
+              Mục tiêu: <span className="text-amber-500">{targetPercentage ?? 0}%</span>
             </p>
           </div>
         </div>
@@ -77,7 +77,7 @@ const JarCard = ({ jar, totalBalance, totalAbsBalance, onEdit, onDelete, onClick
       {/* Progress bar */}
       <div className="mb-4">
         <div className="flex justify-between text-[11px] font-medium mb-1">
-          <span className="text-slate-450 dark:text-slate-400">Actual share</span>
+          <span className="text-slate-450 dark:text-slate-400">Tỷ lệ thực tế</span>
           <span className="font-bold" style={{ color: color || "#8B5CF6" }}>
             {actualPercent}% / {targetPercentage ?? 0}%
           </span>
@@ -101,11 +101,11 @@ const JarCard = ({ jar, totalBalance, totalAbsBalance, onEdit, onDelete, onClick
         <div>
           {parseFloat(actualPercent) >= (targetPercentage ?? 0) ? (
             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/20 dark:border-emerald-500/10">
-              <TrendingUp size={10} /> Target reached
+              <TrendingUp size={10} /> Đạt mục tiêu
             </span>
           ) : (
             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200/20 dark:border-amber-500/10">
-              <TrendingDown size={10} /> Below target
+              <TrendingDown size={10} /> Chưa đạt mục tiêu
             </span>
           )}
         </div>
@@ -115,7 +115,7 @@ const JarCard = ({ jar, totalBalance, totalAbsBalance, onEdit, onDelete, onClick
           <button
             onClick={(e) => { e.stopPropagation(); onAddExpenseClick(); }}
             className="p-1.5 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-450 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-lg transition-colors border border-transparent hover:border-emerald-200/30"
-            title="Quick add expense"
+            title="Thêm chi tiêu nhanh"
           >
             <Plus size={14} />
           </button>
@@ -123,7 +123,7 @@ const JarCard = ({ jar, totalBalance, totalAbsBalance, onEdit, onDelete, onClick
           <button
             onClick={(e) => { e.stopPropagation(); onTransferClick(); }}
             className="p-1.5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg transition-colors border border-transparent hover:border-blue-200/30"
-            title="Quick transfer"
+            title="Chuyển tiền nhanh"
           >
             <ArrowLeftRight size={14} />
           </button>
@@ -131,7 +131,7 @@ const JarCard = ({ jar, totalBalance, totalAbsBalance, onEdit, onDelete, onClick
           <button
             onClick={(e) => { e.stopPropagation(); onEdit(); }}
             className="p-1.5 text-slate-400 hover:text-violet-650 dark:hover:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-500/10 rounded-lg transition-colors border border-transparent hover:border-violet-200/30"
-            title="Edit jar"
+            title="Chỉnh sửa hũ"
           >
             <Pencil size={13} />
           </button>
@@ -139,7 +139,7 @@ const JarCard = ({ jar, totalBalance, totalAbsBalance, onEdit, onDelete, onClick
           <button
             onClick={(e) => { e.stopPropagation(); onDelete(); }}
             className="p-1.5 text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-colors border border-transparent hover:border-rose-200/30"
-            title="Delete jar"
+            title="Xoá hũ"
           >
             <Trash2 size={13} />
           </button>

@@ -20,8 +20,8 @@ const AddCategoryForm = ({onAddCategory, initialCategoryData, isEditing}) => {
     }, [isEditing, initialCategoryData]);
 
     const categoryTypeOptions = [
-        {value: "income", label: "Income"},
-        {value: "expense", label: "Expense"},
+        {value: "income", label: "Thu nhập"},
+        {value: "expense", label: "Chi tiêu"},
     ]
 
     const handleChange = (key, value) => {
@@ -47,13 +47,13 @@ const AddCategoryForm = ({onAddCategory, initialCategoryData, isEditing}) => {
             <Input
                 value={category.name}
                 onChange={({target}) => handleChange("name", target.value)}
-                label="Category name"
-                placeholder="e.g. Salary, Supermarket"
+                label="Tên danh mục"
+                placeholder="VD: Lương, Siêu thị"
                 type="text"
             />
 
             <Input
-                label="Category type"
+                label="Loại danh mục"
                 value={category.type}
                 onChange={({target}) => handleChange("type", target.value)}
                 isSelect={true}
@@ -69,11 +69,11 @@ const AddCategoryForm = ({onAddCategory, initialCategoryData, isEditing}) => {
                     {loading ? (
                         <>
                             <LoaderCircle className="w-4 h-4 animate-spin"/>
-                            {isEditing ? "Updating..." : "Adding..."}
+                            {isEditing ? "Đang cập nhật..." : "Đang thêm..."}
                         </>
                     ): (
                         <>
-                            {isEditing ? "Update category" : "Add category"}
+                            {isEditing ? "Cập nhật danh mục" : "Thêm danh mục"}
                         </>
                     )}
                 </button>

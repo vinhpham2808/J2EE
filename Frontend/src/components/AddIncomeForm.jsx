@@ -141,14 +141,14 @@ const AddIncomeForm = ({onAddIncome, categories, initialDate = ""}) => {
             <Input
                 value={income.name}
                 onChange={({target}) => handleChange('name', target.value)}
-                label="Transaction name"
-                placeholder="e.g. Salary, Part-time, Bonus"
+                label="Tên giao dịch"
+                placeholder="VD: Lương, Bán thời gian, Thưởng"
                 type="text"
             />
 
             <Input
-                label="Category"
-                placeholder={categories.length === 0 ? "Please create an income category first" : "Select category"}
+                label="Danh mục"
+                placeholder={categories.length === 0 ? "Chưa có danh mục thu nhập, vui lòng tạo trước" : "Chọn danh mục"}
                 value={income.categoryId}
                 onChange={({target}) => handleChange('categoryId', target.value)}
                 isSelect={true}
@@ -158,15 +158,15 @@ const AddIncomeForm = ({onAddIncome, categories, initialDate = ""}) => {
             <Input
                 value={formatCurrency(income.amount)}
                 onChange={handleAmountChange}
-                label="Amount"
-                placeholder="e.g. 500,000"
+                label="Số tiền"
+                placeholder="VD: 500.000"
                 type="text"
             />
 
             <Input
                 value={income.date}
                 onChange={({target}) => handleChange('date', target.value)}
-                label="Date"
+                label="Ngày"
                 placeholder=""
                 type="date"
             />
@@ -182,7 +182,7 @@ const AddIncomeForm = ({onAddIncome, categories, initialDate = ""}) => {
                             text-sm font-medium text-amber-700 dark:text-amber-400 transition-colors
                             hover:bg-amber-100 dark:hover:bg-amber-500/15"
                     >
-                        <span>💰 Allocate to {jars.length} jar(s) ({fmt(totalAllocated)} / {fmt(incomeAmount)})</span>
+                        <span>💰 Phân bổ vào {jars.length} hũ ({fmt(totalAllocated)} / {fmt(incomeAmount)})</span>
                         {showAllocations ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                     </button>
 
@@ -229,7 +229,7 @@ const AddIncomeForm = ({onAddIncome, categories, initialDate = ""}) => {
 
                             {allocationDiff !== 0 && (
                                 <p className={`text-xs px-1 ${allocationDiff > 0 ? "text-amber-600 dark:text-amber-400" : "text-red-500"}`}>
-                                    {allocationDiff > 0 ? `⚠ ${fmt(allocationDiff)} still unallocated` : `⚠ Exceeds by ${fmt(Math.abs(allocationDiff))} over entered amount`}
+                                    {allocationDiff > 0 ? `⚠ Còn ${fmt(allocationDiff)} chưa được phân bổ` : `⚠ Vượt ${fmt(Math.abs(allocationDiff))} so với số tiền đã nhập`}
                                 </p>
                             )}
                         </div>
@@ -244,10 +244,10 @@ const AddIncomeForm = ({onAddIncome, categories, initialDate = ""}) => {
                     className="add-btn add-btn-fill">
                     {loading ? (
                         <>
-                            <LoaderCircle className="w-4 h-4 animate-spin"/>Adding...
+                            <LoaderCircle className="w-4 h-4 animate-spin"/>Đang thêm...
                         </>
                     ): (
-                        <>Add income</>
+                        <>Thêm thu nhập</>
                     )}
                 </button>
             </div>

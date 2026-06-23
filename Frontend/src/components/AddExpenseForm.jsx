@@ -34,8 +34,8 @@ const AddExpenseForm = ({ onAddExpense, categories, defaultJarId, jars = [], ini
     }));
 
     const jarOptions = [
-        { value: "", label: "Not assigned to jar" },
-        ...jars.map((j) => ({ value: j.id, label: `🏦 ${j.name?.trim() || 'Unnamed jar'}` })),
+        { value: "", label: "Không gán vào hũ" },
+        ...jars.map((j) => ({ value: j.id, label: `🏦 ${j.name?.trim() || 'Hũ không tên'}` })),
     ];
 
     const selectedJar = jars.find((j) => String(j.id) === String(expense.jarId));
@@ -53,14 +53,14 @@ const AddExpenseForm = ({ onAddExpense, categories, defaultJarId, jars = [], ini
             <Input
                 value={expense.name}
                 onChange={({ target }) => handleChange("name", target.value)}
-                label="Transaction name"
-                placeholder="e.g. Electricity, Internet"
+                label="Tên giao dịch"
+                placeholder="VD: Điện, Internet"
                 type="text"
             />
 
             <Input
-                label="Category"
-                placeholder={categories.length === 0 ? "Please create an expense category first" : "Select category"}
+                label="Danh mục"
+                placeholder={categories.length === 0 ? "Chưa có danh mục chi tiêu, vui lòng tạo trước" : "Chọn danh mục"}
                 value={selectedCategoryId}
                 onChange={({ target }) => handleChange("categoryId", target.value)}
                 isSelect={true}
@@ -70,8 +70,8 @@ const AddExpenseForm = ({ onAddExpense, categories, defaultJarId, jars = [], ini
             {jars.length > 0 && (
                 <div className="mt-0">
                     <Input
-                        label="Deduct from jar"
-                        placeholder="Select payment jar"
+                        label="Khấu trừ từ hũ"
+                        placeholder="Chọn hũ thanh toán"
                         value={expense.jarId}
                         onChange={({ target }) => handleChange("jarId", target.value)}
                         isSelect={true}
@@ -81,7 +81,7 @@ const AddExpenseForm = ({ onAddExpense, categories, defaultJarId, jars = [], ini
                         <div className="flex items-center gap-1.5 mt-1 px-1">
                             <AlertTriangle size={13} className="text-amber-500 shrink-0" />
                             <p className="text-xs text-amber-600 dark:text-amber-400">
-                                Insufficient jar balance ({new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(selectedJar.currentBalance)})
+                                Số dư hũ không đủ ({new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(selectedJar.currentBalance)})
                             </p>
                         </div>
                     )}
@@ -91,15 +91,15 @@ const AddExpenseForm = ({ onAddExpense, categories, defaultJarId, jars = [], ini
             <Input
                 value={formatCurrency(expense.amount)}
                 onChange={handleAmountChange}
-                label="Amount"
-                placeholder="e.g. 150,000"
+                label="Số tiền"
+                placeholder="VD: 150.000"
                 type="text"
             />
 
             <Input
                 value={expense.date}
                 onChange={({ target }) => handleChange("date", target.value)}
-                label="Date"
+                label="Ngày"
                 placeholder=""
                 type="date"
             />
@@ -109,7 +109,7 @@ const AddExpenseForm = ({ onAddExpense, categories, defaultJarId, jars = [], ini
                     type="button"
                     className="add-btn add-btn-fill"
                     onClick={() => onAddExpense({ ...expense, categoryId: selectedCategoryId })}
-                >Add expense</button>
+                >Thêm chi tiêu</button>
             </div>
         </div>
     );

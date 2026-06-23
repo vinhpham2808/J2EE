@@ -145,7 +145,7 @@ const NotificationDropdown = () => {
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
     } catch {
-      toast.error("Error updating notification status");
+      toast.error("Lỗi khi cập nhật trạng thái thông báo");
     }
   };
 
@@ -159,7 +159,7 @@ const NotificationDropdown = () => {
         toast.success(t("notifications.markAllRead"));
       }
     } catch {
-      toast.error("Error updating notification status");
+      toast.error("Lỗi khi cập nhật trạng thái thông báo");
     }
   };
 

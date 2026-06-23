@@ -4,16 +4,16 @@ import EmojiPickerPopup from "./EmojiPickerPopup.jsx";
 import Input from "./Input.jsx";
 
 const JAR_COLORS = [
-  { value: "#8B5CF6", label: "Purple" },
-  { value: "#10B981", label: "Green" },
-  { value: "#F59E0B", label: "Yellow" },
-  { value: "#EF4444", label: "Red" },
-  { value: "#3B82F6", label: "Blue" },
-  { value: "#EC4899", label: "Pink" },
-  { value: "#F97316", label: "Orange" },
-  { value: "#06B6D4", label: "Teal" },
-  { value: "#6366F1", label: "Indigo" },
-  { value: "#84CC16", label: "Lime" },
+  { value: "#8B5CF6", label: "Tím" },
+  { value: "#10B981", label: "Xanh lá" },
+  { value: "#F59E0B", label: "Vàng" },
+  { value: "#EF4444", label: "Đỏ" },
+  { value: "#3B82F6", label: "Xanh dương" },
+  { value: "#EC4899", label: "Hồng" },
+  { value: "#F97316", label: "Cam" },
+  { value: "#06B6D4", label: "Xanh ngọc" },
+  { value: "#6366F1", label: "Chàm" },
+  { value: "#84CC16", label: "Xanh lơ" },
 ];
 
 const buildInitialJarForm = (initialData) => ({
@@ -35,12 +35,12 @@ const JarForm = ({ initialData, isEditing = false, jars = [], onSave, onCancel }
 
   const handleSubmit = () => {
     if (!form.name.trim()) {
-      toast.error("Please enter a jar name.");
+      toast.error("Vui lòng nhập tên hũ.");
       return;
     }
 
     if (isEditing && pctDiff !== 0 && !balancingJarId && jars.length > 1) {
-      toast.error(`Please select a balancing jar to ${pctDiff > 0 ? "decrease" : "increase"} the percentage.`);
+      toast.error(`Vui lòng chọn hũ muốn ${pctDiff > 0 ? "giảm đi" : "tăng thêm"} tỷ lệ %.`);
       return;
     }
 
@@ -64,14 +64,14 @@ const JarForm = ({ initialData, isEditing = false, jars = [], onSave, onCancel }
       <Input
         value={form.name}
         onChange={({ target }) => handleChange("name", target.value)}
-        label="Jar name"
-        placeholder="e.g. Living, Entertainment, Investment"
+        label="Tên hũ"
+        placeholder="VD: Sinh hoạt, Giải trí, Đầu tư"
         type="text"
       />
 
       <div className="space-y-1.5">
         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-          Allocation percentage (%)
+          Tỷ lệ phân bổ (%)
         </label>
         <div className="flex items-center gap-2">
           <button
@@ -92,7 +92,7 @@ const JarForm = ({ initialData, isEditing = false, jars = [], onSave, onCancel }
               focus:ring-1 focus:ring-violet-500/30 dark:focus:ring-amber-500/30"
             value={form.targetPercentage}
             onChange={({ target }) => handleChange("targetPercentage", target.value.replace(/[^0-9.]/g, ""))}
-            placeholder="e.g. 55"
+            placeholder="VD: 55"
             type="text"
           />
           <button
@@ -116,13 +116,13 @@ const JarForm = ({ initialData, isEditing = false, jars = [], onSave, onCancel }
             : "bg-blue-50 dark:bg-blue-500/5 border-blue-200 dark:border-blue-500/20 text-blue-700 dark:text-blue-400"
         }`}>
           <p className="font-bold flex items-center gap-1">
-            ⚖️ Auto-balance allocation:
+            ⚖️ Tự cân đối phân bổ:
           </p>
           <p className="text-slate-600 dark:text-slate-400">
             {pctDiff > 0 ? (
-              <>You are increasing this jar&apos;s percentage by <strong className="font-extrabold text-amber-600">{pctDiff.toFixed(1)}%</strong>. Please select a jar to decrease by {pctDiff.toFixed(1)}% so the total stays at 100%:</>
+              <>Bạn đang tăng tỷ lệ hũ này thêm <strong className="font-extrabold text-amber-600">{pctDiff.toFixed(1)}%</strong>. Vui lòng chọn hũ muốn **giảm đi {pctDiff.toFixed(1)}%** để tổng luôn bằng 100%:</>
             ) : (
-              <>You are decreasing this jar&apos;s percentage by <strong className="font-extrabold text-blue-600">{Math.abs(pctDiff).toFixed(1)}%</strong>. Please select a jar to increase by {Math.abs(pctDiff).toFixed(1)}% so the total stays at 100%:</>
+              <>Bạn đang giảm tỷ lệ hũ này đi <strong className="font-extrabold text-blue-600">{Math.abs(pctDiff).toFixed(1)}%</strong>. Vui lòng chọn hũ muốn **tăng thêm {Math.abs(pctDiff).toFixed(1)}%** để tổng luôn bằng 100%:</>
             )}
           </p>
           <select
@@ -130,12 +130,12 @@ const JarForm = ({ initialData, isEditing = false, jars = [], onSave, onCancel }
             onChange={(e) => setBalancingJarId(e.target.value)}
             className="w-full mt-2 px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 outline-none text-slate-700 dark:text-slate-300 text-xs font-semibold focus:ring-1 focus:ring-slate-400/20 cursor-pointer"
           >
-            <option value="">-- Select balancing jar --</option>
+            <option value="">-- Chọn hũ đối ứng để cân bằng --</option>
             {jars
               .filter(j => j.id !== initialData?.id)
               .map(j => (
                 <option key={j.id} value={j.id}>
-                  {j.icon || "🏺"} {j.name} (Current: {j.targetPercentage}%)
+                  {j.icon || "🏺"} {j.name} (Tỷ lệ hiện tại: {j.targetPercentage}%)
                 </option>
               ))
             }
@@ -145,7 +145,7 @@ const JarForm = ({ initialData, isEditing = false, jars = [], onSave, onCancel }
 
       {/* Color picker */}
       <div className="space-y-1.5">
-        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Color</label>
+        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Màu sắc</label>
         <div className="flex flex-wrap gap-2">
           {JAR_COLORS.map((c) => (
             <button
@@ -172,14 +172,14 @@ const JarForm = ({ initialData, isEditing = false, jars = [], onSave, onCancel }
             text-slate-600 dark:text-slate-400
             hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
         >
-          Cancel
+          Huỷ
         </button>
         <button
           type="button"
           onClick={handleSubmit}
           className="add-btn add-btn-fill"
         >
-          {isEditing ? "Update" : "Create jar"}
+          {isEditing ? "Cập nhật" : "Tạo hũ"}
         </button>
       </div>
     </div>

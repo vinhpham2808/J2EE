@@ -10,12 +10,12 @@ import { useTranslation } from "../hooks/useTranslation.js";
 const STORAGE_KEY = "quick_expense_templates";
 
 const DEFAULT_TEMPLATES = [
-  { id: "t1", emoji: "🍚", name: "Rice meal",    amount: 50000,  categoryId: null, jarId: null },
-  { id: "t2", emoji: "☕", name: "Coffee",        amount: 35000,  categoryId: null, jarId: null },
-  { id: "t3", emoji: "⛽", name: "Fuel",          amount: 100000, categoryId: null, jarId: null },
-  { id: "t4", emoji: "🛒", name: "Supermarket",   amount: 200000, categoryId: null, jarId: null },
-  { id: "t5", emoji: "🧋", name: "Bubble tea",    amount: 45000,  categoryId: null, jarId: null },
-  { id: "t6", emoji: "🍜", name: "Noodle soup",   amount: 60000,  categoryId: null, jarId: null },
+  { id: "t1", emoji: "🍚", name: "Cơm",           amount: 50000,  categoryId: null, jarId: null },
+  { id: "t2", emoji: "☕", name: "Cà phê",       amount: 35000,  categoryId: null, jarId: null },
+  { id: "t3", emoji: "⛽", name: "Xăng xe",       amount: 100000, categoryId: null, jarId: null },
+  { id: "t4", emoji: "🛒", name: "Siêu thị",     amount: 200000, categoryId: null, jarId: null },
+  { id: "t5", emoji: "🧋", name: "Trà sữa",       amount: 45000,  categoryId: null, jarId: null },
+  { id: "t6", emoji: "🍜", name: "Bún/Phở",     amount: 60000,  categoryId: null, jarId: null },
 ];
 
 const fmt = (n) =>
@@ -184,8 +184,8 @@ function TemplateFormModal({ template, categories, jars, onSave, onClose }) {
   };
 
   const handleSubmit = () => {
-    if (!form.name.trim()) { toast.error("Please enter a template name"); return; }
-    if (!form.amount || Number(form.amount) <= 0) { toast.error("Please enter a valid amount"); return; }
+    if (!form.name.trim()) { toast.error("Vui lòng nhập tên mẫu chi tiêu"); return; }
+    if (!form.amount || Number(form.amount) <= 0) { toast.error("Vui lòng nhập số tiền hợp lệ"); return; }
     onSave({
       ...template,
       emoji: form.emoji,
