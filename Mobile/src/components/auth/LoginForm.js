@@ -37,6 +37,7 @@ export default function LoginForm({
           onChangeText={onEmailChange}
           onFocus={() => setIsFocusedEmail(true)}
           onBlur={() => setIsFocusedEmail(false)}
+          testID="email-input"
         />
       </View>
 
@@ -50,6 +51,7 @@ export default function LoginForm({
           onChangeText={onPasswordChange}
           onFocus={() => setIsFocusedPassword(true)}
           onBlur={() => setIsFocusedPassword(false)}
+          testID="password-input"
         />
       </View>
 
@@ -61,23 +63,25 @@ export default function LoginForm({
             thumbColor={rememberMe ? (colors.PRIMARY || "#7C4DFF") : "#9ca3af"}
             trackColor={{ false: colors.BORDER, true: colors.PRIMARY_LIGHT }}
             style={styles.switch}
+            testID="remember-switch"
           />
           <Text style={[styles.rememberText, { color: colors.TEXT_SECONDARY }]}>{t("auth.login.rememberMe")}</Text>
         </View>
-        <Pressable onPress={onForgotPassword}>
+        <Pressable onPress={onForgotPassword} testID="forgot-password-button">
           <Text style={[styles.forgotText, { color: colors.PRIMARY || "#7C4DFF" }]}>{t("auth.login.forgotPassword")}</Text>
         </Pressable>
       </View>
 
-      <Pressable
-        style={[styles.loginButton, { backgroundColor: colors.PRIMARY || "#7C4DFF" }, loading && styles.loginButtonDisabled]}
-        onPress={onSubmit}
-        disabled={loading}
-      >
-        <Text style={styles.loginButtonText}>
-          {loading ? t("auth.login.loading") : t("auth.common.loginAction")}
-        </Text>
-      </Pressable>
+        <Pressable
+          style={[styles.loginButton, { backgroundColor: colors.PRIMARY || "#7C4DFF" }, loading && styles.loginButtonDisabled]}
+          onPress={onSubmit}
+          disabled={loading}
+          testID="login-button"
+        >
+          <Text style={styles.loginButtonText}>
+            {loading ? t("auth.login.loading") : t("auth.common.loginAction")}
+          </Text>
+        </Pressable>
 
       <View style={styles.dividerRow}>
         <View style={[styles.dividerLine, { backgroundColor: colors.BORDER }]} />
@@ -89,7 +93,7 @@ export default function LoginForm({
 
       <View style={styles.signupRow}>
         <Text style={[styles.signupText, { color: colors.TEXT_SECONDARY }]}>{t("auth.login.noAccount")}</Text>
-        <Pressable onPress={onSignup}>
+        <Pressable onPress={onSignup} testID="signup-button">
           <Text style={[styles.signupLink, { color: colors.PRIMARY || "#7C4DFF" }]}>{t("auth.login.signup")}</Text>
         </Pressable>
       </View>
@@ -104,6 +108,7 @@ function SocialLoginButton({ loading, colors, onPress }) {
         style={[styles.socialBtn, { backgroundColor: colors.SURFACE, borderColor: colors.BORDER }, loading && styles.socialBtnDisabled]}
         onPress={onPress}
         disabled={loading}
+        testID="google-login-button"
       >
         <AppIcon name="logo-google" size={18} color={colors.TEXT} />
         <Text style={[styles.socialLabel, { color: colors.TEXT }]}>Google</Text>

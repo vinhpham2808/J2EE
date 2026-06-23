@@ -55,6 +55,8 @@ export default function ChatInputBar({ value, onChangeText, onSend, onStop, plac
           style={[styles.actionCircle, { backgroundColor: colors.PRIMARY }, isDisabled && styles.actionCircleDisabled]}
           onPress={onSend}
           disabled={isDisabled}
+          accessibilityRole="button"
+          accessibilityLabel={t("chatbot.sendMessage")}
         >
           <Ionicons name="send" size={16} color={COLORS.WHITE} style={{ marginLeft: 2 }} />
         </Pressable>
@@ -72,6 +74,8 @@ export default function ChatInputBar({ value, onChangeText, onSend, onStop, plac
             ]}
             onPress={onMicPress}
             disabled={isDisabled}
+            accessibilityRole="button"
+            accessibilityLabel={t("chatbot.stopVoiceInput")}
           >
             <Ionicons name="pulse" size={18} color={COLORS.WHITE} />
           </Pressable>
@@ -84,6 +88,8 @@ export default function ChatInputBar({ value, onChangeText, onSend, onStop, plac
         style={[styles.actionCircle, { backgroundColor: colors.PRIMARY }, isDisabled && styles.actionCircleDisabled]}
         onPress={onMicPress}
         disabled={isDisabled}
+        accessibilityRole="button"
+        accessibilityLabel={t("chatbot.voiceInput")}
       >
         <Image source={MIC_ICON} style={styles.micIcon} resizeMode="contain" />
       </Pressable>

@@ -238,7 +238,7 @@
       "jars": "Extra spending jars",
       "goals": "Savings goals",
       "reports": "Monthly income and expense report",
-      "help": "Help & Support",
+      "help": "Help & Information",
       "privacy": "Privacy Policy",
       "about": "About app",
       "appNotifications": "App notifications",
@@ -1448,5 +1448,12 @@
       "title": "Contact",
       "description": "If you have questions about privacy, security, or requests related to personal data, please contact the support team through Money Manager's official support channel."
     }
+  },
+  "help": {
+    "title": "Help & Information",
+    "userGuide": "User Guide",
+    "website": "Website",
+    "followFacebook": "Follow us on Facebook",
+    "dataProtection": "Personal Data Protection Policy"
   }
 }

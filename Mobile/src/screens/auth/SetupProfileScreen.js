@@ -2,13 +2,15 @@ import React, { useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { scale, clampScale } from "../../utils/layoutScale";
+import AppButton from "../../components/ui/AppButton";
 
 export default function SetupProfileScreen() {
   const navigation = useNavigation();
   const route = useRoute();
+  const colors = useAppColors();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const email = route.params?.email || "";
@@ -26,45 +28,42 @@ export default function SetupProfileScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.screen}
+      style={[styles.screen, { backgroundColor: colors.APP_BACKGROUND || "#F2F2F7" }]}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <View style={{ flex: 1, paddingTop: insets.top }}>
-        <View style={styles.bgGlowTop} />
-        <View style={styles.bgGlowBottom} />
+        <View style={[styles.bgGlow, { backgroundColor: colors.PRIMARY_GLOW || "rgba(255, 178, 191, 0.25)" }]} />
 
         <View style={styles.body}>
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>{t("auth.setupProfile.fullNameRequired")}</Text>
-            <View style={[styles.inputWrap, isFocused && styles.inputWrapFocused]}>
+            <Text style={[styles.inputLabel, { color: colors.PRIMARY || "#ef5e83" }]}>{t("auth.setupProfile.fullNameRequired")}</Text>
+            <View style={[styles.inputWrap, { backgroundColor: colors.SURFACE_SECONDARY || "#F2F2F7", borderColor: isFocused ? (colors.PRIMARY || "#ef5e83") : (colors.BORDER || "#E5E7EB") }]}>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: colors.TEXT }]}
                 value={fullName}
                 onChangeText={setFullName}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
                 placeholder={t("auth.setupProfile.fullNamePlaceholder")}
-                placeholderTextColor={COLORS.DARK_TEXT_SECONDARY}
+                placeholderTextColor={colors.TEXT_MUTED || "#B8A6AC"}
                 autoCapitalize="words"
                 autoCorrect={false}
               />
               {fullName.length > 0 && (
-                <Pressable onPress={onClear} style={styles.clearButton}>
-                  <Text style={styles.clearIcon}>✕</Text>
+                <Pressable onPress={onClear} style={[styles.clearButton, { backgroundColor: colors.TEXT_MUTED || "#B8A6AC" }]}>
+                  <Text style={[styles.clearIcon, { color: colors.BG || "#FFF5F7" }]}>✕</Text>
                 </Pressable>
               )}
             </View>
           </View>
 
-          <Pressable
-            style={[styles.nextButton, !canProceed && styles.nextButtonDisabled]}
+          <AppButton
+            variant="primary"
+            title={t("auth.common.next")}
             onPress={onNext}
             disabled={!canProceed}
-          >
-            <Text style={[styles.nextButtonText, !canProceed && styles.nextButtonTextDisabled]}>
-              {t("auth.common.next")}
-            </Text>
-          </Pressable>
+            style={styles.nextButton}
+          />
         </View>
       </View>
     </KeyboardAvoidingView>
@@ -74,25 +73,14 @@ export default function SetupProfileScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: COLORS.DARK_BG
   },
-  bgGlowTop: {
+  bgGlow: {
     position: "absolute",
     top: -120,
     left: -100,
     width: scale(300),
     height: scale(300),
     borderRadius: scale(150),
-    backgroundColor: COLORS.PRIMARY_GLOW
-  },
-  bgGlowBottom: {
-    position: "absolute",
-    right: -140,
-    bottom: -120,
-    width: scale(320),
-    height: scale(320),
-    borderRadius: scale(160),
-    backgroundColor: COLORS.PRIMARY_GLOW
   },
   body: {
     flex: 1,
@@ -104,7 +92,6 @@ const styles = StyleSheet.create({
     marginBottom: scale(24)
   },
   inputLabel: {
-    color: COLORS.PRIMARY_LIGHT,
     fontSize: 13,
     fontWeight: "600",
     marginBottom: scale(8),
@@ -113,57 +100,26 @@ const styles = StyleSheet.create({
   inputWrap: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: COLORS.DARK_INPUT_BG,
     borderRadius: scale(12),
     borderWidth: 1.5,
-    borderColor: COLORS.DARK_BORDER,
     paddingHorizontal: scale(14),
     height: scale(50)
   },
-  inputWrapFocused: {
-    borderColor: COLORS.PRIMARY,
-    borderWidth: 1.5
-  },
   input: {
     flex: 1,
-    color: COLORS.DARK_TEXT,
     fontSize: 16
   },
   clearButton: {
     width: scale(28),
     height: scale(28),
     borderRadius: scale(14),
-    backgroundColor: COLORS.DARK_TEXT_SECONDARY,
     alignItems: "center",
     justifyContent: "center"
   },
   clearIcon: {
-    color: COLORS.DARK_BG,
     fontSize: 12,
     fontWeight: "700"
   },
   nextButton: {
-    backgroundColor: COLORS.PRIMARY,
-    borderRadius: scale(12),
-    height: scale(50),
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: COLORS.PRIMARY,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  nextButtonDisabled: {
-    backgroundColor: COLORS.DARK_BORDER,
-    opacity: 0.5
-  },
-  nextButtonText: {
-    color: COLORS.WHITE || "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "800"
-  },
-  nextButtonTextDisabled: {
-    color: COLORS.DARK_TEXT_SECONDARY
   }
 });

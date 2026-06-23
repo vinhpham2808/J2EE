@@ -237,7 +237,7 @@
       "jars": "Hũ chi tiêu phụ",
       "goals": "Mục tiêu tiết kiệm",
       "reports": "Báo cáo thu chi tháng",
-      "help": "Trợ giúp & Hỗ trợ",
+      "help": "Trợ giúp và thông tin",
       "privacy": "Chính sách bảo mật",
       "about": "Về ứng dụng",
       "appNotifications": "Thông báo ứng dụng",
@@ -1433,5 +1433,12 @@
       "title": "Liên hệ",
       "description": "Nếu bạn có câu hỏi về quyền riêng tư, bảo mật hoặc yêu cầu liên quan đến dữ liệu cá nhân, vui lòng liên hệ đội ngũ hỗ trợ qua kênh hỗ trợ chính thức của Money Manager."
     }
+  },
+  "help": {
+    "title": "Trợ giúp và thông tin",
+    "userGuide": "Hướng dẫn sử dụng",
+    "website": "Website",
+    "followFacebook": "Theo dõi chúng tôi trên Facebook",
+    "dataProtection": "Chính sách Bảo vệ dữ liệu cá nhân"
   }
 }
