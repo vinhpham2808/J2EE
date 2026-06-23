@@ -1,0 +1,44 @@
+# =============================================================
+# Dockerfile.worker — Chạy Spring Boot với profile "worker"
+# Container này: @Scheduled jobs, @Async handlers, seeders
+#                KHÔNG expose HTTP server ra ngoài
+# Build: docker build -f Dockerfile.worker -t moneymanager-worker .
+# =============================================================
+
+# Stage 1: Build (dùng chung base image, layer cache có thể shared với Dockerfile.api)
+FROM maven:3.9-eclipse-temurin-21 AS build
+WORKDIR /app
+
+# Cache dependencies trước
+COPY Backend/moneymanager/pom.xml ./pom.xml
+RUN mvn dependency:resolve dependency:resolve-plugins -q
+
+# Build JAR
+COPY Backend/moneymanager/src ./src
+RUN mvn clean package -DskipTests -q
+
+# Stage 2: Runtime
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
+
+# Metadata
+LABEL service="moneymanager-worker"
+LABEL profile="worker"
+LABEL description="Background worker — scheduled jobs, async handlers, seeders"
+
+# Copy JAR từ build stage
+COPY --from=build /app/target/*.jar app.jar
+
+# JVM flags tối ưu cho worker (ít concurrent, cần bộ nhớ thấp):
+# -XX:+UseSerialGC     = Serial GC nhẹ, phù hợp cho process đơn luồng
+# -Xmx350m             = Heap thấp hơn API (worker ít request hơn)
+# -XX:TieredStopAtLevel=1 = Khởi động nhanh hơn
+ENV JAVA_OPTS="-XX:+UseSerialGC -Xmx350m -XX:TieredStopAtLevel=1 -Dfile.encoding=UTF-8"
+
+# Spring profile = worker (không web server, chỉ jobs)
+ENV SPRING_PROFILES_ACTIVE=worker
+
+# Worker KHÔNG expose port (không có web server)
+# Nếu cần actuator health check nội bộ, có thể thêm management port riêng
+
+CMD ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

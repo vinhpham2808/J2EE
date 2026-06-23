@@ -30,6 +30,8 @@ public class ExpenseEntity {
     private String icon;
     @Column(length = 255)
     private String receiptLocation;
+    @Column(name = "receipt_image_url", length = 512)
+    private String receiptImageUrl;
     private LocalDate date;
     private BigDecimal amount;
 

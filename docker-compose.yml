@@ -1,0 +1,71 @@
+# =============================================================
+# docker-compose.yml — Local development / testing
+# Chạy cả 2 containers: api + worker
+#
+# Sử dụng:
+#   docker compose up --build          # Khởi động cả 2
+#   docker compose up api --build      # Chỉ API
+#   docker compose up worker --build   # Chỉ Worker
+#   docker compose logs -f api         # Xem logs API
+#   docker compose logs -f worker      # Xem logs Worker
+# =============================================================
+
+services:
+
+  # ─── API Container ──────────────────────────────────────────
+  # Spring profile: api
+  # Chức năng: REST API, Security, JWT, AI features
+  # KHÔNG chạy: @Scheduled jobs, seeders
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    image: moneymanager-api:latest
+    container_name: moneymanager-api
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      # Override để chỉ dùng api profile
+      SPRING_PROFILES_ACTIVE: api
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/api/v1.0/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - moneymanager-net
+
+  # ─── Worker Container ────────────────────────────────────────
+  # Spring profile: worker
+  # Chức năng: Scheduled jobs (notification, payment sync),
+  #            Async event handlers, DB/MongoDB seeders
+  # KHÔNG có: HTTP server, Security endpoint
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    image: moneymanager-worker:latest
+    container_name: moneymanager-worker
+    restart: unless-stopped
+    # Worker không expose port vì không có web server
+    env_file:
+      - .env
+    environment:
+      SPRING_PROFILES_ACTIVE: worker
+      # Worker không cần SERVER_PORT nhưng vẫn để default để tránh lỗi config binding
+      SERVER_PORT: 8081
+    networks:
+      - moneymanager-net
+    # Worker phụ thuộc api (đảm bảo seeders chạy sau api đã healthy là sai —
+    # thực ra worker chạy seeders độc lập, không cần api healthy trước)
+    # depends_on:
+    #   api:
+    #     condition: service_healthy
+
+networks:
+  moneymanager-net:
+    driver: bridge

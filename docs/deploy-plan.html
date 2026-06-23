@@ -1,0 +1,1417 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kế hoạch triển khai botdevgroup.me</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:   #2563eb;
+      --blue-l: #dbeafe;
+      --green:  #16a34a;
+      --green-l:#dcfce7;
+      --amber:  #d97706;
+      --amber-l:#fef3c7;
+      --red:    #dc2626;
+      --red-l:  #fee2e2;
+      --purple: #7c3aed;
+      --purple-l:#ede9fe;
+      --cyan:   #0891b2;
+      --cyan-l: #cffafe;
+      --slate:  #475569;
+      --bg:     #f8fafc;
+      --card:   #ffffff;
+      --border: #e2e8f0;
+      --text:   #0f172a;
+      --muted:  #64748b;
+    }
+
+    body {
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      font-size: 15px;
+      line-height: 1.65;
+      color: var(--text);
+      background: var(--bg);
+      padding: 0 0 64px;
+    }
+
+    /* ── Header ─────────────────────────────── */
+    .page-header {
+      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #1d4ed8 100%);
+      color: #fff;
+      padding: 48px 24px 40px;
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .page-header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+    .page-header p {
+      opacity: .82;
+      font-size: 1rem;
+    }
+    .badges {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    .badge {
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 999px;
+      padding: 4px 14px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    /* ── Layout ─────────────────────────────── */
+    .content {
+      max-width: 940px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ── Section headings ───────────────────── */
+    h2 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 48px 0 16px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    h2 .sec-num {
+      background: var(--blue);
+      color: #fff;
+      border-radius: 6px;
+      padding: 2px 10px;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #1e3a8a;
+      margin: 24px 0 10px;
+    }
+
+    /* ── Cards / boxes ──────────────────────── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin: 16px 0 24px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.05);
+    }
+    .card-blue   { border-left: 4px solid var(--blue);   background: #f0f6ff; }
+    .card-green  { border-left: 4px solid var(--green);  background: #f0fdf4; }
+    .card-amber  { border-left: 4px solid var(--amber);  background: #fffbeb; }
+    .card-purple { border-left: 4px solid var(--purple); background: #faf5ff; }
+    .card-cyan   { border-left: 4px solid var(--cyan);   background: #ecfeff; }
+    .card-red    { border-left: 4px solid var(--red);    background: #fff5f5; }
+    .card p, .card ul, .card ol { margin-top: 8px; }
+    .card ul, .card ol { padding-left: 20px; }
+    .card li { margin-bottom: 4px; }
+
+    /* ── Diagram ────────────────────────────── */
+    .diagram-wrap {
+      background: #0f172a;
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 16px 0 24px;
+      box-shadow: 0 4px 16px rgba(0,0,0,.2);
+    }
+    .diagram-label {
+      background: #1e293b;
+      color: #94a3b8;
+      font-size: 12px;
+      padding: 8px 20px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-family: Consolas, monospace;
+    }
+    .diagram-wrap pre {
+      color: #e2e8f0;
+      padding: 20px 24px;
+      margin: 0;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 13.5px;
+      line-height: 1.55;
+      overflow-x: auto;
+    }
+
+    /* ── Tables ─────────────────────────────── */
+    .tbl-wrap { overflow-x: auto; margin: 16px 0 24px; }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 14px;
+    }
+    th {
+      background: #1e3a8a;
+      color: #fff;
+      padding: 11px 14px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    th:first-child { border-radius: 0; }
+    td {
+      border-bottom: 1px solid var(--border);
+      padding: 10px 14px;
+      vertical-align: top;
+    }
+    tr:nth-child(even) td { background: #f8fafc; }
+    tr:last-child td { border-bottom: none; }
+    table { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+
+    /* ── Code ───────────────────────────────── */
+    code {
+      font-family: Consolas, "Courier New", monospace;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      padding: 1px 6px;
+      border-radius: 5px;
+      font-size: 13px;
+      color: #0f172a;
+    }
+
+    /* ── Lists ──────────────────────────────── */
+    ul, ol {
+      padding-left: 22px;
+      margin: 10px 0;
+    }
+    li { margin-bottom: 5px; }
+    p { margin: 10px 0; }
+
+    /* ── Service grid ───────────────────────── */
+    .svc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 14px;
+      margin: 16px 0 24px;
+    }
+    .svc-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.05);
+    }
+    .svc-card h4 {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid var(--border);
+    }
+    .svc-card.cf  h4 { color: #ea580c; border-color: #fed7aa; }
+    .svc-card.fe  h4 { color: var(--blue); border-color: var(--blue-l); }
+    .svc-card.be  h4 { color: var(--green); border-color: var(--green-l); }
+    .svc-card.db  h4 { color: var(--purple); border-color: var(--purple-l); }
+    .svc-card.ops h4 { color: var(--cyan); border-color: var(--cyan-l); }
+    .svc-card.sns h4 { color: var(--red); border-color: var(--red-l); }
+    .svc-card ul { padding-left: 18px; }
+    .svc-card li { font-size: 13.5px; margin-bottom: 3px; }
+
+    /* ── Checklist ──────────────────────────── */
+    .step-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,.04);
+    }
+    .step-head {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 18px;
+      background: #f8fafc;
+      border-bottom: 1px solid var(--border);
+    }
+    .step-num {
+      background: var(--blue);
+      color: #fff;
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; flex-shrink: 0;
+    }
+    .step-title { font-weight: 700; font-size: 14px; }
+    .step-body { padding: 14px 18px; }
+    .step-body ul { padding-left: 20px; }
+    .step-body li { font-size: 13.5px; margin-bottom: 4px; }
+    .step-result {
+      display: inline-block;
+      background: var(--green-l);
+      color: var(--green);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+
+    /* ── SNS highlight ──────────────────────── */
+    .sns-tag {
+      background: var(--red-l);
+      color: var(--red);
+      border-radius: 5px;
+      padding: 1px 8px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+
+    /* ── Timeline ───────────────────────────── */
+    .timeline { position: relative; padding-left: 28px; margin: 16px 0 24px; }
+    .timeline::before {
+      content: '';
+      position: absolute; left: 7px; top: 0; bottom: 0;
+      width: 2px; background: var(--border);
+    }
+    .tl-item { position: relative; margin-bottom: 24px; }
+    .tl-dot {
+      position: absolute; left: -28px; top: 4px;
+      width: 16px; height: 16px;
+      background: var(--blue); border-radius: 50%;
+      border: 2px solid #fff;
+      box-shadow: 0 0 0 2px var(--blue);
+    }
+    .tl-date {
+      font-size: 12px; font-weight: 700; color: var(--blue);
+      text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px;
+    }
+    .tl-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.04);
+    }
+    .tl-card h4 { font-size: 14px; margin-bottom: 8px; }
+    .tl-card ul { padding-left: 18px; }
+    .tl-card li { font-size: 13px; margin-bottom: 3px; }
+    .tl-result {
+      display: inline-block;
+      background: var(--green-l); color: var(--green);
+      border-radius: 5px; padding: 2px 10px;
+      font-size: 12px; font-weight: 600; margin-top: 8px;
+    }
+
+    /* ── Note ───────────────────────────────── */
+    .note {
+      color: var(--muted);
+      font-style: italic;
+      font-size: 13.5px;
+      margin: -12px 0 20px;
+    }
+
+    /* ── Checkboxes ─────────────────────────── */
+    .step-body ul li,
+    .tl-card ul li {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .task-cb {
+      width: 16px; height: 16px;
+      flex-shrink: 0;
+      margin-top: 3px;
+      cursor: pointer;
+      accent-color: var(--green);
+    }
+    li.done {
+      color: var(--muted);
+      text-decoration: line-through;
+    }
+    li.done code, li.done strong { opacity: .55; }
+
+    /* ── Progress widget ────────────────────── */
+    .progress-wrap {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 36px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    .progress-label {
+      font-weight: 700; font-size: 14px; white-space: nowrap;
+    }
+    .progress-track {
+      flex: 1; min-width: 140px;
+      height: 10px;
+      background: var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #16a34a, #22c55e);
+      border-radius: 999px;
+      width: 0%;
+      transition: width .35s ease;
+    }
+    .progress-pct {
+      font-weight: 700; font-size: 14px; color: var(--green);
+      white-space: nowrap; min-width: 100px;
+    }
+    .reset-btn {
+      background: none;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 5px 14px;
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .reset-btn:hover { border-color: var(--red); color: var(--red); background: var(--red-l); }
+
+    /* ── Footer ─────────────────────────────── */
+    .page-footer {
+      background: #1e293b;
+      color: #94a3b8;
+      text-align: center;
+      padding: 20px 24px;
+      font-size: 13px;
+      margin-top: 60px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Kế hoạch triển khai dự án botdevgroup.me</h1>
+  <p>Tài liệu tóm tắt dễ đọc để chia sẻ, theo dõi và triển khai demo nghiêm túc</p>
+  <div class="badges">
+    <span class="badge">☁️ AWS</span>
+    <span class="badge">🛡️ Cloudflare</span>
+    <span class="badge">📦 Spring Boot 4</span>
+    <span class="badge">⚛️ React 19</span>
+    <span class="badge">📱 React Native</span>
+    <span class="badge">🔔 SNS Alerting</span>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- Progress bar -->
+  <div class="progress-wrap">
+    <span class="progress-label">📋 Tiến độ triển khai</span>
+    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    <span class="progress-pct" id="progress-pct">0 / 0 việc</span>
+    <button class="reset-btn" id="reset-btn">↺ Reset</button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <h2><span class="sec-num">1</span> Mục tiêu</h2>
+
+  <p>Mục tiêu của phương án này là đưa dự án lên môi trường thật để có thể dùng demo một cách nghiêm túc, ổn định và dễ mở rộng về sau.</p>
+  <div class="card card-blue">
+    <ul>
+      <li>Website chạy bằng domain thật <code>botdevgroup.me</code></li>
+      <li>Backend API chạy bằng domain thật <code>api.botdevgroup.me</code></li>
+      <li>Ứng dụng mobile gọi đúng API production</li>
+      <li>Có lớp chống spam và DDoS cơ bản</li>
+      <li>Có hệ thống cảnh báo tự động khi có sự cố (qua Amazon SNS)</li>
+      <li>Đủ ổn định để demo cho người khác xem một cách nghiêm túc</li>
+    </ul>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <h2><span class="sec-num">2</span> Kiến trúc tổng thể</h2>
+
+  <div class="card card-blue">
+    <p><strong>Luồng truy cập chính:</strong></p>
+    <ul>
+      <li>Người dùng web/mobile → Cloudflare</li>
+      <li><code>botdevgroup.me</code> → Cloudflare → S3 (Static Web Hosting)</li>
+      <li><code>api.botdevgroup.me</code> → Cloudflare → ALB → EC2 Auto Scaling Group</li>
+      <li>Backend trên EC2 kết nối tới Aurora MySQL, RDS Proxy, Redis, DynamoDB, SQS, S3, CloudWatch và <strong>SNS</strong></li>
+    </ul>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <h2><span class="sec-num">2.0</span> Sơ đồ trực quan dễ hiểu nhanh</h2>
+  <p>Nếu chỉ cần nhìn một lần để hiểu hệ thống đi như thế nào, có thể xem sơ đồ này:</p>
+
+  <div class="diagram-wrap">
+    <div class="diagram-label">🗺 architecture diagram — botdevgroup.me</div>
+    <pre>
+  Người dùng Web / Mobile
+          |
+          v
+     Cloudflare
+  DNS + Proxy + WAF
+  DDoS + Rate Limit
+      + Turnstile
+          |
+    ┌─────┴──────────────┐
+    |                    |
+    v                    v
+botdevgroup.me    api.botdevgroup.me
+    |                    |
+    v                    v
+    S3                  ALB
+(Web Hosting)            |
+                         v
+                  EC2 Auto Scaling Group
+                  - Web API instances
+                  - Worker instance/group
+                          |
+      ┌───────────────────┼──────────────┬─────────────┐
+      |                   |              |             |
+      v                   v              v             v
+Aurora MySQL        Redis Cache      DynamoDB      SQS + DLQ
+ + RDS Proxy       / Rate Limit    Chat History   Async Jobs
+                                                     |
+                                                     v
+                                                Lambda + S3
+                                              Report / Invoice
+                                                     |
+                                   ┌─────────────────┤
+                                   |                 |
+                                   v                 v
+                              CloudWatch           SNS ◄── Auto Scaling events
+                         Logs + Metrics         ┌──┴───────────────────┐
+                           + Alarms             |                      |
+                               |                v                      v
+                               └──────►  Email / SMS          Webhook (Slack)
+                                         (Team alerts)       (Job failures)
+    </pre>
+  </div>
+  <p class="note">Đọc ngắn gọn: Cloudflare chặn làm lớp ngoài cùng để chống tấn công và điều hướng; web đi vào S3/CloudFront; API đi vào ALB/EC2; phần dữ liệu và xử lý nền nằm phía sau. CloudWatch phát hiện sự cố và kích hoạt SNS để gửi cảnh báo ngay lập tức.</p>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <h2><span class="sec-num">2.1</span> Lớp mạng bắt buộc: VPC, subnet, security group</h2>
+
+  <p>Để triển khai production nghiêm túc trên AWS, không chỉ có các dịch vụ như EC2, ALB, Aurora hay Redis, mà còn phải thiết kế lớp mạng chuẩn. Vì vậy phương án này <strong>bắt buộc có VPC</strong>.</p>
+
+  <div class="card card-blue">
+    <p><strong>Bố cục mạng khuyến dùng:</strong></p>
+    <ul>
+      <li>1 VPC</li>
+      <li>2 Availability Zones</li>
+      <li>2 public subnets</li>
+      <li>2 private app subnets</li>
+      <li>2 private data subnets</li>
+    </ul>
+  </div>
+
+  <h3>Bố cục subnet nên dùng</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Loại subnet</th>
+        <th>Mục đích</th>
+        <th>Dịch vụ nên đặt</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Public Subnet A/B</td>
+        <td>Nhận traffic từ internet</td>
+        <td>ALB, NAT Gateway</td>
+      </tr>
+      <tr>
+        <td>Private App Subnet A/B</td>
+        <td>Chạy logic ứng dụng</td>
+        <td>EC2 web-api, EC2 worker</td>
+      </tr>
+      <tr>
+        <td>Private Data Subnet A/B</td>
+        <td>Chứa dữ liệu nội bộ</td>
+        <td>Aurora MySQL, ElastiCache Redis</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>Luồng mạng chuẩn</h3>
+  <ul>
+    <li>Cloudflare → ALB: ALB phải public nên đặt ở public subnets</li>
+    <li>ALB → EC2 web-api: EC2 nên đặt ở private app subnets</li>
+    <li>EC2 → Aurora / Redis: database và cache nên đặt ở private data subnets</li>
+    <li>EC2 → S3 / CloudWatch / SNS / Secrets Manager / API ngoài: outbound qua NAT Gateway hoặc VPC Endpoints</li>
+  </ul>
+
+  <h3>Security Group nên chia</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Security Group</th>
+        <th>Inbound</th>
+        <th>Outbound</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>sg-alb</code></td>
+        <td>443 từ internet hoặc từ Cloudflare IP ranges</td>
+        <td>Tới <code>sg-app</code></td>
+      </tr>
+      <tr>
+        <td><code>sg-app</code></td>
+        <td>Chỉ từ <code>sg-alb</code></td>
+        <td>Tới DB, Redis, NAT, API ngoài, SNS endpoint</td>
+      </tr>
+      <tr>
+        <td><code>sg-db</code></td>
+        <td>Chỉ từ <code>sg-app</code></td>
+        <td>Giới hạn nội bộ</td>
+      </tr>
+      <tr>
+        <td><code>sg-redis</code></td>
+        <td>Chỉ từ <code>sg-app</code></td>
+        <td>Giới hạn nội bộ</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>Có cần bastion host không?</h3>
+  <p>Khuyến nghị <strong>không cần bastion host</strong>. Nên dùng <strong>AWS Systems Manager Session Manager</strong> để truy cập EC2. Cách này an toàn hơn vì không phải mở cổng SSH 22 ra internet.</p>
+
+  <h3>Có cần NAT Gateway không?</h3>
+  <p><strong>Có</strong>, nếu EC2 private cần truy cập internet outbound để:</p>
+  <ul>
+    <li>Gọi API bên thứ ba như Gemini, OpenRouter, Brevo, PayOS</li>
+    <li>Gọi <strong>SNS endpoint</strong> khi publish từ backend</li>
+    <li>Lấy secrets / gửi logs / gọi S3 nếu chưa dùng endpoint</li>
+  </ul>
+  <p>Nếu muốn tối ưu chi phí, có thể bổ sung VPC Endpoints cho các dịch vụ AWS hay dùng nhiều nhất: S3, Secrets Manager, CloudWatch Logs, <strong>SNS</strong>.</p>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <h2><span class="sec-num">3</span> Các dịch vụ sẽ sử dụng</h2>
+
+  <div class="svc-grid">
+    <div class="svc-card cf">
+      <h4>🛡️ Cloudflare</h4>
+      <ul>
+        <li>DNS</li>
+        <li>Proxy</li>
+        <li>DDoS Protection</li>
+        <li>WAF</li>
+        <li>Rate Limiting</li>
+        <li>Turnstile</li>
+      </ul>
+    </div>
+    <div class="svc-card fe">
+      <h4>🌐 Frontend (S3)</h4>
+      <ul>
+        <li><strong>Amazon S3</strong>: lưu build frontend & chạy Static Web Hosting</li>
+        <li><strong>Cloudflare CDN</strong>: cache tĩnh và phân phối</li>
+      </ul>
+    </div>
+    <div class="svc-card be">
+      <h4>⚙️ Backend (AWS)</h4>
+      <ul>
+        <li><strong>EC2 Auto Scaling Group</strong>: chạy Spring Boot</li>
+        <li><strong>Application Load Balancer</strong>: nhận traffic API</li>
+        <li><strong>Launch Template</strong>: cấu hình máy EC2</li>
+      </ul>
+    </div>
+    <div class="svc-card db">
+      <h4>🗄️ Dữ liệu (AWS)</h4>
+      <ul>
+        <li><strong>Aurora MySQL</strong>: database chính</li>
+        <li><strong>RDS Proxy</strong>: giảm áp lực connection</li>
+        <li><strong>ElastiCache Redis</strong>: cache, rate limit</li>
+        <li><strong>Amazon DynamoDB</strong>: lịch sử chat</li>
+      </ul>
+    </div>
+    <div class="svc-card ops">
+      <h4>🔧 Vận hành (AWS)</h4>
+      <ul>
+        <li><strong>SQS + DLQ</strong>: queue async jobs</li>
+        <li><strong>EventBridge Scheduler</strong>: job định kỳ</li>
+        <li><strong>Amazon S3</strong>: lưu trữ báo cáo & hóa đơn</li>
+        <li><strong>Secrets Manager</strong>: quản lý secrets</li>
+        <li><strong>CloudWatch</strong>: logs, metrics, alarms</li>
+        <li><strong>Systems Manager</strong>: quản trị EC2</li>
+      </ul>
+    </div>
+    <div class="svc-card sns">
+      <h4>🔔 Cảnh báo (AWS)</h4>
+      <ul>
+        <li><strong>Amazon SNS</strong>: gửi cảnh báo qua email, SMS khi alarm kích hoạt</li>
+        <li>Nhận trigger từ CloudWatch Alarms</li>
+        <li>Nhận trigger từ Auto Scaling events</li>
+        <li>Nhận trigger khi DLQ có job thất bại</li>
+        <li>Tuỳ chọn: webhook → Slack/Telegram</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <h2><span class="sec-num">4</span> Domain và cách phân luồng</h2>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Domain</th>
+        <th>Mục đích</th>
+        <th>Luồng triển khai</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>botdevgroup.me</code></td>
+        <td>Website frontend</td>
+        <td>Cloudflare → S3 Static Web Hosting</td>
+      </tr>
+      <tr>
+        <td><code>www.botdevgroup.me</code></td>
+        <td>Tuỳ chọn redirect hoặc cùng frontend</td>
+        <td>Cloudflare → CloudFront → S3</td>
+      </tr>
+      <tr>
+        <td><code>api.botdevgroup.me</code></td>
+        <td>Backend API</td>
+        <td>Cloudflare → ALB → EC2 ASG</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <h2><span class="sec-num">5</span> Cấu hình mobile production</h2>
+
+  <p>Ứng dụng mobile hiện đọc API URL từ biến môi trường. Khi build bản production, phải dùng domain thật, không dùng IP LAN.</p>
+  <div class="card card-green">
+    <p><strong>Giá trị cần dùng khi build production:</strong></p>
+    <p><code>EXPO_PUBLIC_API_BASE_URL=https://api.botdevgroup.me/api/v1.0</code></p>
+  </div>
+  <ul>
+    <li>IP như <code>192.168.x.x</code> chỉ dùng để test nội bộ</li>
+    <li>Khi đổi API domain thì phải build lại APK/AAB</li>
+    <li>Mobile app của dự án đang dùng Bearer token, nên chỉ cần API domain public là đủ</li>
+  </ul>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <h2><span class="sec-num">6</span> Vì sao chọn EC2 thay vì ECS/Fargate</h2>
+
+  <ul>
+    <li>Dễ hiểu hơn với mô hình máy chủ truyền thống</li>
+    <li>Dễ quản trị nếu nhóm quen làm với server</li>
+    <li>Vẫn scale được nhờ Auto Scaling Group</li>
+    <li>Vẫn kết hợp tốt với ALB, CloudWatch, Secrets Manager, RDS Proxy và Cloudflare</li>
+  </ul>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <h2><span class="sec-num">7</span> Cách chia backend trên EC2</h2>
+
+  <p>Không nên dồn mọi thứ vào một EC2 duy nhất nếu muốn demo nghiêm túc.</p>
+  <div class="tbl-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Thành phần</th>
+        <th>Mục đích</th>
+        <th>Khuyến nghị</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Web API</td>
+        <td>Nhận request từ người dùng</td>
+        <td>2 EC2 tối thiểu, đặt sau ALB, nằm trong Auto Scaling Group</td>
+      </tr>
+      <tr>
+        <td>Worker</td>
+        <td>Xử lý queue, email, report, background jobs</td>
+        <td>1 EC2 riêng hoặc 1 ASG nhỏ</td>
+      </tr>
+      <tr>
+        <td>Scheduler</td>
+        <td>Chạy job định kỳ</td>
+        <td>Dùng EventBridge Scheduler, không để cron chạy trong web app nếu scale ngang</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <h2><span class="sec-num">8</span> Chống spam và DDoS</h2>
+
+  <h3>Lớp 1: Cloudflare</h3>
+  <ul>
+    <li>Bật proxy cho <code>botdevgroup.me</code> và <code>api.botdevgroup.me</code></li>
+    <li>Bật WAF và DDoS protection</li>
+    <li>Đặt rate limit cho các endpoint nhạy cảm</li>
+    <li>Dùng Turnstile cho đăng ký, quên mật khẩu, resend OTP, email report nếu cần</li>
+  </ul>
+
+  <h3>Endpoint cần bảo vệ đặc biệt</h3>
+  <div class="card card-amber">
+    <ul>
+      <li><code>/api/v1.0/login</code></li>
+      <li><code>/api/v1.0/register</code></li>
+      <li><code>/api/v1.0/forgot-password</code></li>
+      <li><code>/api/v1.0/otp/resend</code></li>
+      <li><code>/api/v1.0/email/*</code></li>
+      <li><code>/api/v1.0/ai/*</code></li>
+      <li><code>/api/v1.0/payments/payos/create</code></li>
+    </ul>
+  </div>
+
+  <h3>Lớp 2: Backend</h3>
+  <ul>
+    <li>Rate limit nên dùng Redis, không dùng in-memory</li>
+    <li>Đọc IP thật từ <code>CF-Connecting-IP</code></li>
+    <li>Tách email/report sang queue để tránh block request</li>
+  </ul>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <h2><span class="sec-num">9</span> Những điểm cần sửa trong code trước khi demo nghiêm túc</h2>
+
+  <div class="card card-red">
+    <ul>
+      <li>Bỏ rate limit in-memory, chuyển sang Redis-based rate limit</li>
+      <li>Bỏ phụ thuộc <code>request.getRemoteAddr()</code> để xác định IP thật</li>
+      <li>Chuyển email/report sang mô hình async qua SQS + worker</li>
+      <li>Chuyển scheduled jobs sang EventBridge Scheduler</li>
+      <li>Tắt <code>ddl-auto=update</code> trong production và dùng migration chuẩn</li>
+      <li>Bỏ AWS access key/secret key tĩnh, chuyển sang IAM role + Secrets Manager</li>
+      <li>Bỏ logic clear toàn bộ Redis cache lúc startup</li>
+      <li>Bỏ AWS Lambda, tự sinh báo cáo Excel (Apache POI) và hóa đơn HTML trên Backend, upload trực tiếp lên S3</li>
+      <li>Lưu hình ảnh/hóa đơn import lên S3, trả về URL công khai và lưu vào DB khi confirm</li>
+    </ul>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <h2><span class="sec-num">10</span> Kế hoạch triển khai theo từng giai đoạn</h2>
+
+  <h3>Tuần 1: Deploy chạy ổn</h3>
+  <ol>
+    <li>Chốt domain, ACM và DNS validation</li>
+    <li>Dựng S3 + CloudFront cho frontend</li>
+    <li>Dựng Aurora MySQL, RDS Proxy, Redis, Secrets Manager</li>
+    <li>Dựng ALB + Launch Template + EC2 Auto Scaling Group cho backend</li>
+    <li>Triển khai <code>api.botdevgroup.me</code> qua Cloudflare</li>
+    <li>Build mobile production trỏ đúng <code>https://api.botdevgroup.me/api/v1.0</code></li>
+    <li>Test end-to-end web + mobile</li>
+  </ol>
+
+  <div class="card card-green">
+    <p><strong>Kết quả cuối tuần 1:</strong></p>
+    <ul>
+      <li>Web mở được bằng <code>botdevgroup.me</code></li>
+      <li>API gọi được bằng <code>api.botdevgroup.me</code></li>
+      <li>Mobile production gọi được API thật</li>
+      <li>Login, CRUD cơ bản, upload, AI, payment, report có thể test</li>
+    </ul>
+  </div>
+
+  <h3>Tuần 2: Hardening để demo nghiêm túc</h3>
+  <ol>
+    <li>Thêm SQS + DLQ</li>
+    <li>Tách worker xử lý email/report</li>
+    <li>Chuyển scheduler sang EventBridge Scheduler</li>
+    <li>Sửa rate limit sang Redis</li>
+    <li>Hoàn thiện WAF/rate limit/Turnstile trên Cloudflare</li>
+    <li>Thêm CloudWatch alarms và dashboard</li>
+    <li><strong>Thêm SNS topics, kết nối CloudWatch Alarms và DLQ → SNS</strong> <span class="sns-tag">NEW</span></li>
+    <li>Tổng duyệt demo toàn bộ luồng</li>
+  </ol>
+
+  <div class="card card-green">
+    <p><strong>Kết quả cuối tuần 2:</strong></p>
+    <ul>
+      <li>Hệ thống ổn định hơn để demo nghiêm túc</li>
+      <li>Giảm rủi ro spam, duplicate cron và request bị block lâu</li>
+      <li>Có logs và alarms để theo dõi sự cố</li>
+      <li>Team nhận cảnh báo qua email/SMS khi có vấn đề</li>
+    </ul>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <h2><span class="sec-num">10.1</span> Checklist triển khai từng bước dễ theo dõi</h2>
+  <p>Phần này viết theo kiểu "làm xong bước nào tick bước đó" để dễ bám khi triển khai thực tế.</p>
+
+  <div class="step-card">
+    <div class="step-head">
+      <div class="step-num">1</div>
+      <div class="step-title">Chuẩn bị domain và SSL</div>
+    </div>
+    <div class="step-body">
+      <ul>
+        <li><input type="checkbox" class="task-cb"> <span>Kiểm tra Cloudflare đang quản lý <code>botdevgroup.me</code></span></li>
+        <li><input type="checkbox" class="task-cb"> <span>Tạo ACM certificate cho frontend và API</span></li>
+        <li><input type="checkbox" class="task-cb"> <span>Thêm DNS validation record trên Cloudflare</span></li>
+      </ul>
+      <span class="step-result">✓ Domain sẵn sàng dùng HTTPS chuẩn</span>
+    </div>
+  </div>
+
+  <div class="step-card">
+    <div class="step-head">
+      <div class="step-num">2</div>
+      <div class="step-title">Dựng mạng AWS</div>
+    </div>
+    <div class="step-body">
+      <ul>
+        <li><input type="checkbox" class="task-cb"> <span>Tạo VPC</span></li>
+        <li><input type="checkbox" class="task-cb"> <span>Tạo public subnets, private app subnets, private data subnets</span></li>
+        <li><input type="checkbox" class="task-cb"> <span>Tạo route tables, NAT Gateway, security groups</span></li>
+      </ul>
+      <span class="step-result">✓ Có nền tảng mạng để đặt ALB, EC2, Aurora, Redis</span>
+    </div>
+  </div>
+
+  <div class="step-card">
+    <div class="step-head">
+      <div class="step-num">3</div>
+      <div class="step-title">Dựng frontend</div>
+    </div>
+    <div class="step-body">
+      <ul>
+        <li><input type="checkbox" class="task-cb"> <span>Tạo S3 bucket frontend và cấu hình Static Web Hosting</span></li>
+        <li><input type="checkbox" class="task-cb"> <span>Trỏ <code>botdevgroup.me</code> trực tiếp về S3 Endpoint qua Cloudflare CNAME</span></li>
+        <li><input type="checkbox" class="task-cb"> <span>Bật HTTPS/Proxy trên Cloudflare cho domain frontend</span></li>
+      </ul>
+      <span class="step-result">✓ Website frontend mở được bằng domain thật qua Cloudflare</span>
+    </div>
+  </div>
+
+  <div class="step-card">
+    <div class="step-head">
+      <div class="step-num">4</div>
+      <div class="step-title">Dựng data layer</div>
+    </div>
+    <div class="step-body">
+      <ul>
+        <li><input type="checkbox" class="task-cb"> <span>Tạo Aurora MySQL</span></li>
+        <li><input type="checkbox" class="task-cb"> <span>Tạo RDS Proxy</span></li>
+        <li><input type="checkbox" class="task-cb"> <span>Tạo ElastiCache Redis</span></li>
+        <li><input type="checkbox" class="task-cb"> <span>Tạo DynamoDB cho chat history</span></li>
+      </ul>
+      <span class="step-result">✓ Backend có đủ DB, cache và storage cho chat</span>
+    </div>
+  </div>
+
+  <div class="step-card">
+    <div class="step-head">
+      <div class="step-num">5</div>
+      <div class="step-title">Dựng backend</div>
+    </div>
+    <div class="step-body">
+      <ul>
+        <li><input type="checkbox" class="task-cb"> <span>Tạo Launch Template</span></li>
+        <li><input type="checkbox" class="task-cb"> <span>Tạo ALB và target group</span></li>
+        <li><input type="checkbox" class="task-cb"> <span>Tạo EC2 Auto Scaling Group cho web-api</span></li>
+        <li><input type="checkbox" class="task-cb"> <span>Trỏ <code>api.botdevgroup.me</code> về ALB qua Cloudflare</span></li>
+      </ul>
+      <span class="step-result">✓ API chạy được bằng domain production</span>
+    </div>
+  </div>
+
+  <div class="step-card">
+    <div class="step-head">
+      <div class="step-num">6</div>
+      <div class="step-title">Dựng phần vận hành + cảnh báo SNS <span class="sns-tag">SNS</span></div>
+    </div>
+    <div class="step-body">
+      <ul>
+        <li><input type="checkbox" class="task-cb"> <span>Tạo Secrets Manager</span></li>
+        <li><input type="checkbox" class="task-cb"> <span>Tạo CloudWatch Logs / metrics / alarms</span></li>
+        <li><input type="checkbox" class="task-cb"> <span>Bật Systems Manager cho EC2</span></li>
+        <li><input type="checkbox" class="task-cb"> <span><strong>Tạo SNS Topic <code>topic-infra-alerts</code></strong> — nhận từ CloudWatch Alarms và Auto Scaling</span></li>
+        <li><input type="checkbox" class="task-cb"> <span><strong>Tạo SNS Topic <code>topic-job-failures</code></strong> — nhận khi DLQ có message thất bại</span></li>
+        <li><input type="checkbox" class="task-cb"> <span><strong>Thêm Subscription email team</strong> vào cả 2 topics</span></li>
+        <li><input type="checkbox" class="task-cb"> <span><strong>Kết nối CloudWatch Alarms → SNS</strong> (CPU, 5xx, latency, no healthy target)</span></li>
+        <li><input type="checkbox" class="task-cb"> <span><strong>Kết nối Auto Scaling → SNS</strong> (scale-out / scale-in events)</span></li>
+      </ul>
+      <span class="step-result">✓ Có logs, có alarm, có cảnh báo tự động qua email</span>
+    </div>
+  </div>
+
+  <div class="step-card">
+    <div class="step-head">
+      <div class="step-num">7</div>
+      <div class="step-title">Dựng async layer + kết nối DLQ → SNS <span class="sns-tag">SNS</span></div>
+    </div>
+    <div class="step-body">
+      <ul>
+        <li><input type="checkbox" class="task-cb"> <span>Tạo SQS + DLQ</span></li>
+        <li><input type="checkbox" class="task-cb"> <span>Tạo worker EC2 hoặc worker group</span></li>
+        <li><input type="checkbox" class="task-cb"> <span>Tự tạo Excel (POI) & hóa đơn HTML trên app và upload trực tiếp lên S3</span></li>
+        <li><input type="checkbox" class="task-cb"> <span>Lưu hình ảnh/hóa đơn import lên S3, trả về URL công khai và lưu vào DB khi confirm</span></li>
+        <li><input type="checkbox" class="task-cb"> <span><strong>Kết nối DLQ trực tiếp để báo động qua SNS</strong> hoặc dùng Lambda alert đơn giản nếu cần</span></li>
+      </ul>
+      <span class="step-result">✓ Email/report/background jobs chạy tách khỏi request chính; báo động tự động hoạt động</span>
+    </div>
+  </div>
+
+  <div class="step-card">
+    <div class="step-head">
+      <div class="step-num">8</div>
+      <div class="step-title">Hardening</div>
+    </div>
+    <div class="step-body">
+      <ul>
+        <li><input type="checkbox" class="task-cb"> <span>Bật Cloudflare WAF, DDoS, rate limit</span></li>
+        <li><input type="checkbox" class="task-cb"> <span>Tạo rule cho login, register, OTP, email, AI, payment</span></li>
+        <li><input type="checkbox" class="task-cb"> <span>Điều chỉnh app sang Redis rate limit và EventBridge Scheduler</span></li>
+      </ul>
+      <span class="step-result">✓ Hệ thống ổn hơn và khó bị spam hơn</span>
+    </div>
+  </div>
+
+  <div class="step-card">
+    <div class="step-head">
+      <div class="step-num">9</div>
+      <div class="step-title">Build mobile production</div>
+    </div>
+    <div class="step-body">
+      <ul>
+        <li><input type="checkbox" class="task-cb"> <span>Đặt <code>EXPO_PUBLIC_API_BASE_URL=https://api.botdevgroup.me/api/v1.0</code></span></li>
+        <li><input type="checkbox" class="task-cb"> <span>Build APK/AAB production</span></li>
+        <li><input type="checkbox" class="task-cb"> <span>Test login, CRUD, report, payment, AI</span></li>
+      </ul>
+      <span class="step-result">✓ App mobile gọi đúng production API</span>
+    </div>
+  </div>
+
+  <div class="step-card">
+    <div class="step-head">
+      <div class="step-num">10</div>
+      <div class="step-title">Chạy demo rehearsal</div>
+    </div>
+    <div class="step-body">
+      <ul>
+        <li><input type="checkbox" class="task-cb"> <span>Test web end-to-end</span></li>
+        <li><input type="checkbox" class="task-cb"> <span>Test mobile end-to-end</span></li>
+        <li><input type="checkbox" class="task-cb"> <span>Test flow email/report/payment/AI</span></li>
+        <li><input type="checkbox" class="task-cb"> <span>Ghi lại lỗi còn tồn để xử lý nốt</span></li>
+      </ul>
+      <span class="step-result">✓ Sẵn sàng demo cho người khác xem</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <h2><span class="sec-num">10.2</span> Cách giải thích ngắn gọn cho bạn bè không rành AWS</h2>
+
+  <div class="card card-cyan">
+    <p><strong>Nói ngắn gọn dễ hiểu:</strong></p>
+    <ul>
+      <li>Cloudflare là lớp đứng ngoài cùng để bảo vệ domain, chống tấn công, điều hướng truy cập và cache các file tĩnh.</li>
+      <li>Frontend web là các file tĩnh được lưu trữ trực tiếp trên Amazon S3 và phân phối thẳng qua Cloudflare.</li>
+      <li>Backend API chạy trên nhiều máy EC2 phía sau ALB để có thể scale và chia tải.</li>
+      <li>Dữ liệu chính lưu ở Aurora MySQL; Redis dùng để cache và rate limit; DynamoDB dùng cho lịch sử chat.</li>
+      <li>Những việc nặng như email/report đưa qua queue để hệ thống không bị chậm.</li>
+      <li>Báo cáo & Hóa đơn được xử lý trực tiếp trên Backend và lưu trữ vào S3.</li>
+      <li>Hình ảnh hóa đơn khi người dùng import sẽ được tự động tải lên S3 và được tham chiếu qua URL trên S3.</li>
+      <li>SNS là "hệ thống còi báo động" — khi máy chủ có vấn đề, SNS tự gửi email/SMS để team xử lý ngay.</li>
+      <li>Mobile app khi build bản phát hành sẽ gọi thẳng vào <code>https://api.botdevgroup.me/api/v1.0</code>.</li>
+    </ul>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <h2><span class="sec-num">11</span> Thời gian khuyến nghị</h2>
+
+  <ul>
+    <li><strong>1 tuần</strong>: đủ để deploy chạy được và demo cơ bản</li>
+    <li><strong>2 tuần</strong>: hợp lý hơn để demo thật sự nghiêm túc và ổn định</li>
+  </ul>
+  <p><strong>Kết luận về timeline:</strong> nên chọn 2 tuần nếu mục tiêu là demo cho khách, giảng viên, nhà đầu tư hoặc bạn bè xem một cách nghiêm túc.</p>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <h2><span class="sec-num">11.1</span> Lịch triển khai cụ thể từ 15/06/2026 đến 30/06/2026</h2>
+  <p>Giả định bạn giao cho bạn của bạn bắt đầu triển khai từ <strong>ngày 15/06/2026</strong> và mục tiêu là <strong>hoàn thành toàn bộ trước hoặc trong ngày 30/06/2026</strong>. Dưới đây là lịch khuyến nghị để bám theo.</p>
+
+  <div class="timeline">
+
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-date">15/06/2026</div>
+      <div class="tl-card">
+        <h4>Kickoff và chốt cấu hình</h4>
+        <ul>
+          <li><input type="checkbox" class="task-cb"> <span>Rà lại scope deploy</span></li>
+          <li><input type="checkbox" class="task-cb"> <span>Chốt domain <code>botdevgroup.me</code> và <code>api.botdevgroup.me</code></span></li>
+          <li><input type="checkbox" class="task-cb"> <span>Kiểm tra Cloudflare, Namecheap, SSL plan</span></li>
+        </ul>
+        <span class="tl-result">✓ Có checklist chung, scope không còn mơ hồ</span>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-date">16/06/2026</div>
+      <div class="tl-card">
+        <h4>Dựng lớp mạng</h4>
+        <ul>
+          <li><input type="checkbox" class="task-cb"> <span>Tạo VPC, public/private subnets</span></li>
+          <li><input type="checkbox" class="task-cb"> <span>Tạo route table, Internet Gateway, NAT Gateway</span></li>
+          <li><input type="checkbox" class="task-cb"> <span>Tạo security groups</span></li>
+        </ul>
+        <span class="tl-result">✓ Hạ tầng mạng sẵn sàng để đặt các service</span>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-date">17/06/2026</div>
+      <div class="tl-card">
+        <h4>Frontend hosting</h4>
+        <ul>
+          <li><input type="checkbox" class="task-cb"> <span>Tạo S3 bucket frontend, CloudFront, ACM certificate</span></li>
+          <li><input type="checkbox" class="task-cb"> <span>Trỏ <code>botdevgroup.me</code> về CloudFront qua Cloudflare</span></li>
+        </ul>
+        <span class="tl-result">✓ Frontend web mở được bằng domain thật</span>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-date">18/06/2026</div>
+      <div class="tl-card">
+        <h4>Data services</h4>
+        <ul>
+          <li><input type="checkbox" class="task-cb"> <span>Tạo Aurora MySQL, RDS Proxy, ElastiCache Redis, DynamoDB</span></li>
+        </ul>
+        <span class="tl-result">✓ DB, cache và chat storage hoạt động</span>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-date">19/06/2026</div>
+      <div class="tl-card">
+        <h4>Backend infrastructure</h4>
+        <ul>
+          <li><input type="checkbox" class="task-cb"> <span>Tạo Launch Template, ALB, Target Group</span></li>
+          <li><input type="checkbox" class="task-cb"> <span>Tạo EC2 Auto Scaling Group cho web-api</span></li>
+        </ul>
+        <span class="tl-result">✓ Có hệ thống nhận traffic cho backend</span>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-date">20/06/2026</div>
+      <div class="tl-card">
+        <h4>Deploy backend lần 1</h4>
+        <ul>
+          <li><input type="checkbox" class="task-cb"> <span>Cấu hình runtime backend, tạo secrets trên Secrets Manager</span></li>
+          <li><input type="checkbox" class="task-cb"> <span>Cho EC2 đọc secrets qua IAM role</span></li>
+          <li><input type="checkbox" class="task-cb"> <span>Trỏ <code>api.botdevgroup.me</code> về ALB qua Cloudflare</span></li>
+        </ul>
+        <span class="tl-result">✓ API domain production gọi được ở mức cơ bản</span>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-date">21/06/2026</div>
+      <div class="tl-card">
+        <h4>Kết nối hệ thống</h4>
+        <ul>
+          <li><input type="checkbox" class="task-cb"> <span>Kết nối backend với Aurora, Redis, DynamoDB</span></li>
+          <li><input type="checkbox" class="task-cb"> <span>Test login, CRUD, upload; kiểm tra CloudWatch logs</span></li>
+        </ul>
+        <span class="tl-result">✓ Bản production cơ bản đã chạy end-to-end</span>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-date">22/06/2026</div>
+      <div class="tl-card">
+        <h4>Mobile production</h4>
+        <ul>
+          <li><input type="checkbox" class="task-cb"> <span>Đặt <code>EXPO_PUBLIC_API_BASE_URL=https://api.botdevgroup.me/api/v1.0</code></span></li>
+          <li><input type="checkbox" class="task-cb"> <span>Build APK/AAB production; test các flow chính trên mobile</span></li>
+        </ul>
+        <span class="tl-result">✓ Mobile app gọi đúng API production</span>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-date">23/06/2026</div>
+      <div class="tl-card">
+        <h4>Bảo vệ edge</h4>
+        <ul>
+          <li><input type="checkbox" class="task-cb"> <span>Bật Cloudflare WAF, DDoS protection</span></li>
+          <li><input type="checkbox" class="task-cb"> <span>Tạo rate-limit rules cho login, register, OTP, email, AI, payment</span></li>
+        </ul>
+        <span class="tl-result">✓ API được bảo vệ cơ bản ở edge</span>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-date">24/06/2026</div>
+      <div class="tl-card">
+        <h4>Async layer</h4>
+        <ul>
+          <li><input type="checkbox" class="task-cb"> <span>Tạo SQS + DLQ; chuẩn bị worker cho email/report/background jobs</span></li>
+        </ul>
+        <span class="tl-result">✓ Có nền tảng tách công việc nặng khỏi request chính</span>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-date">25/06/2026</div>
+      <div class="tl-card">
+        <h4>Report/invoice flow</h4>
+        <ul>
+          <li><input type="checkbox" class="task-cb"> <span>Kết nối worker với SQS; kiểm tra Lambda + S3 cho report</span></li>
+          <li><input type="checkbox" class="task-cb"> <span>Test flow email/report</span></li>
+        </ul>
+        <span class="tl-result">✓ Email/report hoạt động ổn hơn, ít chặn request hơn</span>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-date">26/06/2026</div>
+      <div class="tl-card">
+        <h4>Scheduler và jobs</h4>
+        <ul>
+          <li><input type="checkbox" class="task-cb"> <span>Chuyển scheduled jobs quan trọng sang EventBridge Scheduler</span></li>
+          <li><input type="checkbox" class="task-cb"> <span>Giảm rủi ro duplicate cron khi scale EC2</span></li>
+        </ul>
+        <span class="tl-result">✓ Luồng chạy định kỳ an toàn hơn</span>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-date">27/06/2026</div>
+      <div class="tl-card">
+        <h4>Monitoring, truy cập vận hành + SNS cảnh báo <span class="sns-tag">SNS</span></h4>
+        <ul>
+          <li><input type="checkbox" class="task-cb"> <span>Thiết lập CloudWatch alarms (CPU, 5xx, latency, no healthy target)</span></li>
+          <li><input type="checkbox" class="task-cb"> <span>Thiết lập CloudWatch dashboard cơ bản</span></li>
+          <li><input type="checkbox" class="task-cb"> <span>Bật Systems Manager Session Manager cho EC2</span></li>
+          <li><input type="checkbox" class="task-cb"> <span><strong>Tạo SNS Topic <code>topic-infra-alerts</code></strong> và kết nối CloudWatch Alarms</span></li>
+          <li><input type="checkbox" class="task-cb"> <span><strong>Tạo SNS Topic <code>topic-job-failures</code></strong> và kết nối DLQ → Lambda → SNS</span></li>
+          <li><input type="checkbox" class="task-cb"> <span><strong>Kết nối Auto Scaling group → SNS</strong> để nhận thông báo scale events</span></li>
+          <li><input type="checkbox" class="task-cb"> <span><strong>Thêm Subscription email team</strong> vào các topics</span></li>
+          <li><input type="checkbox" class="task-cb"> <span>Tuỳ chọn: thêm Subscription webhook → Lambda → Slack</span></li>
+        </ul>
+        <span class="tl-result">✓ Có thể theo dõi hệ thống và nhận cảnh báo tự động qua email khi có sự cố</span>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-date">28/06/2026</div>
+      <div class="tl-card">
+        <h4>Hardening application</h4>
+        <ul>
+          <li><input type="checkbox" class="task-cb"> <span>Rà lại rate limit phía app; kiểm tra cache/Redis behavior</span></li>
+          <li><input type="checkbox" class="task-cb"> <span>Kiểm tra production config, secrets, startup scripts</span></li>
+        </ul>
+        <span class="tl-result">✓ Giảm rủi ro lỗi cấu hình và spam nội bộ</span>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-date">29/06/2026</div>
+      <div class="tl-card">
+        <h4>Demo rehearsal</h4>
+        <ul>
+          <li><input type="checkbox" class="task-cb"> <span>Test web end-to-end; test mobile end-to-end</span></li>
+          <li><input type="checkbox" class="task-cb"> <span>Test login, CRUD, AI, payment, email/report</span></li>
+          <li><input type="checkbox" class="task-cb"> <span>Fix các lỗi blocker còn lại</span></li>
+        </ul>
+        <span class="tl-result">✓ Hệ thống sẵn sàng cho lần demo thật</span>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-date">30/06/2026</div>
+      <div class="tl-card">
+        <h4>Chốt và bàn giao</h4>
+        <ul>
+          <li><input type="checkbox" class="task-cb"> <span>Kiểm tra lại domain, SSL, web, API, mobile</span></li>
+          <li><input type="checkbox" class="task-cb"> <span>Chốt danh sách known issues nếu có</span></li>
+          <li><input type="checkbox" class="task-cb"> <span>Chốt checklist demo cuối cùng</span></li>
+        </ul>
+        <span class="tl-result">✓ Hoàn thành deploy và sẵn sàng demo nghiêm túc</span>
+      </div>
+    </div>
+
+  </div>
+  <p class="note">Khuyến nghị thực tế: từ 28/06/2026 đến 30/06/2026 nên xem là 3 ngày buffer cho việc test tổng, sửa lỗi, chỉnh DNS/SSL, và xử lý sự cố phát sinh.</p>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <h2><span class="sec-num">12</span> Chi phí ước tính (USD/tháng)</h2>
+
+  <div class="card card-amber">
+    <p><strong>Lưu ý:</strong> Đây là ước tính sơ bộ để tham khảo, không phải con số chính thức từ AWS. Chi phí thực tế phụ thuộc vào region, cấu hình cụ thể, traffic và thời gian chạy.</p>
+  </div>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Dịch vụ</th>
+        <th>Cấu hình tham khảo</th>
+        <th>Chi phí ước tính (USD/tháng)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>EC2 (web-api × 2)</td>
+        <td>t3.small hoặc t3.medium</td>
+        <td>~$30–$60</td>
+      </tr>
+      <tr>
+        <td>EC2 (worker × 1)</td>
+        <td>t3.small</td>
+        <td>~$15–$20</td>
+      </tr>
+      <tr>
+        <td>ALB</td>
+        <td>1 ALB</td>
+        <td>~$20</td>
+      </tr>
+      <tr>
+        <td>NAT Gateway</td>
+        <td>1 NAT Gateway</td>
+        <td>~$35</td>
+      </tr>
+      <tr>
+        <td>Aurora MySQL</td>
+        <td>db.t3.small serverless / provisioned</td>
+        <td>~$30–$60</td>
+      </tr>
+      <tr>
+        <td>RDS Proxy</td>
+        <td>Theo vCPU Aurora</td>
+        <td>~$15–$25</td>
+      </tr>
+      <tr>
+        <td>ElastiCache Redis</td>
+        <td>cache.t3.micro</td>
+        <td>~$13–$20</td>
+      </tr>
+      <tr>
+        <td>DynamoDB</td>
+        <td>On-demand (ít dùng)</td>
+        <td>~$5–$15</td>
+      </tr>
+      <tr>
+        <td>S3 Hosting & Storage</td>
+        <td>Frontend hosting + reports storage</td>
+        <td>~$2–$8</td>
+      </tr>
+      <tr>
+        <td>SQS Queue</td>
+        <td>Free tier / low traffic</td>
+        <td>~$0</td>
+      </tr>
+      <tr>
+        <td>CloudWatch + SNS</td>
+        <td>Logs, metrics, alarms, email alerts</td>
+        <td>~$5–$15</td>
+      </tr>
+      <tr>
+        <td>Secrets Manager</td>
+        <td>~5–10 secrets</td>
+        <td>~$2–$5</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="card card-green">
+    <p><strong>Tổng ước tính:</strong> khoảng <strong>$150–$250 USD/tháng</strong> (Tiết kiệm ~$20/tháng bằng cách bỏ CloudFront & Lambda).</p>
+    <p>Nếu muốn tiết kiệm hơn trong giai đoạn demo, có thể giảm số lượng EC2 hoặc dùng Aurora Serverless v2 với mức tối thiểu.</p>
+  </div>
+
+</div><!-- /.content -->
+
+<div class="page-footer">
+  <p>Kế hoạch triển khai botdevgroup.me &mdash; Tài liệu nội bộ &mdash; Cập nhật 2026</p>
+</div>
+
+<script>
+  // ── Checkbox persistence ─────────────────────────────────────
+  const STORAGE_KEY = 'deploy-checklist-v1';
+
+  function getState() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+    catch { return {}; }
+  }
+  function setState(s) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+  }
+
+  function updateProgress() {
+    const all = document.querySelectorAll('.task-cb');
+    const done = document.querySelectorAll('.task-cb:checked');
+    const total = all.length;
+    const count = done.length;
+    const pct = total ? Math.round(count / total * 100) : 0;
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-pct').textContent = count + ' / ' + total + ' việc (' + pct + '%)';
+  }
+
+  function applyDoneClass(cb) {
+    const li = cb.closest('li');
+    if (!li) return;
+    if (cb.checked) li.classList.add('done');
+    else li.classList.remove('done');
+  }
+
+  // Init
+  const state = getState();
+  const cbs = document.querySelectorAll('.task-cb');
+  cbs.forEach((cb, i) => {
+    cb.id = 'cb-' + i;
+    if (state[cb.id]) { cb.checked = true; applyDoneClass(cb); }
+    cb.addEventListener('change', () => {
+      applyDoneClass(cb);
+      const s = getState(); s[cb.id] = cb.checked; setState(s);
+      updateProgress();
+    });
+  });
+
+  updateProgress();
+
+  // Reset
+  document.getElementById('reset-btn').addEventListener('click', () => {
+    if (!confirm('Reset toàn bộ tiến độ?')) return;
+    document.querySelectorAll('.task-cb').forEach(cb => {
+      cb.checked = false;
+      applyDoneClass(cb);
+    });
+    setState({});
+    updateProgress();
+  });
+</script>
+</body>
+</html>

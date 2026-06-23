@@ -2,25 +2,29 @@ package com.example.moneymanager.security;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import java.util.Deque;
+import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.UUID;
 
 /**
- * Sliding-window in-memory rate limiter per IP.
+ * Sliding-window Redis-based rate limiter per IP.
  * Protects high-risk endpoints against brute force and abuse.
  */
 @Component
+@RequiredArgsConstructor
 @Slf4j
 public class RateLimitInterceptor implements HandlerInterceptor {
 
     private static final String CTX = "/api/v1.0";
+    private static final String REDIS_PREFIX = "rate:";
+
+    private final StringRedisTemplate redisTemplate;
 
     private record RateRule(String fullPath, int maxRequests, long windowMs) {}
 
@@ -36,9 +40,6 @@ public class RateLimitInterceptor implements HandlerInterceptor {
             new RateRule(CTX + "/gemini/test",                3,  60_000)
     );
 
-    // key: "fullPath:clientIp" → sliding window of request timestamps
-    private final ConcurrentHashMap<String, Deque<Long>> windowMap = new ConcurrentHashMap<>();
-
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws Exception {
@@ -47,7 +48,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 
         for (RateRule rule : RULES) {
             if (uri.equals(rule.fullPath())) {
-                String key = rule.fullPath() + ":" + clientIp;
+                String key = REDIS_PREFIX + rule.fullPath() + ":" + clientIp;
                 if (!isAllowed(key, rule.maxRequests(), rule.windowMs())) {
                     log.warn("Rate limit exceeded for IP={} on path={}", clientIp, uri);
                     response.setStatus(429);
@@ -63,35 +64,43 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 
     private boolean isAllowed(String key, int maxRequests, long windowMs) {
         long now = System.currentTimeMillis();
-        Deque<Long> timestamps = windowMap.computeIfAbsent(key, k -> new ConcurrentLinkedDeque<>());
+        long cutoff = now - windowMs;
 
-        // Remove expired entries outside the sliding window
-        while (!timestamps.isEmpty() && now - timestamps.peekFirst() > windowMs) {
-            timestamps.pollFirst();
-        }
+        try {
+            // Remove expired entries
+            redisTemplate.opsForZSet().removeRangeByScore(key, 0, cutoff);
 
-        if (timestamps.size() < maxRequests) {
-            timestamps.addLast(now);
+            // Count requests in current window
+            Long count = redisTemplate.opsForZSet().zCard(key);
+
+            if (count != null && count < maxRequests) {
+                // Add current request with a unique value to prevent overwrites
+                String member = now + ":" + UUID.randomUUID().toString();
+                redisTemplate.opsForZSet().add(key, member, now);
+                // Set TTL on key to clean up stale entries automatically
+                redisTemplate.expire(key, Duration.ofMillis(windowMs));
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            // Fail-open: if Redis is down, allow the request but log error
+            log.error("Redis error in rate limiter for key={}: {}. Falling back to fail-open.", key, e.getMessage());
             return true;
         }
-        return false;
     }
 
     private String resolveClientIp(HttpServletRequest request) {
-        return request.getRemoteAddr();
-    }
-
-    // Evict stale window entries every 5 minutes to prevent memory leak
-    @Scheduled(fixedDelay = 300_000)
-    public void evictExpiredWindows() {
-        long maxWindowMs = RULES.stream().mapToLong(RateRule::windowMs).max().orElse(60_000);
-        long cutoff = System.currentTimeMillis() - maxWindowMs;
-        windowMap.entrySet().removeIf(entry -> {
-            Deque<Long> deque = entry.getValue();
-            while (!deque.isEmpty() && deque.peekFirst() < cutoff) {
-                deque.pollFirst();
-            }
-            return deque.isEmpty();
-        });
+        String ip = request.getHeader("CF-Connecting-IP");
+        if (ip == null || ip.isBlank() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("X-Forwarded-For");
+        }
+        if (ip == null || ip.isBlank() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+        // If X-Forwarded-For contains multiple IPs, take the first one
+        if (ip != null && ip.contains(",")) {
+            ip = ip.split(",")[0].trim();
+        }
+        return ip;
     }
 }

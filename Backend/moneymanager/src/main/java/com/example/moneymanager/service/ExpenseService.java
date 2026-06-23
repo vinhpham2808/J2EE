@@ -177,6 +177,7 @@ public class ExpenseService {
         expense.setDate(dto.getDate());
         expense.setAmount(dto.getAmount());
         expense.setCategory(category);
+        expense.setReceiptImageUrl(dto.getReceiptImageUrl());
 
         JarEntity newJar = null;
         if (dto.getJarId() != null) {
@@ -323,6 +324,7 @@ public class ExpenseService {
                 .name(dto.getName())
                 .icon(dto.getIcon())
                 .receiptLocation(dto.getReceiptLocation())
+                .receiptImageUrl(dto.getReceiptImageUrl())
                 .amount(dto.getAmount())
                 .date(dto.getDate())
                 .profile(profile)
@@ -336,6 +338,7 @@ public class ExpenseService {
                 .name(entity.getName())
                 .icon(entity.getIcon())
             .receiptLocation(entity.getReceiptLocation())
+                .receiptImageUrl(entity.getReceiptImageUrl())
                 .categoryId(entity.getCategory() != null ? entity.getCategory().getId() : null)
                 .categoryName(entity.getCategory() != null ? entity.getCategory().getName() : "N/A")
                 .amount(entity.getAmount())
@@ -353,6 +356,7 @@ public class ExpenseService {
                 .name(entity.getName())
                 .icon(entity.getIcon())
             .receiptLocation(entity.getReceiptLocation())
+                .receiptImageUrl(entity.getReceiptImageUrl())
                 .categoryId(entity.getCategory() != null ? entity.getCategory().getId() : null)
                 .categoryName(entity.getCategory() != null ? entity.getCategory().getName() : "N/A")
                 .amount(entity.getAmount())

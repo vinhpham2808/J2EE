@@ -9,6 +9,7 @@ import com.example.moneymanager.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,6 +48,9 @@ public class PaymentService {
 
     @Value("${payos.webhook-url}")
     private String webhookUrl;
+
+    @Value("${app.scheduled-jobs.enabled:true}")
+    private boolean scheduledJobsEnabled;
 
     @Transactional
     public CreatePaymentResponseDTO createPaymentLink(CreatePaymentRequestDTO requestDTO) {
@@ -158,6 +162,7 @@ public class PaymentService {
     @Scheduled(fixedDelayString = "${payos.status-sync-delay-ms:30000}")
     @Transactional
     public void syncPendingPayments() {
+        if (!scheduledJobsEnabled) { log.debug("syncPendingPayments skipped (scheduled-jobs disabled)"); return; }
         paymentRepository.findByStatusIn(java.util.List.of(STATUS_PENDING, STATUS_PROCESSING, STATUS_UNDERPAID))
                 .forEach(this::syncPaymentStatusSilently);
     }

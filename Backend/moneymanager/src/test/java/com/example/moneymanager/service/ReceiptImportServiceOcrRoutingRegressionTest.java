@@ -46,6 +46,7 @@ class ReceiptImportServiceOcrRoutingRegressionTest {
     @Mock private ExpenseService expenseService;
     @Mock private SubscriptionService subscriptionService;
     @Mock private AiViolationService aiViolationService;
+    @Mock private S3Service s3Service;
 
     @Mock private RestClient.RequestBodyUriSpec ocrRequestBodyUriSpec;
     @Mock private RestClient.RequestBodySpec ocrRequestBodySpec;
@@ -74,6 +75,12 @@ class ReceiptImportServiceOcrRoutingRegressionTest {
                 60
         );
 
+        try {
+            when(s3Service.uploadFile(any(), any())).thenReturn("https://test-bucket.s3.amazonaws.com/test.png");
+        } catch (java.io.IOException e) {
+            // Ignored in test setup
+        }
+
         receiptImportService = new ReceiptImportService(
                 ocrRestClient,
                 ocrProperties,
@@ -89,7 +96,8 @@ class ReceiptImportServiceOcrRoutingRegressionTest {
                 categoryRepository,
                 expenseService,
                 subscriptionService,
-                aiViolationService
+                aiViolationService,
+                s3Service
         );
     }
 
@@ -182,7 +190,8 @@ class ReceiptImportServiceOcrRoutingRegressionTest {
                 categoryRepository,
                 expenseService,
                 subscriptionService,
-                aiViolationService
+                aiViolationService,
+                s3Service
         );
 
         ProfileEntity profile = ProfileEntity.builder().id(7L).build();

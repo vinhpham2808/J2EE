@@ -18,4 +18,5 @@ public class ReceiptImportAnalyzeResponseDTO {
     private LocalDate receiptDate;
     private Integer detectedItemCount;
     private List<ReceiptImportItemDTO> items;
+    private String receiptImageUrl;
 }

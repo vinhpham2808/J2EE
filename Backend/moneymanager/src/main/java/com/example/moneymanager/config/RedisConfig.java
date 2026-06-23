@@ -134,23 +134,6 @@ public class RedisConfig implements CachingConfigurer {
                 .build();
     }
 
-    /**
-     * Xóa toàn bộ cache khi app khởi động để tránh lỗi deserialize
-     * do thay đổi format serializer (WRAPPER_ARRAY → PROPERTY).
-     */
-    @Bean
-    public CommandLineRunner cacheCleaner(CacheManager cacheManager) {
-        return args -> {
-            log.info("Clearing all Redis caches on startup to ensure serializer format consistency...");
-            cacheManager.getCacheNames().forEach(name -> {
-                var cache = cacheManager.getCache(name);
-                if (cache != null) {
-                    cache.clear();
-                    log.info("Cleared cache: {}", name);
-                }
-            });
-        };
-    }
 
     @Override
     public CacheErrorHandler errorHandler() {

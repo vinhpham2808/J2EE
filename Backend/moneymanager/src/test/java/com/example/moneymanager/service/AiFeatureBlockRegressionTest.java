@@ -61,6 +61,7 @@ class AiFeatureBlockRegressionTest {
     @Mock private RestClient gptOssRestClient;
     @Mock private RestClient geminiRestClient;
     @Mock private CategoryRepository categoryRepository;
+    @Mock private S3Service s3Service;
 
     @Test
     @DisplayName("REGRESSION: dashboard insight must stop when AI access is blocked")
@@ -196,7 +197,8 @@ class AiFeatureBlockRegressionTest {
                 categoryRepository,
                 expenseService,
                 subscriptionService,
-                aiViolationService
+                aiViolationService,
+                s3Service
         );
         ProfileEntity profile = ProfileEntity.builder().id(5L).build();
 

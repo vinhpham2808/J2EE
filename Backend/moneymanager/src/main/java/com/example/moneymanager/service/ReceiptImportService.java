@@ -65,6 +65,7 @@ public class ReceiptImportService {
     private final ExpenseService expenseService;
     private final SubscriptionService subscriptionService;
     private final AiViolationService aiViolationService;
+    private final S3Service s3Service;
 
     public ReceiptImportResponseDTO importReceipt(MultipartFile file) {
         ensureAiReceiptAccess();
@@ -74,6 +75,7 @@ public class ReceiptImportService {
             .location(preview.getLocation())
             .receiptDate(preview.getReceiptDate())
             .items(preview.getItems())
+            .receiptImageUrl(preview.getReceiptImageUrl())
             .build());
         }
 
@@ -95,13 +97,21 @@ public class ReceiptImportService {
 
         validateFile(file, fileBytes);
 
+        String receiptImageUrl = null;
+        try {
+            receiptImageUrl = s3Service.uploadFile(file, profile.getEmail());
+        } catch (Exception e) {
+            log.error("Failed to upload receipt to S3: ", e);
+            throw new ReceiptImportException("Không thể tải hóa đơn lên S3: " + e.getMessage(), e);
+        }
+
         List<CategoryEntity> expenseCategories = new ArrayList<>(
                 categoryRepository.findByTypeAndProfileId(EXPENSE_TYPE, profile.getId())
         );
         CategoryEntity otherCategory = ensureOtherExpenseCategory(profile, expenseCategories);
 
         JsonNode aiResult = analyzeReceiptWithOcrProvider(fileBytes);
-        return buildPreviewFromAiResult(aiResult, expenseCategories, otherCategory);
+        return buildPreviewFromAiResult(aiResult, expenseCategories, otherCategory, receiptImageUrl);
     }
 
     @Transactional
@@ -151,6 +161,7 @@ public class ReceiptImportService {
                             .name(itemName)
                             .icon(item.getIcon() != null && !item.getIcon().isBlank() ? item.getIcon() : matchedCategory.getIcon())
                             .receiptLocation(normalizedReceiptLocation)
+                            .receiptImageUrl(requestDTO.getReceiptImageUrl())
                             .categoryId(matchedCategory.getId())
                             .amount(amount)
                             .date(transactionDate)
@@ -189,7 +200,8 @@ public class ReceiptImportService {
         private ReceiptImportAnalyzeResponseDTO buildPreviewFromAiResult(
             JsonNode aiResult,
             List<CategoryEntity> expenseCategories,
-            CategoryEntity otherCategory
+            CategoryEntity otherCategory,
+            String receiptImageUrl
         ) {
         LocalDate receiptDate = parseReceiptDate(aiResult.path("receiptDate").asText(null));
         String merchant = safeText(aiResult.path("merchant").asText(""));
@@ -232,6 +244,7 @@ public class ReceiptImportService {
                 .receiptDate(receiptDate)
                 .detectedItemCount(itemsNode.size())
                 .items(items)
+                .receiptImageUrl(receiptImageUrl)
                 .build();
     }
 

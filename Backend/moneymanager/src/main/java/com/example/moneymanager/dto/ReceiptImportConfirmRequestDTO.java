@@ -18,4 +18,5 @@ public class ReceiptImportConfirmRequestDTO {
     private LocalDate receiptDate;
     private Long jarId;
     private List<ReceiptImportItemDTO> items;
+    private String receiptImageUrl;
 }

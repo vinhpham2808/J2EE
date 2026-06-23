@@ -59,7 +59,8 @@ export default function useReceiptPreview({ analyzeResult, onImportSuccess }) {
       initialItems: analyzeResult?.items || [],
       location: analyzeResult?.location || "",
       merchant: analyzeResult?.merchant || "",
-      receiptDate: analyzeResult?.receiptDate || todayIso()
+      receiptDate: analyzeResult?.receiptDate || todayIso(),
+      receiptImageUrl: analyzeResult?.receiptImageUrl || null
     }),
     [analyzeResult]
   );
@@ -139,6 +140,7 @@ export default function useReceiptPreview({ analyzeResult, onImportSuccess }) {
         merchant: receiptMeta.merchant,
         location: receiptMeta.location,
         receiptDate: receiptMeta.receiptDate,
+        receiptImageUrl: receiptMeta.receiptImageUrl,
         jarId: jarId ? Number(jarId) : null,
         items: items.map((item) => ({
           name: item.name.trim(),
