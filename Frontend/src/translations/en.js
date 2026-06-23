@@ -752,6 +752,14 @@ const en = {
   },
 
   phrases: {
+    "Danh sách danh mục": "Category list",
+    "Khởi tạo cấu hình hũ thành công!": "Jar configuration initialized successfully!",
+    "Trò chuyện & Tư vấn tài chính": "Chat & Financial Advice",
+    "Tóm tắt chi tiêu và nhận lời khuyên thông minh được cá nhân hóa.": "Summarize expenses and get smart personalized advice.",
+    "Chế độ Agent mạnh mẽ (Premium)": "Powerful Agent Mode (Premium)",
+    "Tự động thêm, sửa và xóa giao dịch bằng ngôn ngữ tự nhiên.": "Automatically add, edit, and delete transactions using natural language.",
+    "Báo cáo & Phân tích thông minh": "Reports & Smart Analysis",
+    "Nhận các đề xuất tiết kiệm thông minh, cá nhân hóa để tối ưu hóa dòng tiền.": "Get smart, personalized savings suggestions to optimize your cash flow.",
     "\"\nĐã chi $": "\"\nSpent $",
     "\"!\nĐã chi $": "\"!\nSpent $",
     "%** để cân bằng:": "%** for balance:",

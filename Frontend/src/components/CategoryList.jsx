@@ -6,11 +6,11 @@ const CategoryList = ({categories, onEditCategory, onDeleteCategory}) => {
     return (
         <div className="card p-4">
             <div className="flex items-center justify-between mb-4">
-                <h4 className="text-lg font-semibold text-slate-900 dark:text-white">Category list</h4>
+                <h4 className="text-lg font-semibold text-slate-900 dark:text-white">Danh sách danh mục</h4>
             </div>
 
             {categories.length === 0 ? (
-                <p className="text-slate-500 dark:text-slate-400">No categories yet. Add a category to get started!</p>
+                <p className="text-slate-500 dark:text-slate-400">Chưa có danh mục nào. Hãy thêm danh mục để bắt đầu!</p>
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                     {categories.map((category) => (
@@ -46,7 +46,7 @@ const CategoryList = ({categories, onEditCategory, onDeleteCategory}) => {
                                         {category.name}
                                     </p>
                                     <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 capitalize">
-                                        {category.type === 'income' ? 'Income' : 'Expense'}
+                                        {category.type === 'income' ? 'Thu nhập' : 'Chi tiêu'}
                                     </p>
                                 </div>
                                 <div className="flex items-center gap-2">

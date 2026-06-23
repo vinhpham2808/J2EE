@@ -635,8 +635,8 @@ const AIChat = () => {
                     <MessageSquare size={14} />
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-white">{"Chat & Financial Advice"}</h4>
-                    <p className="text-xs text-slate-400 mt-0.5">{"Summarize expenses and get smart personalized advice."}</p>
+                    <h4 className="text-sm font-semibold text-white">{"Trò chuyện & Tư vấn tài chính"}</h4>
+                    <p className="text-xs text-slate-400 mt-0.5">{"Tóm tắt chi tiêu và nhận lời khuyên thông minh được cá nhân hóa."}</p>
                   </div>
                 </div>
 
@@ -645,8 +645,8 @@ const AIChat = () => {
                     <Sparkles size={14} />
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-white">{"Powerful Agent Mode (Premium)"}</h4>
-                    <p className="text-xs text-slate-400 mt-0.5">{"Automatically add, edit, and delete transactions using natural language."}</p>
+                    <h4 className="text-sm font-semibold text-white">{"Chế độ Agent mạnh mẽ (Premium)"}</h4>
+                    <p className="text-xs text-slate-400 mt-0.5">{"Tự động thêm, sửa và xóa giao dịch bằng ngôn ngữ tự nhiên."}</p>
                   </div>
                 </div>
 
@@ -655,8 +655,8 @@ const AIChat = () => {
                     <TrendingUp size={14} />
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-white">{"Reports & Smart Analysis"}</h4>
-                    <p className="text-xs text-slate-400 mt-0.5">{"Get smart, personalized savings suggestions to optimize your cash flow."}</p>
+                    <h4 className="text-sm font-semibold text-white">{"Báo cáo & Phân tích thông minh"}</h4>
+                    <p className="text-xs text-slate-400 mt-0.5">{"Nhận các đề xuất tiết kiệm thông minh, cá nhân hóa để tối ưu hóa dòng tiền."}</p>
                   </div>
                 </div>
               </div>
