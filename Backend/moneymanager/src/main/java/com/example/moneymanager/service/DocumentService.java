@@ -9,10 +9,13 @@ import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.text.NumberFormat;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
@@ -26,6 +29,8 @@ import java.util.UUID;
 public class DocumentService {
 
     private final S3Client s3Client;
+    private final S3Presigner s3Presigner;
+
 
     @Value("${aws.s3.bucket}")
     private String bucketName;
@@ -124,10 +129,10 @@ public class DocumentService {
         byte[] htmlBytes = htmlContent.getBytes(java.nio.charset.StandardCharsets.UTF_8);
         uploadToS3(key, htmlBytes, "text/html");
 
-        String publicUrl = String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, key);
+        String presignedUrl = generatePresignedUrl(key);
         Map<String, String> result = new HashMap<>();
         result.put("s3Key", key);
-        result.put("presignedUrl", publicUrl);
+        result.put("presignedUrl", presignedUrl);
         return result;
     }
 
@@ -149,15 +154,23 @@ public class DocumentService {
             byte[] excelBytes = generateExcelBytes(items);
             uploadToS3(key, excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
-            String publicUrl = String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, key);
+            String presignedUrl = generatePresignedUrl(key);
             Map<String, String> result = new HashMap<>();
             result.put("s3Key", key);
-            result.put("presignedUrl", publicUrl);
+            result.put("presignedUrl", presignedUrl);
             return result;
         } catch (IOException e) {
             log.error("Failed to generate local Excel report: {}", e.getMessage(), e);
             throw new RuntimeException("Lỗi sinh báo cáo Excel: " + e.getMessage(), e);
         }
+    }
+
+    private String generatePresignedUrl(String key) {
+        GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+                .signatureDuration(Duration.ofHours(1)) // URL valid for 1 hour
+                .getObjectRequest(builder -> builder.bucket(bucketName).key(key).build())
+                .build();
+        return s3Presigner.presignGetObject(presignRequest).url().toString();
     }
 
     private void uploadToS3(String key, byte[] data, String contentType) {
