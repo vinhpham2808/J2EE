@@ -16,7 +16,7 @@ const HELP_ITEMS = [
   {
     key: "website",
     icon: "globe-outline",
-    url: "https://botdevgroup.me/"
+    url: "https://botdevgroup.me/dashboard"
   },
   {
     key: "followFacebook",

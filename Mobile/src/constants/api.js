@@ -1,6 +1,4 @@
-const FALLBACK_PROD_API_URL = "https://money-manager-ln9d.onrender.com/api/v1.0";
-
-export const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || FALLBACK_PROD_API_URL;
+export const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 export const CLOUDINARY_CLOUD_NAME = process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME || "dcr9ovybu";
 export const CLOUDINARY_UPLOAD_PRESET = process.env.EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "moneymanager";
 
