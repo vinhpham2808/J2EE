@@ -15,6 +15,7 @@ import appLogo from "../../assets/logo&banner/applogo.png";
 import { COLORS, useAppColors } from "../../constants/colors";
 import { scale, clampScale, useDynamicViewport } from "../../utils/layoutScale";
 import AppIcon from "../../components/ui/AppIcon";
+import LanguagePill from "../../components/common/LanguagePill";
 
 export const ONBOARDING_KEY = "botdev_onboarding_done";
 
@@ -94,6 +95,8 @@ export default function OnboardingScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.APP_BACKGROUND || "#F2F2F7" }]}>
+      <LanguagePill />
+
       {/* Premium Gradient blob design */}
       <LinearGradient
         colors={['rgba(124, 77, 255, 0.15)', 'rgba(79, 172, 254, 0.05)']}

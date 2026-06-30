@@ -81,12 +81,16 @@ export default function SessionsModal({
             <Pressable
               style={[styles.confirmBtn, { backgroundColor: colors.PRIMARY }]}
               onPress={() => handleConfirmRename(item.id)}
+              accessibilityRole="button"
+              accessibilityLabel="Xác nhận đổi tên"
             >
               <Ionicons name="checkmark" size={14} color="#ffffff" />
             </Pressable>
             <Pressable
               style={[styles.cancelBtn, { backgroundColor: colors.CARD, borderColor: colors.CARD_BORDER }]}
               onPress={() => setEditingSessionId(null)}
+              accessibilityRole="button"
+              accessibilityLabel="Hủy đổi tên"
             >
               <Ionicons name="close" size={14} color={colors.TEXT} />
             </Pressable>
@@ -113,12 +117,16 @@ export default function SessionsModal({
               <Pressable
                 style={styles.actionIconButton}
                 onPress={() => handleStartRename(item)}
+                accessibilityRole="button"
+                accessibilityLabel={`Đổi tên ${item.title || t("chat.sessionDefaultTitle")}`}
               >
                 <Ionicons name="create-outline" size={16} color={colors.TEXT_MUTED} />
               </Pressable>
               <Pressable
                 style={styles.actionIconButton}
                 onPress={() => handleDeleteConfirm(item)}
+                accessibilityRole="button"
+                accessibilityLabel={`Xóa ${item.title || t("chat.sessionDefaultTitle")}`}
               >
                 <Ionicons name="trash-outline" size={16} color={colors.EXPENSE} />
               </Pressable>

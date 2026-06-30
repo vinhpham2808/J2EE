@@ -11,11 +11,13 @@ import {
   openActivationOtp
 } from "../../utils/authActivation";
 import appLogo from "../../assets/logo&banner/applogo.png";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 import { scale, clampScale } from "../../utils/layoutScale";
+import AppButton from "../../components/ui/AppButton";
 
 export default function SignupScreen() {
   const navigation = useNavigation();
+  const colors = useAppColors();
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -72,49 +74,49 @@ export default function SignupScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.screen}
+      style={[styles.screen, { backgroundColor: colors.APP_BACKGROUND || "#F2F2F7" }]}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <View style={styles.bgGlowTop} />
-      <View style={styles.bgGlowBottom} />
+      <View style={[styles.bgGlow, { backgroundColor: colors.PRIMARY_GLOW || "rgba(255, 178, 191, 0.25)" }]} />
 
       <ScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.brandRow}>
+        <View style={[styles.brandRow, { shadowColor: colors.PRIMARY || "#ef5e83" }]}>
           <Image source={appLogo} style={styles.brandLogo} resizeMode="contain" />
         </View>
 
-        <Text style={styles.title}>{t("auth.signup.title")}</Text>
-        <Text style={styles.subtitle}>{t("auth.signup.subtitle")}</Text>
+        <Text style={[styles.title, { color: colors.TEXT }]}>{t("auth.signup.title")}</Text>
+        <Text style={[styles.subtitle, { color: colors.TEXT_SECONDARY }]}>{t("auth.signup.subtitle")}</Text>
 
-        <View style={styles.formCard}>
-          <View style={[styles.inputWrap, isFocusedEmail && { borderColor: COLORS.PRIMARY }]}>
+        <View style={[styles.formCard, { backgroundColor: colors.SURFACE || "#FFFFFF", borderColor: colors.BORDER || "#E5E7EB" }]}>
+          <View style={[styles.inputWrap, { backgroundColor: colors.SURFACE_SECONDARY || "#F2F2F7", borderColor: isFocusedEmail ? (colors.PRIMARY || "#ef5e83") : (colors.BORDER || "#E5E7EB") }]}>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: colors.TEXT }]}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
               placeholder={t("auth.common.email")}
-              placeholderTextColor="#7f9085"
+              placeholderTextColor={colors.TEXT_MUTED || "#B8A6AC"}
               onFocus={() => setIsFocusedEmail(true)}
               onBlur={() => setIsFocusedEmail(false)}
             />
           </View>
 
-          <Pressable
-            style={[styles.actionButton, loading && styles.actionButtonDisabled]}
+          <AppButton
+            variant="primary"
+            title={loading ? t("auth.common.processing") : t("auth.common.next")}
             onPress={onSubmit}
+            loading={loading}
             disabled={loading}
-          >
-            <Text style={styles.actionButtonText}>{loading ? t("auth.common.processing") : t("auth.common.next")}</Text>
-          </Pressable>
+            style={styles.actionButton}
+          />
 
           <Pressable style={styles.backButton} onPress={() => navigation.navigate("Login")}>
-            <Text style={styles.backButtonText}>{t("auth.signup.hasAccount")}</Text>
+            <Text style={[styles.backButtonText, { color: colors.PRIMARY || "#ef5e83" }]}>{t("auth.signup.hasAccount")}</Text>
           </Pressable>
         </View>
       </ScrollView>
@@ -125,25 +127,14 @@ export default function SignupScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: COLORS.DARK_BG
   },
-  bgGlowTop: {
+  bgGlow: {
     position: "absolute",
     top: -120,
     left: -100,
     width: scale(300),
     height: scale(300),
     borderRadius: scale(150),
-    backgroundColor: COLORS.PRIMARY_GLOW
-  },
-  bgGlowBottom: {
-    position: "absolute",
-    right: -140,
-    bottom: -120,
-    width: scale(320),
-    height: scale(320),
-    borderRadius: scale(160),
-    backgroundColor: COLORS.PRIMARY_GLOW
   },
   content: {
     flexGrow: 1,
@@ -154,7 +145,6 @@ const styles = StyleSheet.create({
   brandRow: {
     alignItems: "center",
     marginBottom: scale(16),
-    shadowColor: COLORS.PRIMARY,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.35,
     shadowRadius: 16,
@@ -167,64 +157,38 @@ const styles = StyleSheet.create({
   title: {
     fontSize: clampScale(28, 24, 32),
     fontWeight: "800",
-    color: COLORS.DARK_TEXT,
     textAlign: "center",
     marginBottom: scale(6)
   },
   subtitle: {
     fontSize: clampScale(14, 12, 16),
-    color: COLORS.DARK_TEXT_SECONDARY,
     textAlign: "center",
     marginBottom: scale(24)
   },
   formCard: {
-    backgroundColor: COLORS.DARK_CARD_SOLID,
     borderRadius: scale(18),
     borderWidth: 1,
-    borderColor: COLORS.DARK_BORDER,
     padding: scale(18),
     gap: scale(12)
   },
   inputWrap: {
-    backgroundColor: COLORS.DARK_INPUT_BG,
     borderRadius: scale(12),
     borderWidth: 1.5,
-    borderColor: COLORS.DARK_BORDER,
     paddingHorizontal: scale(14),
     height: scale(48),
     justifyContent: "center"
   },
   input: {
-    color: COLORS.DARK_TEXT,
     fontSize: clampScale(15, 13, 17)
   },
   actionButton: {
-    backgroundColor: COLORS.PRIMARY,
-    borderRadius: scale(14),
-    height: scale(50),
-    alignItems: "center",
-    justifyContent: "center",
     marginTop: scale(4),
-    shadowColor: COLORS.PRIMARY,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  actionButtonDisabled: {
-    opacity: 0.6
-  },
-  actionButtonText: {
-    color: COLORS.WHITE,
-    fontSize: clampScale(16, 14, 18),
-    fontWeight: "800"
   },
   backButton: {
     alignItems: "center",
     paddingVertical: scale(8)
   },
   backButtonText: {
-    color: COLORS.PRIMARY_LIGHT,
     fontSize: clampScale(13, 11, 15),
     fontWeight: "600"
   }

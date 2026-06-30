@@ -94,6 +94,8 @@ export default function EditMessageModal({
                   ]}
                   onPress={handleSave}
                   disabled={!editText.trim()}
+                  accessibilityRole="button"
+                  accessibilityLabel="Lưu chỉnh sửa"
                 >
                   <Text style={styles.saveBtnText}>{t("chatbot.editMessage")}</Text>
                 </Pressable>

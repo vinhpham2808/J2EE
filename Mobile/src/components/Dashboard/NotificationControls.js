@@ -29,7 +29,12 @@ export function NotificationFilters({ categoryFilter, colors, readFilter, setCat
           return (
             <Pressable
               key={option.id}
-              style={[styles.readFilterButton, active && { backgroundColor: colors.CARD, shadowColor: colors.TEXT }]}
+              style={[
+                styles.readFilterButton,
+                active && {
+                  backgroundColor: colors.CARD
+                }
+              ]}
               onPress={() => setReadFilter(option.id)}
               accessibilityRole="button"
               accessibilityState={{ selected: active }}
@@ -128,11 +133,7 @@ const styles = StyleSheet.create({
     borderRadius: scale(9),
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: scale(10),
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 1 },
-    elevation: 1
+    paddingHorizontal: scale(10)
   },
   readFilterText: {
     fontSize: clampScale(12, 10, 14),
