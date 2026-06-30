@@ -73,11 +73,11 @@ const Signup = () => {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0A0E1A] flex flex-col">
       <Header />
-      <main className="mx-auto flex max-w-lg items-start justify-center px-6 py-10 flex-1">
-        <div className="w-full rounded-2xl border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden
+      <main className="w-full flex flex-1 items-start justify-center px-3 sm:px-6 py-6 sm:py-10">
+        <div className="w-full max-w-lg rounded-2xl border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden
           bg-white dark:bg-[#0F172A]">
 
-          <div className="p-8">
+          <div className="p-5 sm:p-8">
             {/* Header */}
             <div className="flex items-center justify-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center shrink-0 shadow-md">
@@ -96,7 +96,7 @@ const Signup = () => {
                 <ProfilePhotoSelector image={profilePhoto} setImage={setProfilePhoto} />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
@@ -111,7 +111,7 @@ const Signup = () => {
                   placeholder={t("auth.emailPlaceholder")}
                   type="text"
                 />
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <Input
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}

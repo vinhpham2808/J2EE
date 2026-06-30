@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 @RequestMapping("/ai")
 public class AIChatController {
 
-    private static final Pattern OBJECT_ID_PATTERN = Pattern.compile("^[a-fA-F0-9]{24}$");
+    private static final Pattern OBJECT_ID_PATTERN = Pattern.compile("^[a-fA-F0-9]{24}$|^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$");
 
     private final AIChatService aiChatService;
     private final AIOrchestrationService aiOrchestrationService;

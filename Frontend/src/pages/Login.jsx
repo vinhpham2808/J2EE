@@ -87,7 +87,9 @@ const Login = () => {
     const renderGoogleButtons = () => {
       if (!googleBtnLightRef.current || !googleBtnDarkRef.current || !googleBtnContainerRef.current) return;
       
-      const containerWidth = googleBtnContainerRef.current.offsetWidth || 400;
+      // Prevent overflow by clamping width between 200px (Google min) and 400px (Google max)
+      // clientWidth is used to get the exact parent container width, fallback to 280px for mobile safety
+      const containerWidth = Math.max(200, Math.min(googleBtnContainerRef.current.clientWidth || 280, 400));
 
       window.google.accounts.id.renderButton(googleBtnLightRef.current, {
         theme: "outline",
@@ -168,8 +170,9 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0A0E1A] flex flex-col">
       <Header />
-      <main className="mx-auto flex max-w-5xl items-center justify-center px-6 py-12 flex-1">
-        <div className="grid w-full overflow-hidden rounded-2xl border border-slate-200 dark:border-white/10 md:grid-cols-[0.95fr_1.05fr] shadow-2xl">
+      <main className="w-full flex flex-1 items-start justify-center px-3 sm:px-6 py-6 sm:py-12">
+        <div className="w-full max-w-5xl">
+          <div className="w-full overflow-hidden rounded-2xl border border-slate-200 dark:border-white/10 md:grid md:grid-cols-[0.95fr_1.05fr] shadow-2xl">
 
           {/* Left visual panel */}
           <section className="hidden md:flex flex-col justify-between p-10 bg-linear-to-br from-[#0F172A] to-[#1E293B] relative overflow-hidden">
@@ -207,7 +210,7 @@ const Login = () => {
           </section>
 
           {/* Right form */}
-          <section className="bg-white dark:bg-[#0F172A] p-8 md:p-10">
+          <section className="bg-white dark:bg-[#0F172A] p-5 sm:p-8 md:p-10">
             <div className="space-y-1.5 mb-8">
               <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{t("auth.welcomeBack")}</h2>
               <p className="text-sm text-slate-500 dark:text-slate-400">{t("auth.enterCredentials")}</p>
@@ -289,6 +292,7 @@ const Login = () => {
               </p>
             </form>
           </section>
+        </div>
         </div>
       </main>
       <Footer />

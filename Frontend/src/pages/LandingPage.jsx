@@ -37,7 +37,7 @@ const LandingPage = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-[#0A0E1A] text-slate-900 dark:text-slate-100 font-['Inter',sans-serif] antialiased scroll-smooth selection:bg-amber-500/30">
+        <div className="min-h-screen bg-slate-50 dark:bg-[#0A0E1A] text-slate-900 dark:text-slate-100 font-['Inter',sans-serif] antialiased scroll-smooth selection:bg-amber-500/30 overflow-x-hidden">
 
             {/* ═══════════════════════════════════════════════════════════════ */}
             {/*  Floating Navbar                                                    */}
@@ -87,10 +87,13 @@ const LandingPage = () => {
                         </div>
 
                         {/* Right Actions */}
-                        <div className="flex items-center gap-3">
-                            <LanguageToggle />
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                            {/* Language toggle: hidden on mobile to save space */}
+                            <span className="hidden sm:inline-flex">
+                                <LanguageToggle />
+                            </span>
                             <ThemeToggle />
-                            
+
                             <button
                                 onClick={() => navigate('/login')}
                                 className="hidden md:inline-flex px-5 py-2.5 rounded-xl text-sm font-bold
@@ -98,18 +101,18 @@ const LandingPage = () => {
                                     hover:text-slate-900 dark:hover:text-white
                                     hover:bg-slate-100 dark:hover:bg-white/10
                                     border border-transparent hover:border-slate-200 dark:hover:border-white/10
-                                    transition-all duration-300 hover:shadow-xs active:scale-[0.98]"
+                                    transition-all duration-300 hover:shadow-xs active:scale-[0.98] whitespace-nowrap"
                             >
                                 Đăng Nhập
                             </button>
                             <button
                                 onClick={() => navigate('/signup')}
-                                className="hidden sm:inline-flex px-5 py-2.5 rounded-xl text-sm font-bold
-                                    bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 
-                                    text-white shadow-lg shadow-violet-500/20 hover:shadow-violet-600/35 hover:-translate-y-0.5
-                                    transition-all duration-300 active:scale-[0.98] flex items-center gap-2"
+                                className="hidden sm:inline-flex px-4 py-2 rounded-xl text-sm font-bold
+                                    bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500
+                                    text-white shadow-lg shadow-violet-500/20 hover:-translate-y-0.5
+                                    transition-all duration-300 active:scale-[0.98] items-center gap-2 whitespace-nowrap"
                             >
-                                Bắt Đầu <ArrowRight size={16} />
+                                Bắt Đầu <ArrowRight size={15} />
                             </button>
                             
                             {/* Mobile menu toggle */}
@@ -193,14 +196,16 @@ const LandingPage = () => {
             {/*  Hero Section                                                        */}
             {/* ═══════════════════════════════════════════════════════════════ */}
             <section id="hero" className="relative pt-28 pb-16 sm:pt-40 sm:pb-20 lg:pt-52 lg:pb-32 overflow-hidden scroll-mt-20">
-                {/* Background Effects */}
+                {/* Background Effects - hidden on mobile to prevent overflow */}
                 <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
-                    <div className="absolute top-[-10%] right-[-5%] w-[800px] h-[800px] bg-violet-600/15 rounded-full blur-[150px] mix-blend-multiply dark:mix-blend-screen" />
-                    <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] bg-amber-500/15 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen" />
-                    <div className="absolute top-[20%] left-[20%] w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-[100px] mix-blend-multiply dark:mix-blend-screen" />
+                    <div className="hidden sm:block absolute top-[-10%] right-[-5%] w-[800px] h-[800px] bg-violet-600/15 rounded-full blur-[150px] mix-blend-multiply dark:mix-blend-screen" />
+                    <div className="hidden sm:block absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] bg-amber-500/15 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen" />
+                    <div className="hidden sm:block absolute top-[20%] left-[20%] w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-[100px] mix-blend-multiply dark:mix-blend-screen" />
+                    {/* Mobile-safe subtle gradient */}
+                    <div className="sm:hidden absolute top-0 inset-x-0 h-[300px] bg-gradient-to-b from-violet-600/8 to-transparent" />
                 </div>
 
-                <div className="max-w-7xl mx-auto px-4 lg:px-8 flex flex-col lg:flex-row items-center gap-12 sm:gap-16 lg:gap-24">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center gap-8 sm:gap-16 lg:gap-24">
                     {/* Left Text */}
                     <div className="lg:w-1/2 text-center lg:text-left relative z-10 w-full">
                         <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 sm:mb-8 rounded-full
@@ -238,22 +243,22 @@ const LandingPage = () => {
                         </div>
                     </div>
 
-                    {/* Right Dashboard Preview */}
-                    <div className="lg:w-1/2 relative w-full perspective-1000">
-                        <div className="relative z-10 rounded-[1.5rem] sm:rounded-[2.5rem] border border-white/40 dark:border-white/10 
+                    {/* Right Dashboard Preview - hidden on mobile, shown on sm+ */}
+                    <div className="hidden sm:block lg:w-1/2 relative w-full">
+                        <div className="relative z-10 rounded-[2rem] sm:rounded-[2.5rem] border border-white/40 dark:border-white/10
                             bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl shadow-2xl p-2.5 sm:p-4 lg:p-6
-                            transform lg:rotate-y-[-10deg] lg:rotate-x-[5deg] transition-transform duration-700 hover:rotate-0">
-                            <div className="absolute inset-0 rounded-[1.5rem] sm:rounded-[2.5rem] bg-gradient-to-br from-white/60 to-white/10 dark:from-white/5 dark:to-transparent pointer-events-none" />
+                            transition-transform duration-700">
+                            <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-white/60 to-white/10 dark:from-white/5 dark:to-transparent pointer-events-none" />
                             <img
                                 alt="Bản xem trước Bảng điều khiển Tài chính"
-                                className="rounded-[1rem] sm:rounded-[2rem] w-full object-cover shadow-inner"
+                                className="rounded-[1.5rem] sm:rounded-[2rem] w-full object-cover shadow-inner"
                                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUxTWDZB85sXTl6SXbfWuvp2EUwLCemU-FZvdBrNbssTraz-_Y22L4ezm8SGurAhMgqEGPD-UEF-E0bryNloTPVNSkA8T-aSq9nS-UeQ9t5vcafsDhRU1n9cXK6gaCZAEE0HEip4NNU372iXDsKNeyiG4HOszQ7eU4uQXzYrVq7_l8jvfjBZ_9-yS6X2sowV7OIzqjN26PJoqVJUl4Qpz5IB-DqKmi19hoAXv_t2vr41thRXHHknsaLredFVFulvU4-wuAyQc9t7Gy"
                             />
-                            
+
                             {/* Floating stat card 1 */}
-                            <div className="absolute -top-6 left-1 sm:-top-8 sm:-left-8 lg:-left-12 backdrop-blur-2xl bg-white/95 dark:bg-[#1E293B]/95
+                            <div className="absolute -top-8 -left-8 lg:-left-12 backdrop-blur-2xl bg-white/95 dark:bg-[#1E293B]/95
                                 border border-white dark:border-white/10 rounded-2xl p-4 sm:p-5 shadow-2xl animate-bounce-slow
-                                scale-[0.6] xs:scale-75 sm:scale-90 md:scale-100 origin-top-left">
+                                scale-90 md:scale-100 origin-top-left">
                                 <div className="flex items-center gap-3 sm:gap-4">
                                     <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/30 shrink-0">
                                         <TrendingUp size={20} className="text-white" />
@@ -266,9 +271,9 @@ const LandingPage = () => {
                             </div>
 
                             {/* Floating stat card 2 */}
-                            <div className="absolute -bottom-6 right-1 sm:-bottom-8 sm:-right-4 lg:-right-10 backdrop-blur-2xl bg-white/95 dark:bg-[#1E293B]/95
+                            <div className="absolute -bottom-8 -right-4 lg:-right-10 backdrop-blur-2xl bg-white/95 dark:bg-[#1E293B]/95
                                 border border-white dark:border-white/10 rounded-2xl p-4 sm:p-6 shadow-2xl animate-float
-                                scale-[0.6] xs:scale-75 sm:scale-90 md:scale-100 origin-bottom-right">
+                                scale-90 md:scale-100 origin-bottom-right">
                                 <p className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mb-4">Giao dịch nổi bật</p>
                                 <div className="space-y-4">
                                     <div className="flex items-center gap-4 text-sm">
