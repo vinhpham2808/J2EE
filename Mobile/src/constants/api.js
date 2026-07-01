@@ -1,4 +1,7 @@
-export const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+export const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || "https://api.botdevgroup.me/api/v1.0";
+if (!process.env.EXPO_PUBLIC_API_BASE_URL) {
+  console.warn("EXPO_PUBLIC_API_BASE_URL is not defined. Falling back to: https://api.botdevgroup.me/api/v1.0");
+}
 export const CLOUDINARY_CLOUD_NAME = process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME || "dcr9ovybu";
 export const CLOUDINARY_UPLOAD_PRESET = process.env.EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "moneymanager";
 

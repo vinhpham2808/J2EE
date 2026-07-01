@@ -27,3 +27,11 @@ jest.mock("expo-speech-recognition", () => ({
   useSpeechRecognitionEvent: jest.fn((event, handler) => {}),
 }));
 
+// Fallback environment variables for Jest
+process.env.EXPO_PUBLIC_API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || "http://localhost:8080/api/v1.0";
+process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME = process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME || "test_cloud";
+process.env.EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET = process.env.EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "test_preset";
+
+// Increase timeout for slow VMs
+jest.setTimeout(20000);
+

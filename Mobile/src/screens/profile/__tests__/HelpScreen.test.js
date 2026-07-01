@@ -84,7 +84,7 @@ describe("HelpScreen", () => {
       fireEvent.press(websiteRow);
     });
 
-    expect(Linking.openURL).toHaveBeenCalledWith("https://moneymanager.example.com");
+    expect(Linking.openURL).toHaveBeenCalledWith("https://botdevgroup.me/dashboard");
   });
 
   it("triggers Linking.openURL with correct followFacebook URL when clicked", async () => {
