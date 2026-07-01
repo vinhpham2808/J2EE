@@ -8,6 +8,23 @@ import useMonthlyReport from "../useMonthlyReport";
 describe("useMonthlyReport", () => {
   const apiClient = require("../../services/apiClient");
 
+  const RealDate = global.Date;
+
+  beforeAll(() => {
+    const mockDate = new RealDate("2026-06-15T12:00:00Z");
+    global.Date = jest.fn((...args) => {
+      if (args.length === 0) return mockDate;
+      return new RealDate(...args);
+    });
+    global.Date.now = () => mockDate.getTime();
+    global.Date.parse = RealDate.parse;
+    global.Date.UTC = RealDate.UTC;
+  });
+
+  afterAll(() => {
+    global.Date = RealDate;
+  });
+
   beforeEach(() => { jest.clearAllMocks(); });
 
   test("fetches report on mount", async () => {

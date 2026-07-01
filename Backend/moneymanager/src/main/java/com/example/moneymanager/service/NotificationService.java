@@ -555,12 +555,12 @@ public class NotificationService {
 
     private String getGradeLabel(String grade) {
         return switch (grade) {
-            case "A" -> "Xuáº¥t sáº¯c";
-            case "B" -> "Tá»‘t";
-            case "C" -> "KhÃ¡";
-            case "D" -> "Trung bÃ¬nh";
-            case "F" -> "Cáº§n cáº£i thiá»‡n";
-            default -> "KhÃ´ng xÃ¡c Ä‘á»‹nh";
+            case "A" -> "Xuất sắc";
+            case "B" -> "Tốt";
+            case "C" -> "Khá";
+            case "D" -> "Trung bình";
+            case "F" -> "Cần cải thiện";
+            default -> "Không xác định";
         };
     }
 
