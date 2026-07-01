@@ -63,10 +63,9 @@ public class ProfileController {
     }
 
     @PutMapping("/complete-profile")
-    public ResponseEntity<Map<String, String>> completeProfileDeprecatedPut() {
-        return ResponseEntity.status(HttpStatus.GONE).body(Map.of(
-                "message", "Endpoint này không còn được hỗ trợ. Vui lòng sử dụng flow đăng ký và kích hoạt OTP."
-        ));
+    public ResponseEntity<Map<String, String>> completeProfile(@Valid @RequestBody CompleteProfileDTO dto) {
+        profileService.completeProfile(dto);
+        return ResponseEntity.ok(Map.of("message", "Hoàn tất hồ sơ thành công."));
     }
 
     // ─── OTP: Account Activation ─────────────────────────────────────

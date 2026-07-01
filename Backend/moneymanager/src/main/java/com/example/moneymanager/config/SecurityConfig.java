@@ -62,6 +62,7 @@ public class SecurityConfig {
                                 "/forgot-password",
                                 "/verify-reset-otp",
                                 "/reset-password",
+                                "/complete-profile",
                                 "/payments/payos/webhook",
                                 "/auth/google",
                                 "/subscription-plans"
