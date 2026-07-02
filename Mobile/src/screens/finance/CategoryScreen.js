@@ -44,26 +44,27 @@ export default function CategoryScreen() {
 
   const renderListHeader = useCallback(
     () => (
-      <CategoryListHeader
-        canExpand={canExpandCategories}
-        hasCategories={Boolean(categories.length)}
-        onToggle={toggleCategories}
-        showAll={showAllCategories}
-      />
+      <View>
+        <CategoryForm
+          form={createForm}
+          onSave={onSave}
+          saveLabel={t("finance.category.addSave")}
+          subtitle={t("finance.category.addSubtitle")}
+          title={t("finance.category.addTitle")}
+        />
+        <CategoryListHeader
+          canExpand={canExpandCategories}
+          hasCategories={Boolean(categories.length)}
+          onToggle={toggleCategories}
+          showAll={showAllCategories}
+        />
+      </View>
     ),
-    [canExpandCategories, categories.length, showAllCategories, toggleCategories]
+    [createForm, onSave, t, canExpandCategories, categories.length, showAllCategories, toggleCategories]
   );
 
   return (
     <View style={[styles.container, { backgroundColor: colors.BG, paddingTop: getSafeAreaTop(insets) }]}> 
-      <CategoryForm
-        form={createForm}
-        onSave={onSave}
-        saveLabel={t("finance.category.addSave")}
-        subtitle={t("finance.category.addSubtitle")}
-        title={t("finance.category.addTitle")}
-      />
-
       <FlatList
         data={visibleCategories}
         keyExtractor={(item) => String(item?.id)}
