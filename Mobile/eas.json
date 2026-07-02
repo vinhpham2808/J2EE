@@ -11,6 +11,11 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "https://api.botdevgroup.me/api/v1.0",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "701235381529-ck7a9k3hlrockf5mlsuntqcv1i9sunfs.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "896330940914-39eglsvit6rqrd184hps77ghfoovu5jq.apps.googleusercontent.com"
       }
     },
     "production": {

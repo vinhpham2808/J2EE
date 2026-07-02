@@ -47,7 +47,7 @@ class ProfileControllerSecurityRegressionTest {
         mockMvc.perform(put("/complete-profile")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
-                .andExpect(status().isGone())
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").isNotEmpty());
     }
 

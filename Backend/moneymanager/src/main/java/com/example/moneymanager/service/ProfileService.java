@@ -43,9 +43,8 @@ public class ProfileService {
     // ─── Registration ─────────────────────────────────────────────────
 
     public ProfileDTO registerProfile(RegisterRequestDTO registerDTO) {
-        profileRepository.findByEmail(registerDTO.getEmail().trim()).ifPresent(p -> {
-            throw new RuntimeException("Email này đã được sử dụng.");
-        });
+        String email = registerDTO.getEmail().trim();
+        Optional<ProfileEntity> existingOpt = profileRepository.findByEmail(email);
 
         RoleEntity userRole = roleRepository.findByNameIgnoreCase("user")
                 .orElseThrow(() -> new RuntimeException("Role 'user' not found in database"));
@@ -58,23 +57,49 @@ public class ProfileService {
             encodedPassword = passwordEncoder.encode(registerDTO.getPassword().trim());
         }
 
-        ProfileEntity newProfile = ProfileEntity.builder()
-                .fullName(registerDTO.getFullName() != null ? registerDTO.getFullName().trim() : "")
-                .email(registerDTO.getEmail().trim())
-                .password(encodedPassword)
-                .profileImageUrl(registerDTO.getProfileImageUrl())
-                .isActive(false)
-                .subscriptionPlan(SubscriptionPlan.FREE)
-                .subscriptionStatus(SubscriptionStatus.INACTIVE)
-                .autoRenew(false)
-                .role(userRole)
-                .build();
-        newProfile = profileRepository.save(newProfile);
+        ProfileEntity newProfile;
+        if (existingOpt.isPresent()) {
+            newProfile = existingOpt.get();
+            if (Boolean.TRUE.equals(newProfile.getIsActive())) {
+                throw new RuntimeException("Email này đã được sử dụng.");
+            }
+            // Reuse existing inactive profile
+            newProfile.setFullName(registerDTO.getFullName() != null ? registerDTO.getFullName().trim() : "");
+            newProfile.setPassword(encodedPassword);
+            newProfile.setProfileImageUrl(registerDTO.getProfileImageUrl());
+            newProfile.setRole(userRole);
+            newProfile = profileRepository.save(newProfile);
+        } else {
+            newProfile = ProfileEntity.builder()
+                    .fullName(registerDTO.getFullName() != null ? registerDTO.getFullName().trim() : "")
+                    .email(email)
+                    .password(encodedPassword)
+                    .profileImageUrl(registerDTO.getProfileImageUrl())
+                    .isActive(false)
+                    .subscriptionPlan(SubscriptionPlan.FREE)
+                    .subscriptionStatus(SubscriptionStatus.INACTIVE)
+                    .autoRenew(false)
+                    .role(userRole)
+                    .build();
+            newProfile = profileRepository.save(newProfile);
+            emailNotificationPreferenceService.initializeDefaultPreferences(newProfile.getId());
+        }
 
-        emailNotificationPreferenceService.initializeDefaultPreferences(newProfile.getId());
         otpService.generateAndSendOtp(newProfile, OtpPurpose.ACCOUNT_ACTIVATION);
 
         return toDTO(newProfile);
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public void cancelRegistration(String email) {
+        Optional<ProfileEntity> profileOpt = profileRepository.findByEmail(email.trim());
+        if (profileOpt.isPresent()) {
+            ProfileEntity profile = profileOpt.get();
+            if (!Boolean.TRUE.equals(profile.getIsActive())) {
+                emailNotificationPreferenceService.deletePreferences(profile.getId());
+                profileRepository.delete(profile);
+            }
+        }
     }
 
     public void completeProfile(CompleteProfileDTO dto) {

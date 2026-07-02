@@ -27,8 +27,41 @@ export default function VerifyOtpScreen() {
   const [successMsg, setSuccessMsg] = useState("");
 
   useEffect(() => {
-    if (!email) navigation.navigate("Signup");
-  }, [email, navigation]);
+    if (!email) {
+      navigation.navigate("Signup");
+      return;
+    }
+
+    const unsubscribe = navigation.addListener
+      ? navigation.addListener("beforeRemove", (e) => {
+          if (successMsg) return;
+
+          e.preventDefault();
+
+          Alert.alert(
+            t("auth.otp.cancelTitle"),
+            t("auth.otp.cancelMessage"),
+            [
+              { text: t("auth.common.no"), style: "cancel", onPress: () => {} },
+              {
+                text: t("auth.common.yes"),
+                style: "destructive",
+                onPress: async () => {
+                  try {
+                    await apiClient.post(API_ENDPOINTS.CANCEL_REGISTRATION, null, { params: { email } });
+                  } catch (err) {
+                    console.warn("[VerifyOtpScreen] cancel registration failed:", err);
+                  }
+                  navigation.dispatch(e.data.action);
+                }
+              }
+            ]
+          );
+        })
+      : () => {};
+
+    return unsubscribe;
+  }, [email, navigation, successMsg, t]);
 
   const handleSubmit = async () => {
     if (code.length !== 6) {

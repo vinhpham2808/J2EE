@@ -113,4 +113,10 @@ public class EmailNotificationPreferenceService {
         initializeDefaultPreferences(profileId);
         log.info("Reset email preferences to defaults for profile: {}", profileId);
     }
+
+    @Transactional
+    public void deletePreferences(Long profileId) {
+        repository.deleteByProfileId(profileId);
+        log.info("Deleted email preferences for profile: {}", profileId);
+    }
 }

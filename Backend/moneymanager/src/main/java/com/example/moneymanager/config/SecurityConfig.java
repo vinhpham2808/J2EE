@@ -54,6 +54,7 @@ public class SecurityConfig {
                                 "/status",
                                 "/health",
                                 "/register",
+                                "/register/cancel",
                                 "/activate",
                                 "/verify-activation",
                                 "/otp/resend",
