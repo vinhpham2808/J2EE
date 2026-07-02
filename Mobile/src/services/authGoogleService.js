@@ -23,10 +23,7 @@ function createGoogleAuthError(message, code) {
 
 function requireWebClientId() {
   if (!GOOGLE_WEB_CLIENT_ID) {
-    throw createGoogleAuthError(
-      "Google Web Client ID chưa được cấu hình. Vui lòng thêm EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID vào Mobile/.env.",
-      "GOOGLE_WEB_CLIENT_ID_MISSING"
-    );
+    throw createGoogleAuthError("Missing Google Web Client ID", "GOOGLE_WEB_CLIENT_ID_MISSING");
   }
 }
 
@@ -87,10 +84,7 @@ export async function signInWithGoogleNative() {
     const idToken = await getIdTokenFromResponse(googleUser);
 
     if (!idToken) {
-      throw createGoogleAuthError(
-        "Không nhận được idToken từ Google. Hãy kiểm tra Google Web Client ID đang dùng trong app.",
-        "GOOGLE_ID_TOKEN_MISSING"
-      );
+      throw createGoogleAuthError("No idToken from Google", "GOOGLE_ID_TOKEN_MISSING");
     }
 
     return {
@@ -104,17 +98,11 @@ export async function signInWithGoogleNative() {
       }
 
       if (error.code === statusCodes.IN_PROGRESS) {
-        throw createGoogleAuthError(
-          "Google đăng nhập đang được xử lý. Vui lòng đợi trong giây lát.",
-          error.code
-        );
+        throw createGoogleAuthError("Google Sign-In in progress", error.code);
       }
 
       if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        throw createGoogleAuthError(
-          "Google Play Services không khả dụng hoặc cần được cập nhật trên thiết bị này.",
-          error.code
-        );
+        throw createGoogleAuthError("Google Play Services not available", error.code);
       }
     }
 
@@ -124,10 +112,7 @@ export async function signInWithGoogleNative() {
 
 export async function exchangeGoogleToken(idToken) {
   if (!idToken) {
-    throw createGoogleAuthError(
-      "Không thể đăng nhập bằng Google vì thiếu idToken.",
-      "GOOGLE_ID_TOKEN_MISSING"
-    );
+    throw createGoogleAuthError("Missing idToken for exchange", "GOOGLE_ID_TOKEN_MISSING");
   }
 
   const response = await apiClient.post(API_ENDPOINTS.GOOGLE_AUTH, { idToken });

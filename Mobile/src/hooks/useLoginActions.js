@@ -10,16 +10,21 @@ import {
   openActivationOtp,
 } from "../utils/authActivation";
 import { tokenStorage } from "../storage/tokenStorage";
+import {
+  signInWithGoogleNative,
+  exchangeGoogleToken,
+} from "../services/authGoogleService";
 
 export default function useLoginActions() {
   const { t } = useTranslation();
   const navigation = useNavigation();
-  const { signIn, signInWithGoogle, googleAuthLoading } = useContext(AuthContext);
+  const { signIn, refreshUser } = useContext(AuthContext);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleAuthLoading, setGoogleAuthLoading] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -103,13 +108,26 @@ export default function useLoginActions() {
   }, [email, password, rememberMe, signIn, showActivationOption]);
 
   const onGooglePress = useCallback(async () => {
+    setGoogleAuthLoading(true);
     try {
-      await signInWithGoogle();
+      const googleResult = await signInWithGoogleNative();
+      if (!googleResult) return;
+
+      const { idToken } = googleResult;
+      const { token, user: profile } = await exchangeGoogleToken(idToken);
+      if (!token) return;
+
+      await tokenStorage.setToken(token, { remember: true });
+
+      if (profile) return profile;
+
+      return refreshUser();
     } catch (error) {
-      const message = getApiErrorMessage(error, t("auth.login.googleFailMsg"));
-      Alert.alert(t("auth.login.failedTitle"), message);
+      if (error?.message === "SIGN_IN_CANCELLED") return;
+    } finally {
+      setGoogleAuthLoading(false);
     }
-  }, [signInWithGoogle]);
+  }, [refreshUser]);
 
   return {
     email,

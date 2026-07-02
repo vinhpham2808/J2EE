@@ -83,7 +83,6 @@ Mobile/android/.gradle/
 Mobile/android/build/
 Mobile/android/app/build/
 Mobile/android/local.properties
-Mobile/android/app/google-services.json
 Mobile/android/.cxx/
 Mobile/android/app/.cxx/
 Mobile/ios/Pods/
@@ -101,7 +100,6 @@ Mobile/ios/GoogleService-Info.plist
 *.crt
 *.cer
 *.mobileprovision
-google-services.json
 GoogleService-Info.plist
 .vscode/
 .idea/
