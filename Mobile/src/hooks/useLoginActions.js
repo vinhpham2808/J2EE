@@ -123,11 +123,14 @@ export default function useLoginActions() {
 
       return refreshUser();
     } catch (error) {
-      if (error?.message === "SIGN_IN_CANCELLED") return;
+      console.error("[onGooglePress] Error details:", error);
+      if (error?.message === "SIGN_IN_CANCELLED" || error?.code === "SIGN_IN_CANCELLED") return;
+      const message = getApiErrorMessage(error, t("auth.login.failedMessage"));
+      Alert.alert(t("auth.login.failedTitle"), message);
     } finally {
       setGoogleAuthLoading(false);
     }
-  }, [refreshUser]);
+  }, [refreshUser, t]);
 
   return {
     email,
