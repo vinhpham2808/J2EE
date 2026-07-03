@@ -19,6 +19,11 @@ import {
   validatePasswordRequirements,
   isPasswordValid,
 } from "../../utils/authPassword";
+import {
+  getActivationEmail,
+  isActivationRequiredError,
+  openActivationOtp
+} from "../../utils/authActivation";
 import PasswordInput from "../../components/auth/PasswordInput";
 import PasswordRequirement from "../../components/auth/PasswordRequirement";
 import { scale, clampScale } from "../../utils/layoutScale";
@@ -58,6 +63,27 @@ export default function CreatePasswordScreen() {
     [req.notTooLong, containsNameOrEmail]
   );
 
+  const showActivationOption = (activationEmail) => {
+    Alert.alert(
+      t("auth.common.activationRequiredTitle"),
+      t("auth.signup.activationMessage"),
+      [
+        { text: t("auth.common.later"), style: "cancel" },
+        {
+          text: t("auth.common.verifyOtp"),
+          onPress: async () => {
+            try {
+              await openActivationOtp(navigation, activationEmail);
+            } catch (error) {
+              const message = getApiErrorMessage(error, t("auth.common.resendOtpFailed"));
+              Alert.alert(t("auth.common.cannotResendOtp"), message);
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const onNext = async () => {
     if (!canProceed) return;
 
@@ -68,15 +94,15 @@ export default function CreatePasswordScreen() {
 
     setLoading(true);
     try {
-      await apiClient.put(API_ENDPOINTS.COMPLETE_PROFILE, { email, fullName, password });
-      Alert.alert(
-        t("auth.createPassword.completeTitle"),
-        t("auth.createPassword.completeMessage"),
-        [{ text: t("auth.common.login"), onPress: () => navigation.navigate("Login") }]
-      );
+      await apiClient.post(API_ENDPOINTS.REGISTER, { email, fullName, password });
+      navigation.navigate("VerifyOtp", { email });
     } catch (error) {
-      const message = getApiErrorMessage(error, t("auth.createPassword.failedMessage"));
-      Alert.alert(t("auth.common.error"), message);
+      if (isActivationRequiredError(error)) {
+        showActivationOption(getActivationEmail(error, email));
+        return;
+      }
+      const message = getApiErrorMessage(error, t("auth.signup.failedMessage"));
+      Alert.alert(t("auth.signup.failedTitle") || t("auth.common.error"), message);
     } finally {
       setLoading(false);
     }

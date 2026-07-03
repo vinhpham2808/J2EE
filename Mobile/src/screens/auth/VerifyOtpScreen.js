@@ -79,7 +79,7 @@ export default function VerifyOtpScreen() {
         Alert.alert(
           t("auth.otp.signupSuccessTitle"),
           t("auth.otp.signupSuccessMessage"),
-          [{ text: "OK", onPress: () => navigation.navigate("SetupProfile", { email }) }]
+          [{ text: "OK", onPress: () => navigation.navigate("Login") }]
         );
       }, 5000);
     } catch (err) {
