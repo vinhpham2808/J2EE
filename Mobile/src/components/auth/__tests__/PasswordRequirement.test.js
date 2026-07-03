@@ -21,13 +21,20 @@ jest.mock("react-i18next", () => ({
   }),
 }));
 
-jest.mock("../../../constants/colors", () => ({
-  COLORS: {
+jest.mock("../../../constants/colors", () => {
+  const COLORS = {
     DARK_TEXT_SECONDARY: "#d3c3bd",
     INCOME: "#2A9D8F",
     DARK_TEXT: "#f3eeeb",
-  },
-}));
+  };
+  return {
+    COLORS,
+    useAppColors: () => ({
+      TEXT: COLORS.DARK_TEXT,
+      TEXT_SECONDARY: COLORS.DARK_TEXT_SECONDARY,
+    }),
+  };
+});
 
 describe("PasswordRequirement", () => {
   const defaultReq = {

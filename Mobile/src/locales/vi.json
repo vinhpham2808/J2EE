@@ -42,7 +42,9 @@
       "resend": "Gửi lại",
       "verifying": "Đang xác thực...",
       "verify": "Xác thực",
-      "noCode": "Không nhận được mã? "
+      "noCode": "Không nhận được mã? ",
+      "no": "Không",
+      "yes": "Có"
     },
     "login": {
       "authenticating": "MoneyManager đang xác thực",

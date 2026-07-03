@@ -1,13 +1,30 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import { COLORS } from "../../constants/colors";
+import { COLORS, useAppColors } from "../../constants/colors";
 
 function RequirementItem({ met, label }) {
+  const colors = useAppColors();
   return (
     <View style={styles.requirementRow}>
-      <Text style={[styles.requirementBullet, met && styles.requirementBulletMet]}>●</Text>
-      <Text style={[styles.requirementText, met && styles.requirementTextMet]}>{label}</Text>
+      <Text
+        style={[
+          styles.requirementBullet,
+          { color: colors.TEXT_SECONDARY },
+          met && styles.requirementBulletMet,
+        ]}
+      >
+        ●
+      </Text>
+      <Text
+        style={[
+          styles.requirementText,
+          { color: colors.TEXT_SECONDARY },
+          met && [styles.requirementTextMet, { color: colors.TEXT }],
+        ]}
+      >
+        {label}
+      </Text>
     </View>
   );
 }
@@ -19,12 +36,15 @@ function RequirementItem({ met, label }) {
  */
 export default function PasswordRequirement({ req, extraMet }) {
   const { t } = useTranslation();
+  const colors = useAppColors();
 
   return (
     <View style={styles.section}>
       <View style={styles.row}>
         <View style={styles.col}>
-          <Text style={styles.title}>{t("auth.password.mustContain")}</Text>
+          <Text style={[styles.title, { color: colors.TEXT }]}>
+            {t("auth.password.mustContain")}
+          </Text>
           <RequirementItem met={req.hasNumber} label={t("auth.password.oneNumber")} />
           <RequirementItem met={req.hasUppercase} label={t("auth.password.oneUppercase")} />
           <RequirementItem met={req.hasLowercase} label={t("auth.password.oneLowercase")} />
@@ -32,7 +52,9 @@ export default function PasswordRequirement({ req, extraMet }) {
           <RequirementItem met={req.hasMinLength} label={t("auth.password.eightChars")} />
         </View>
         <View style={styles.col}>
-          <Text style={styles.title}>{t("auth.password.mustNotContain")}</Text>
+          <Text style={[styles.title, { color: colors.TEXT }]}>
+            {t("auth.password.mustNotContain")}
+          </Text>
           <RequirementItem
             met={extraMet ? extraMet.notTooLong : req.notTooLong}
             label={t("auth.password.over256")}

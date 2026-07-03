@@ -42,7 +42,9 @@
       "resend": "Resend",
       "verifying": "Verifying...",
       "verify": "Verify",
-      "noCode": "Didn't receive the code? "
+      "noCode": "Didn't receive the code? ",
+      "no": "No",
+      "yes": "Yes"
     },
     "login": {
       "authenticating": "MoneyManager is authenticating",
