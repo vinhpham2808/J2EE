@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-    Sun, Moon, TrendingUp, Shield, BarChart3, Wallet, Target, Sparkles, 
-    Star, ArrowRight, Check, ChevronRight, Menu, X, ArrowUpRight, ShieldCheck, Zap
+import {
+    Sun, Moon, TrendingUp, Shield, BarChart3, Wallet, Target, Sparkles,
+    Star, ArrowRight, Check, ChevronRight, Menu, X, ArrowUpRight, ShieldCheck, Zap, Smartphone
 } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
 import LanguageToggle from '../components/LanguageToggle';
 import { usePageTitle } from '../hooks/usePageTitle.js';
 import favicon from '../assets/logo/favicon.png';
+import mobileAppPreview from '../assets/mobile/mobile-app-preview.jpg';
 import { useTranslation } from '../hooks/useTranslation.js';
 
 const LandingPage = () => {
@@ -33,8 +34,13 @@ const LandingPage = () => {
     const navLinks = [
         { label: 'Tính Năng', target: 'features' },
         { label: 'Mục Tiêu', target: 'goals' },
+        { label: 'Ứng Dụng Di Động', target: 'mobile-app' },
         { label: 'Bảng Giá', target: 'pricing' },
     ];
+
+    const openMobileApp = () => {
+        window.open('https://mobile.botdevgroup.me', '_blank', 'noopener,noreferrer');
+    };
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-[#0A0E1A] text-slate-900 dark:text-slate-100 font-['Inter',sans-serif] antialiased scroll-smooth selection:bg-amber-500/30 overflow-x-hidden">
@@ -412,6 +418,53 @@ const LandingPage = () => {
             </section>
 
             {/* ═══════════════════════════════════════════════════════════════ */}
+            {/*  Mobile App Section                                                  */}
+            {/* ═══════════════════════════════════════════════════════════════ */}
+            <section id="mobile-app" className="py-16 sm:py-24 lg:py-32 scroll-mt-20 relative overflow-hidden">
+                <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
+                    <div className="absolute top-1/2 right-[-10%] -translate-y-1/2 w-[600px] h-[600px] bg-emerald-500/10 rounded-full blur-[130px]" />
+                </div>
+                <div className="max-w-7xl mx-auto px-4 lg:px-8">
+                    <button
+                        type="button"
+                        onClick={openMobileApp}
+                        aria-label="Khám phá ứng dụng di động Money Manager"
+                        className="group w-full text-left bg-gradient-to-br from-slate-900 to-[#0F172A] dark:from-white/[0.06] dark:to-white/[0.02]
+                            border border-white/10 rounded-[2rem] sm:rounded-[3rem] p-8 sm:p-12 lg:p-16
+                            flex flex-col lg:flex-row items-center gap-10 lg:gap-16 overflow-hidden relative
+                            transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/10 cursor-pointer"
+                    >
+                        <div className="flex-1 text-center lg:text-left relative z-10">
+                            <span className="inline-flex items-center gap-2 px-4 py-2 mb-6 rounded-full
+                                bg-emerald-500/10 text-emerald-400 text-xs font-bold uppercase tracking-widest border border-emerald-500/20">
+                                <Smartphone size={14} /> Có Mặt Trên Di Động
+                            </span>
+                            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white mb-4 sm:mb-6 tracking-tight">
+                                Quản lý tài chính mọi lúc, mọi nơi
+                            </h2>
+                            <p className="text-base sm:text-lg text-slate-300 mb-8 max-w-xl mx-auto lg:mx-0 leading-relaxed font-medium">
+                                Trải nghiệm Money Manager ngay trên điện thoại của bạn — theo dõi thu chi, nhận thông báo tức thì và trò chuyện cùng Trợ lý AI mọi lúc, mọi nơi.
+                            </p>
+                            <span
+                                className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-bold text-base
+                                    bg-white text-slate-900 shadow-xl shadow-black/20
+                                    transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-white/20 group-active:scale-[0.98]"
+                            >
+                                Khám Phá Ứng Dụng Di Động <ArrowUpRight size={20} className="transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+                            </span>
+                        </div>
+                        <div className="flex-none relative z-10 transition-transform duration-300 group-hover:scale-105">
+                            <img
+                                src={mobileAppPreview}
+                                alt="Giao diện ứng dụng di động Money Manager"
+                                className="w-56 sm:w-72 lg:w-80 h-auto drop-shadow-2xl"
+                            />
+                        </div>
+                    </button>
+                </div>
+            </section>
+
+            {/* ═══════════════════════════════════════════════════════════════ */}
             {/*  Pricing Section                                                     */}
             {/* ═══════════════════════════════════════════════════════════════ */}
             <section id="pricing" className="py-16 sm:py-24 lg:py-32 scroll-mt-20 relative">
@@ -462,11 +515,14 @@ const LandingPage = () => {
                                 </div>
                                 <span className="px-4 py-1.5 rounded-full bg-white/20 text-white text-xs font-bold">Phổ biến</span>
                             </div>
-                            <h3 className="text-2xl font-bold text-white mb-2">Gói Cơ Bản</h3>
+                            <h3 className="text-2xl font-bold text-white mb-2">BASIC</h3>
                             <p className="text-white/90 text-sm font-medium mb-6">Theo dõi giao dịch hằng ngày</p>
-                            <div className="flex items-baseline gap-2 mb-8 pb-8 border-b border-white/20">
-                                <span className="text-5xl font-black text-white">2.000</span>
-                                <span className="text-white font-bold text-xl">VND</span>
+                            <div className="mb-8 pb-8 border-b border-white/20">
+                                <div className="flex items-baseline gap-2">
+                                    <span className="text-5xl font-black text-white">2.000</span>
+                                    <span className="text-white font-bold text-xl">VND</span>
+                                </div>
+                                <span className="text-white/70 text-sm font-semibold">/ tháng</span>
                             </div>
                             <ul className="space-y-4 mb-10">
                                 {['Theo dõi giao dịch hằng ngày', 'Phân tích tài chính cơ bản bằng AI', 'Báo cáo thu chi hàng tháng', 'Nhắc nhở thanh toán định kỳ'].map((f, i) => (
@@ -479,7 +535,7 @@ const LandingPage = () => {
                                 ))}
                             </ul>
                             <button onClick={() => navigate('/signup')} className="w-full py-4 rounded-2xl font-bold bg-white text-[#8b5cf6] hover:bg-slate-50 hover:shadow-xl hover:shadow-white/10 transition-all duration-300 active:scale-[0.98]">
-                                Bắt Đầu Gói Cơ Bản
+                                Bắt Đầu BASIC
                             </button>
                         </div>
 
@@ -493,11 +549,14 @@ const LandingPage = () => {
                                     <span className="px-4 py-1.5 rounded-full bg-amber-500/10 text-amber-500 text-xs font-bold">Nâng cao</span>
                                 </div>
                             </div>
-                            <h3 className="text-2xl font-bold text-white mb-2">Gói Premium</h3>
+                            <h3 className="text-2xl font-bold text-white mb-2">PREMIUM</h3>
                             <p className="text-slate-400 text-sm font-medium mb-6">Không giới hạn lịch sử giao dịch</p>
-                            <div className="flex items-baseline gap-2 mb-8 pb-8 border-b border-slate-700/50">
-                                <span className="text-5xl font-black text-white">299.000</span>
-                                <span className="text-white font-bold text-xl">VND</span>
+                            <div className="mb-8 pb-8 border-b border-slate-700/50">
+                                <div className="flex items-baseline gap-2">
+                                    <span className="text-5xl font-black text-white">299.000</span>
+                                    <span className="text-white font-bold text-xl">VND</span>
+                                </div>
+                                <span className="text-slate-400 text-sm font-semibold">/ 12 tháng</span>
                             </div>
                             <ul className="space-y-4 mb-10">
                                 {['Không giới hạn lịch sử giao dịch', 'Phân tích tài chính chuyên sâu bằng AI', 'Import hóa đơn bằng ảnh tự động', 'Xuất báo cáo Excel & PDF', 'Ưu tiên hỗ trợ kỹ thuật'].map((f, i) => (
@@ -510,7 +569,7 @@ const LandingPage = () => {
                                 ))}
                             </ul>
                             <button onClick={() => navigate('/signup')} className="w-full py-4 rounded-2xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-lg shadow-violet-600/15 hover:shadow-violet-600/30 border border-violet-500/10 transition-all duration-300 active:scale-[0.98]">
-                                Nâng Cấp Premium
+                                Nâng Cấp PREMIUM
                             </button>
                         </div>
                     </div>
