@@ -42,7 +42,9 @@
       "resend": "Gửi lại",
       "verifying": "Đang xác thực...",
       "verify": "Xác thực",
-      "noCode": "Không nhận được mã? "
+      "noCode": "Không nhận được mã? ",
+      "no": "Không",
+      "yes": "Có"
     },
     "login": {
       "authenticating": "MoneyManager đang xác thực",
@@ -116,6 +118,8 @@
       "resendFailed": "Gửi lại mã thất bại.",
       "checkEmailTitle": "Kiểm tra email của bạn",
       "checkEmailSubtitle": "Vui lòng nhập mã được gửi tới",
+      "cancelTitle": "Hủy đăng ký?",
+      "cancelMessage": "Thông tin tài khoản chưa xác thực thành công sẽ bị xóa. Bạn có muốn tiếp tục?",
       "resetTitle": "Xác thực OTP",
       "resetSubtitle": "Vui lòng nhập mã OTP được gửi tới",
       "resetInvalid": "Mã OTP không đúng hoặc đã hết hạn."

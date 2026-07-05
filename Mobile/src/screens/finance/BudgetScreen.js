@@ -37,21 +37,6 @@ export default function BudgetScreen() {
     [budget.onDelete]
   );
 
-  const renderHeader = useCallback(
-    () => (
-      <View>
-        <BudgetSummary summary={budget.summary} />
-        <BudgetForm budget={budget} />
-        {budget.budgets.length ? (
-          <View style={styles.listHeader}>
-            <Text style={[styles.listTitle, { color: colors.TEXT }]}>{t("finance.budget.listTitle")}</Text>
-          </View>
-        ) : null}
-      </View>
-    ),
-    [budget, colors, t]
-  );
-
   return (
     <View style={[styles.container, { backgroundColor: colors.BG, paddingTop: getSafeAreaTop(insets) }]}>
       <ScreenBackHeader title={t("finance.budget.title")} />
@@ -65,7 +50,17 @@ export default function BudgetScreen() {
           !budget.budgets.length && styles.listContentEmpty
         ]}
         refreshControl={<RefreshControl refreshing={budget.refreshing} onRefresh={budget.onRefresh} />}
-        ListHeaderComponent={renderHeader}
+        ListHeaderComponent={
+          <View>
+            <BudgetSummary summary={budget.summary} />
+            <BudgetForm budget={budget} />
+            {budget.budgets.length ? (
+              <View style={styles.listHeader}>
+                <Text style={[styles.listTitle, { color: colors.TEXT }]}>{t("finance.budget.listTitle")}</Text>
+              </View>
+            ) : null}
+          </View>
+        }
         ListEmptyComponent={<BudgetEmptyState colors={colors} />}
       />
     </View>

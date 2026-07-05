@@ -6,6 +6,7 @@
     "version": "1.5",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    
     "jsEngine": "hermes",
     "icon": "./src/assets/logo&banner/applogo.png",
     "splash": {

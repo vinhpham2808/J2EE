@@ -52,24 +52,7 @@ export default function SignupScreen() {
       return;
     }
 
-    setLoading(true);
-    try {
-      await apiClient.post(API_ENDPOINTS.REGISTER, {
-        email: normalizedEmail
-      });
-
-      navigation.navigate("VerifyOtp", { email: normalizedEmail });
-    } catch (error) {
-      if (isActivationRequiredError(error)) {
-        showActivationOption(getActivationEmail(error, normalizedEmail));
-        return;
-      }
-
-      const message = getApiErrorMessage(error, t("auth.signup.failedMessage"));
-      Alert.alert(t("auth.signup.failedTitle"), message);
-    } finally {
-      setLoading(false);
-    }
+    navigation.navigate("SetupProfile", { email: normalizedEmail });
   };
 
   return (

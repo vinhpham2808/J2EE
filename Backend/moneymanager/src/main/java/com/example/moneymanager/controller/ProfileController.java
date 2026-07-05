@@ -55,6 +55,12 @@ public class ProfileController {
         ));
     }
 
+    @PostMapping("/register/cancel")
+    public ResponseEntity<?> cancelRegistration(@RequestParam String email) {
+        profileService.cancelRegistration(email);
+        return ResponseEntity.ok(Map.of("message", "Đã huỷ đăng ký thành công."));
+    }
+
     @GetMapping("/complete-profile")
     public ResponseEntity<Map<String, String>> completeProfileDeprecated() {
         return ResponseEntity.status(HttpStatus.GONE).body(Map.of(

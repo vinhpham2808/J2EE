@@ -42,7 +42,9 @@
       "resend": "Resend",
       "verifying": "Verifying...",
       "verify": "Verify",
-      "noCode": "Didn't receive the code? "
+      "noCode": "Didn't receive the code? ",
+      "no": "No",
+      "yes": "Yes"
     },
     "login": {
       "authenticating": "MoneyManager is authenticating",
@@ -116,6 +118,8 @@
       "resendFailed": "Unable to resend code.",
       "checkEmailTitle": "Check your email",
       "checkEmailSubtitle": "Please enter the code sent to",
+      "cancelTitle": "Cancel registration?",
+      "cancelMessage": "Unverified account information will be deleted. Do you want to continue?",
       "resetTitle": "Verify OTP",
       "resetSubtitle": "Please enter the OTP code sent to",
       "resetInvalid": "OTP code is incorrect or expired."

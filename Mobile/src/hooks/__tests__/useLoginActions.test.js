@@ -19,6 +19,12 @@ jest.mock("@react-navigation/native", () => ({
   useNavigation: () => ({ navigate: jest.fn() }),
 }));
 
+jest.mock("../../services/authGoogleService", () => ({
+  signInWithGoogleNative: jest.fn(),
+  exchangeGoogleToken: jest.fn(),
+  signOutGoogle: jest.fn(),
+}));
+
 jest.mock("../../storage/tokenStorage", () => ({
   tokenStorage: {
     getRememberPreference: jest.fn().mockResolvedValue(false),
@@ -230,25 +236,12 @@ describe("useLoginActions", () => {
   });
 
   test("should show error when google sign-in fails", async () => {
-    const signInWithGoogle = jest.fn().mockRejectedValueOnce({
+    const { signInWithGoogleNative } = require("../../services/authGoogleService");
+    signInWithGoogleNative.mockRejectedValueOnce({
       response: { data: { message: "Google login failed" } },
     });
 
-    const { getByTestId } = render(
-      <AuthContext.Provider
-        value={{
-          user: null,
-          isBootstrapping: false,
-          signIn: signInMock,
-          signInWithGoogle,
-          googleAuthLoading: false,
-          signOut: jest.fn(),
-          refreshUser: jest.fn(),
-        }}
-      >
-        <LoginActionsHarness />
-      </AuthContext.Provider>
-    );
+    const { getByTestId } = setupComponent();
 
     fireEvent.press(getByTestId("google-button"));
 

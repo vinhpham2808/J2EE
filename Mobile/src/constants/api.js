@@ -12,6 +12,7 @@ export const API_ENDPOINTS = {
   // Auth
   LOGIN: "/login",
   REGISTER: "/register",
+  CANCEL_REGISTRATION: "/register/cancel",
   ACTIVATE: "/activate",
   VERIFY_OTP: "/verify-activation",
   RESEND_OTP: "/otp/resend",

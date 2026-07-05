@@ -42,35 +42,31 @@ export default function CategoryScreen() {
     [onDeleteCategory, onOpenEditCategory]
   );
 
-  const renderListHeader = useCallback(
-    () => (
-      <CategoryListHeader
-        canExpand={canExpandCategories}
-        hasCategories={Boolean(categories.length)}
-        onToggle={toggleCategories}
-        showAll={showAllCategories}
-      />
-    ),
-    [canExpandCategories, categories.length, showAllCategories, toggleCategories]
-  );
-
   return (
     <View style={[styles.container, { backgroundColor: colors.BG, paddingTop: getSafeAreaTop(insets) }]}> 
-      <CategoryForm
-        form={createForm}
-        onSave={onSave}
-        saveLabel={t("finance.category.addSave")}
-        subtitle={t("finance.category.addSubtitle")}
-        title={t("finance.category.addTitle")}
-      />
-
       <FlatList
         data={visibleCategories}
         keyExtractor={(item) => String(item?.id)}
         renderItem={renderCategory}
         contentContainerStyle={[styles.listContent, { paddingBottom: getSafeAreaBottom(insets) }]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        ListHeaderComponent={renderListHeader}
+        ListHeaderComponent={
+          <View>
+            <CategoryForm
+              form={createForm}
+              onSave={onSave}
+              saveLabel={t("finance.category.addSave")}
+              subtitle={t("finance.category.addSubtitle")}
+              title={t("finance.category.addTitle")}
+            />
+            <CategoryListHeader
+              canExpand={canExpandCategories}
+              hasCategories={Boolean(categories.length)}
+              onToggle={toggleCategories}
+              showAll={showAllCategories}
+            />
+          </View>
+        }
         ListEmptyComponent={<CategoryEmptyState colors={colors} />}
       />
 

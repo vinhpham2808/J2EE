@@ -39,14 +39,14 @@ const styles = StyleSheet.create({
   otpInput: {
     width: 48,
     height: 56,
-    backgroundColor: COLORS.DARK_INPUT_BG,
+    backgroundColor: "#FFFFFF", // Light background
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: COLORS.DARK_BORDER,
+    borderColor: "#E5E7EB", // Light border
     textAlign: "center",
     fontSize: 22,
     fontWeight: "700",
-    color: COLORS.DARK_TEXT,
+    color: "#1F2937", // Dark text color for readability
   },
   otpInputFilled: {
     borderColor: COLORS.PRIMARY,
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
   otpInputFocused: {
     borderColor: COLORS.PRIMARY,
     borderWidth: 2,
-    backgroundColor: COLORS.DARK_BG,
+    backgroundColor: "#FFFFFF", // Light background on focus
     shadowColor: COLORS.PRIMARY,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.25,

@@ -14,6 +14,7 @@ const publicEndpoints = [
   "/verify-reset-otp",
   "/reset-password",
   "/auth/google",
+  "/complete-profile",
   "/health"
 ];
 
